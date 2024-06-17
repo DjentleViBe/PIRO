@@ -1,7 +1,7 @@
 CC = /usr/bin/clang++
 
 # Compiler flags
-CFLAGS = -std=c++20 -Wall -g -Wno-deprecated
+CFLAGS = -std=c++23 -Wall -g -Wno-deprecated
 
 MAKEFILE_DIR := $(CURDIR)
 # Directories
