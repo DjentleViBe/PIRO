@@ -1,5 +1,6 @@
 #ifndef datatypes_hpp
 #define datatypes_hpp
+#include <vector>
 
 namespace Giro{
     class fvMatrix{
@@ -13,11 +14,44 @@ namespace Giro{
 
     };
 
-    class MeshParams{
+    class PointData{
+        public:
+            std::string Scalars;
+            std::vector<float> values;
+    };
+
+    class CellData{
+        public:
+            std::string Scalars;
+            std::vector<float> values;
+    };
+
+    class AMR{
+        public:
+            int WholeExtent[6];
+            int PieceExtent[6];
+            int Origin[3];
+            int Spacing[3];
+            std::vector<PointData> PD;
+            std::vector<CellData> CD;
+    };
+
+     class MeshParams{
         public:
             int meshtype;
-            int n[3];
-            int l[3];
+            int levels;
+            int scalarnum;
+            int vectornum;
+            int ICtype;
+            std::string ICfile;
+            std::vector<int> n;
+            std::vector<float> o;
+            std::vector<float> s;
+            std::vector<int> l;
+            std::vector<int> index;
+            std::vector<std::string> scalarlist;
+            std::vector<std::string> vectorlist;
+            std::vector<AMR> AMR;
     };
 };
 
