@@ -2,5 +2,6 @@
 #define postprocess_hpp
 
 int postprocess();
+void writevtk();
 
 #endif
