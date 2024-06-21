@@ -6,6 +6,9 @@
 #include "../dependencies/include/extras.hpp"
 #include "../dependencies/include/init.hpp"
 #include <mach-o/dyld.h>
+#include <numeric>
+#include <vector>
+
 int writefile(std::string file_path, std::string line_to_write){
     // Create an output file stream (ofstream) object
     std::ofstream outfile(file_path, std::ios::app);  // Open the file in append mode
@@ -57,3 +60,109 @@ int get_exec_directory(){
     }
     return 0;
 }
+
+std::vector<std::string> splitString(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::size_t start = 0, end = 0;
+
+    while ((end = str.find(delimiter, start)) != std::string::npos) {
+        tokens.push_back(str.substr(start, end - start));
+        start = end + 1;
+    }
+
+    tokens.push_back(str.substr(start));
+    return tokens;
+}
+
+std::vector<int> convertStringVectorToInt(const std::vector<std::string>& stringVector) {
+    std::vector<int> intVector;
+    
+    for (const std::string& str : stringVector) {
+        std::istringstream iss(str);
+        int num;
+        if (iss >> num) {
+            intVector.push_back(num);
+        } else {
+            // Handle error if conversion fails
+            std::cerr << "Error: Conversion failed for string '" << str << "'" << std::endl;
+            // You may choose to throw an exception or handle the error in another way
+        }
+    }
+    
+    return intVector;
+}
+
+std::vector<float> convertStringVectorToFloat(const std::vector<std::string>& stringVector) {
+    std::vector<float> intVector;
+    
+    for (const std::string& str : stringVector) {
+        std::istringstream iss(str);
+        float num;
+        if (iss >> num) {
+            intVector.push_back(num);
+        } else {
+            // Handle error if conversion fails
+            std::cerr << "Error: Conversion failed for string '" << str << "'" << std::endl;
+            // You may choose to throw an exception or handle the error in another way
+        }
+    }
+    
+    return intVector;
+}
+
+std::vector<std::string> floatVectorToString(const std::vector<float>& floatVector) {
+    std::vector<std::string> stringVector;
+
+    // Iterate through each float element and convert to string
+    for (float value : floatVector) {
+        // Convert float to string
+        std::ostringstream oss;
+        oss << value;
+        stringVector.push_back(oss.str());
+    }
+
+    return stringVector;
+}
+
+std::string concatenateStrings(const std::vector<std::string>& strVector) {
+    // Use std::accumulate to concatenate all strings in the vector
+    return std::accumulate(strVector.begin(), strVector.end(), std::string(""));
+}
+
+std::string concatenateStrings2(const std::vector<std::string>& strVector) {
+    // Use std::accumulate to concatenate all strings in the vector
+ 
+    return std::accumulate(strVector.begin(), strVector.end(), std::string(""),
+                           [](const std::string& acc, const std::string& str) {
+                               return acc.empty() ? str : acc + " " + str;
+                           });
+}
+
+int countSpaces(const std::string& str) {
+    int spaceCount = 0;
+
+    // Iterate through each character in the string
+    for (char ch : str) {
+        // Check if the character is a space
+        if (ch == ' ') {
+            spaceCount++;
+        }
+    }
+
+    return spaceCount;
+}
+
+/*
+void printMatrix(const vector<vector<float>>& matrix) {
+    int rows = matrix.size();
+    int cols = matrix[0].size();
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            std::cout << matrix[i][j] << "\t";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+*/
