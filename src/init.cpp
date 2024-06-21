@@ -17,5 +17,6 @@ void init(){
     }*/
     get_exec_directory();
     create_directory(current_path.string() + "/" + "mesh");
+    create_directory(current_path.string() + "/" + "mesh/level");
 
 }
