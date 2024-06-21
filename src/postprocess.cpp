@@ -4,6 +4,6 @@
 
 int postprocess() {
     std::cout << "This is the postprocess source" << std::endl;
-    writevtk();
+    writevth();
     return 0;
 }
