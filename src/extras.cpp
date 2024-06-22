@@ -152,8 +152,7 @@ int countSpaces(const std::string& str) {
     return spaceCount;
 }
 
-/*
-void printMatrix(const vector<vector<float>>& matrix) {
+void printMatrix(const std::vector<std::vector<float>>& matrix) {
     int rows = matrix.size();
     int cols = matrix[0].size();
 
@@ -165,4 +164,3 @@ void printMatrix(const vector<vector<float>>& matrix) {
     }
     std::cout << std::endl;
 }
-*/

@@ -14,6 +14,6 @@ std::vector<std::string> floatVectorToString(const std::vector<float>& floatVect
 std::string concatenateStrings(const std::vector<std::string>& strVector);
 int countSpaces(const std::string& str);
 std::string concatenateStrings2(const std::vector<std::string>& strVector);
-// void printMatrix(const vector<vector<float>>& matrix);
+void printMatrix(const std::vector<std::vector<float>>& matrix);
 
 #endif

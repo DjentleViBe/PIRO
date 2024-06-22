@@ -6,11 +6,12 @@
 #include "../dependencies/include/extras.hpp"
 
 Giro::MeshParams MP;
+Giro::SolveParams SP;
 
 std::vector<float> initialize(int type){
     std::vector<float> values;
     if(type == 0){
-        values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
+        values.assign(MP.n[0] * MP.n[1] * MP.n[2], 1.0);
     }
     return values;
 }
@@ -73,6 +74,12 @@ int preprocess() {
         MP.AMR[0].CD[i].values = initialize(MP.ICtype);
         std::cout << MP.AMR[0].CD[i].Scalars << std::endl;
     }
+
+    SP.delta[0] = MP.l[0] / MP.n[0];
+    SP.delta[1] = MP.l[1] / MP.n[1];
+    SP.delta[2] = MP.l[2] / MP.n[2];
+
+    SP.deltaT = std::stoi(reader.get("Solve", "Timestep", "default_value"));
     
     return 0;
 }

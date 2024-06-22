@@ -36,7 +36,7 @@ namespace Giro{
             std::vector<CellData> CD;
     };
 
-     class MeshParams{
+    class MeshParams{
         public:
             int meshtype;
             int levels;
@@ -53,6 +53,15 @@ namespace Giro{
             std::vector<std::string> vectorlist;
             std::vector<AMR> AMR;
     };
+
+    class SolveParams{
+        public:
+            int timestep;
+            int totaltime;
+            int delta[3];
+            int deltaT;
+    };
+        
 };
 
 #endif
