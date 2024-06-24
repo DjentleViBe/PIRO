@@ -59,7 +59,7 @@ namespace Giro{
             int timestep;
             int totaltime;
             int delta[3];
-            int deltaT;
+            float deltaT;
     };
         
 };
