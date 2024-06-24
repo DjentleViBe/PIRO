@@ -3,6 +3,7 @@
 
 #include "datatypes.hpp"
 #include "preprocess.hpp"
+#include <iostream>
 
 extern Giro::SolveParams SP;
 int solve();
@@ -28,9 +29,22 @@ namespace Giro{
                 return A;
             }
 
-            std::vector<std::vector<float>> laplacian(std::vector<float> U){
+            std::vector<std::vector<float>> ddc(std::string var, float value){
+                int ind = matchscalartovar(var);
+                int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
+                std::vector<std::vector<float>> A(n, std::vector<float>(n, 0.0));
+                for (int i = 0; i < n; ++i) {
+                    for (int j = 0; j < n; ++j) {
+                        A[i][j] = value;  // 1.0 or any other desired value
+                    }   
+                }   
+                return A;
+            }
+
+            std::vector<std::vector<float>> laplacian(std::string var){
+                int ind = matchscalartovar(var);
+                int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
                 // matrix ensemble
-                int n = std::cbrt(U.size());
                 // Initialize a 2D vector (matrix) of size n x n with zeros
                 std::vector<std::vector<float>> A(n, std::vector<float>(n, 0.0));
                 float subd = SP.deltaT / (SP.delta[0] * SP.delta[0]);
