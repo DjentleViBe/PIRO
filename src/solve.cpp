@@ -9,7 +9,8 @@ int solve(){
     // solve equations
     Giro::Solve solver;
     printMatrix(solver.ddt("P"));
+    printMatrix(solver.ddc("Alpha", 5.0));
+    printMatrix(solver.laplacian("V"));
     // update timestep
-    std::cout << "solve" << std::endl;
     return 0;
 }
