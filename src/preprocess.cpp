@@ -79,7 +79,7 @@ int preprocess() {
     SP.delta[1] = MP.l[1] / MP.n[1];
     SP.delta[2] = MP.l[2] / MP.n[2];
 
-    SP.deltaT = std::stoi(reader.get("Solve", "Timestep", "default_value"));
+    SP.deltaT = std::stof(reader.get("Solve", "Timestep", "default_value"));
     
     return 0;
 }
