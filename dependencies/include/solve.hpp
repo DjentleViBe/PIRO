@@ -49,7 +49,7 @@ namespace Giro{
                 std::vector<std::vector<float>> A(n, std::vector<float>(n, 0.0));
                 float subd = SP.deltaT / (SP.delta[0] * SP.delta[0]);
                 float supd = SP.deltaT / (SP.delta[0] * SP.delta[0]);
-                float d = -2.0 * SP.deltaT / (SP.delta[0] * SP.delta[0]);
+                float d = -6.0 * SP.deltaT / (SP.delta[0] * SP.delta[0]);
                 // Set the main diagonal (index 0)
                 for (int i = 0; i < n; ++i) {
                     A[i][i] = d;  // 1.0 or any other desired value
