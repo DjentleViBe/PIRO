@@ -11,8 +11,8 @@ int solve(){
     Giro::Solve solver;
     //printMatrix(solver.ddt("T"));
     //printMatrix(solver.ddc("Alpha", 5.0));
-    printMatrix(solver.laplacian("T"));
-    printMatrix(solver.ddt("T") + solver.ddc("Alpha", 5.0));
+    printMatrix(solver.ddt("T"));
+    printMatrix(solver.ddt("T") + solver.ddc("Alpha", 5.0) / solver.ddc("Alpha", 5.0));
     // update timestep
     return 0;
 }
