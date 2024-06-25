@@ -164,3 +164,10 @@ void printMatrix(const std::vector<std::vector<float>>& matrix) {
     }
     std::cout << std::endl;
 }
+
+void printVector(const std::vector<float>& vec){
+    for (int i = 0; i < vec.size(); ++i) {
+        std::cout << vec[i] << " ";
+    }
+    std::cout << std::endl;
+}
