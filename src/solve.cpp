@@ -9,11 +9,6 @@ int solve(){
 
     // solve equations
     Giro::Solve solver;
-    //printMatrix(solver.ddt("T"));
-    //printMatrix(solver.ddc("Alpha", 5.0));
-    //printVector(solver.ddt_r("T"));
-    //printMatrix(solver.ddc("Alpha", 1.0) * solver.laplacian("T"));
-    //printVector(solver.ddc_r("Alpha", 1.0) * solver.laplacian_r("T"));
     printVector(solver.ddt_r("T") - solver.ddc_r("Alpha", 1.0) * solver.laplacian_r("T"));
     // update timestep
     return 0;
