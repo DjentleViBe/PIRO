@@ -86,6 +86,45 @@ namespace Giro{
                     return result;
                 }
 
+                std::vector<float> subtractVectors(const std::vector<float> &v1, const std::vector<float> &v2) {
+                    if (v1.size() != v2.size()) {
+                        throw std::invalid_argument("Vectors must be of the same size");
+                    }
+
+                    std::vector<float> result(v1.size());
+                    for (size_t i = 0; i < v1.size(); ++i) {
+                        result[i] = v1[i] + v2[i];
+                    }
+
+                    return result;
+                }
+
+                std::vector<float> multiplyVectors(const std::vector<float> &v1, const std::vector<float> &v2) {
+                    if (v1.size() != v2.size()) {
+                        throw std::invalid_argument("Vectors must be of the same size");
+                    }
+
+                    std::vector<float> result(v1.size());
+                    for (size_t i = 0; i < v1.size(); ++i) {
+                        result[i] = v1[i] * v2[i];
+                    }
+
+                    return result;
+                }
+
+                std::vector<float> divideVectors(const std::vector<float> &v1, const std::vector<float> &v2) {
+                    if (v1.size() != v2.size()) {
+                        throw std::invalid_argument("Vectors must be of the same size");
+                    }
+
+                    std::vector<float> result(v1.size());
+                    for (size_t i = 0; i < v1.size(); ++i) {
+                        result[i] = v1[i] / v2[i];
+                    }
+
+                    return result;
+                }
+
                 // Function to add two 2D matrices
                 std::vector<std::vector<float>> addMatrices(const std::vector<std::vector<float>>& matrix1, 
                                                             const std::vector<std::vector<float>>& matrix2) {
@@ -103,8 +142,64 @@ namespace Giro{
                             result[i][j] = matrix1[i][j] + matrix2[i][j];
                         }
                     }
-
                     return result;
+                }
+
+                std::vector<std::vector<float>> subtractMatrices(const std::vector<std::vector<float>>& matrix1, 
+                                                            const std::vector<std::vector<float>>& matrix2) {
+                    // Check if matrices have the same dimensions
+                    if (matrix1.size() != matrix2.size() || matrix1[0].size() != matrix2[0].size()) {
+                        throw std::invalid_argument("Matrices must have the same dimensions for addition.");
+                    }
+
+                    // Initialize result matrix with dimensions of matrix1
+                    std::vector<std::vector<float>> result(matrix1.size(), std::vector<float>(matrix1[0].size(), 0.0));
+
+                    // Perform matrix addition
+                    for (size_t i = 0; i < matrix1.size(); ++i) {
+                        for (size_t j = 0; j < matrix1[0].size(); ++j) {
+                            result[i][j] = matrix1[i][j] - matrix2[i][j];
+                        }
+                    }
+                    return result;
+                }
+
+                std::vector<std::vector<float>> multiplyMatrices(const std::vector<std::vector<float>>& matrix1, 
+                                                        const std::vector<std::vector<float>>& matrix2) {
+                    // Check if matrices have the same dimensions
+                    if (matrix1.size() != matrix2.size() || matrix1[0].size() != matrix2[0].size()) {
+                        throw std::invalid_argument("Matrices must have the same dimensions for addition.");
+                    }
+
+                    // Initialize result matrix with dimensions of matrix1
+                    std::vector<std::vector<float>> result(matrix1.size(), std::vector<float>(matrix1[0].size(), 0.0));
+
+                    // Perform matrix addition
+                    for (size_t i = 0; i < matrix1.size(); ++i) {
+                        for (size_t j = 0; j < matrix1[0].size(); ++j) {
+                            result[i][j] = matrix1[i][j] * matrix2[i][j];
+                        }
+                    }
+                    return result;
+                }
+
+                std::vector<std::vector<float>> divideMatrices(const std::vector<std::vector<float>>& matrix1, 
+                                                            const std::vector<std::vector<float>>& matrix2) {
+                    // Check if matrices have the same dimensions
+                    if (matrix1.size() != matrix2.size() || matrix1[0].size() != matrix2[0].size()) {
+                        throw std::invalid_argument("Matrices must have the same dimensions for addition.");
+                    }
+
+                    // Initialize result matrix with dimensions of matrix1
+                    std::vector<std::vector<float>> result(matrix1.size(), std::vector<float>(matrix1[0].size(), 0.0));
+
+                    // Perform matrix addition
+                    for (size_t i = 0; i < matrix1.size(); ++i) {
+                        for (size_t j = 0; j < matrix1[0].size(); ++j) {
+                            result[i][j] = matrix1[i][j] / matrix2[i][j];
+                        }
+                    }
+                return result;
                 }
         };
 };
