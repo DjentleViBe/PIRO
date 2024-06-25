@@ -194,7 +194,7 @@ namespace Giro{
                 int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
                 std::vector<std::vector<float>> A(n*n*n, std::vector<float>(n*n*n, 0.0));
                 for (int i = 0; i < n*n*n; ++i) {
-                    A[i][i] = MP.AMR[0].CD[ind].values[n * i];  // 1.0 or any other desired value
+                    A[i][i] = MP.AMR[0].CD[ind].values[i];  // 1.0 or any other desired value
                 }
                 return A;
             }
@@ -202,9 +202,11 @@ namespace Giro{
             std::vector<float> ddt_r(std::string var){
                 int ind = matchscalartovar(var);
                 int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
+                
                 std::vector<float>A (n*n*n, 0.0);
-                for (int i = 0; i < n*n*n; ++i) {
-                    A[i] = MP.AMR[0].CD[ind].values[n * i];  // 1.0 or any other desired value
+                for (int i = 0; i < n*n*n; i++) {
+                    A[i] = MP.AMR[0].CD[ind].values[i];  // 1.0 or any other desired value
+                    //std::cout << A[i] << " ";
                 }
                 return A;
             }
