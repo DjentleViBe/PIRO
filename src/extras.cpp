@@ -158,7 +158,7 @@ void printMatrix(const std::vector<std::vector<float>>& matrix) {
 
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
-            std::cout << matrix[i][j] << "\t";
+            std::cout << matrix[i][j] << " ";
         }
         std::cout << std::endl;
     }
