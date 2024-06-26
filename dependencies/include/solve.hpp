@@ -262,30 +262,11 @@ namespace Giro{
 
             std::vector<float> laplacian_r(std::string var){
                 int ind = matchscalartovar(var);
-                int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
                 std::vector<float> prop = MP.AMR[0].CD[ind].values;
                 // matrix ensemble
                 // Initialize a 2D vector (matrix) of size n x n with zeros
-                std::vector<std::vector<float>> A(n*n*n, std::vector<float>(n*n*n, 0.0));
-                float subd = SP.deltaT / (SP.delta[0] * SP.delta[0]);
-                float supd = SP.deltaT / (SP.delta[0] * SP.delta[0]);
-                float d = -6.0 * SP.deltaT / (SP.delta[0] * SP.delta[0]);
-                // Set the main diagonal (index 0)
-                for (int i = 0; i < n*n*n; ++i) {
-                    A[i][i] = d;  // 1.0 or any other desired value
-                }
-
-                // Set the subdiagonal (index -1)
-                for (int i = 1; i < n*n*n; ++i) {
-                    A[i][i - 1] = subd;  // -1.0 or any other desired value
-                }
-
-                // Set the superdiagonal (index +1)
-                for (int i = 0; i < n*n*n - 1; ++i) {
-                    A[i][i + 1] = supd;  // -1.0 or any other desired value
-                }
                 MathOperations dM;
-                return dM.dotMatrices(A, prop);
+                return dM.dotMatrices(scalapmatrix, prop);
             }
 
         };
