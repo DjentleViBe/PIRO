@@ -9,7 +9,7 @@ int solve(){
 
     // solve equations
     Giro::Solve solver;
-    printVector(solver.ddt_r("T") - solver.ddc_r("Alpha", 1.0) * solver.laplacian_r("T"));
+    MP.AMR[0].CD[0].values = solver.ddt_r("T") - solver.ddc_r("Alpha", 1.0) * solver.laplacian_r("T");
     // update timestep
     return 0;
 }
