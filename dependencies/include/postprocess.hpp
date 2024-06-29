@@ -1,7 +1,10 @@
 #ifndef postprocess_hpp
 #define postprocess_hpp
 
-int postprocess();
+void postprocess();
+
+template<typename T, typename... Args>
+void postprocess(T first, Args... args);
 void writevth();
 
 #endif
