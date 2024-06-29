@@ -4,6 +4,7 @@
 #include "../dependencies/include/inireader.hpp"
 #include "../dependencies/include/extras.hpp"
 #include "../dependencies/include/bc.hpp"
+#include "../dependencies/include/solve.hpp"
 
 void initbc(){
     std::vector<int> BC_type;
@@ -49,13 +50,14 @@ void initbc(){
 
     IniReader reader("setup.ini");
     BC_type = convertStringVectorToInt(splitString(reader.get("BC", "type", "default_value"), ' '));
-    BC_property = splitString(reader.get("BC", "type", "default_value"), ' ');
+    BC_property = splitString(reader.get("BC", "property", "default_value"), ' ');
     BC_value = convertStringVectorToFloat(splitString(reader.get("BC", "values", "default_value"), ' '));
-    
+    Giro::Solve GS;
     for (int ind = 0; ind < 6; ind++){
         for(int faces = 0; faces < indices[ind].size(); faces++){
+            int msv = GS.matchscalartovar(BC_property[ind]);
             //std::cout << indices[ind][faces] << " ";
-            MP.AMR[0].CD[0].values[indices[ind][faces]] = BC_value[ind];
+            MP.AMR[0].CD[msv].values[indices[ind][faces]] = BC_value[ind];
         }
         //std::cout << std::endl;
     }
