@@ -11,8 +11,8 @@
 
 int writefile(std::string file_path, std::string line_to_write){
     // Create an output file stream (ofstream) object
-    std::ofstream outfile(file_path, std::ios::app);  // Open the file in append mode
-
+    //std::ofstream outfile(file_path, std::ios::app);  // Open the file in append mode
+    std::ofstream outfile(file_path);
     // Check if the file is open
     if (outfile.is_open()) {
         // Write the line to the file
@@ -153,6 +153,19 @@ int countSpaces(const std::string& str) {
 }
 
 void printMatrix(const std::vector<std::vector<float>>& matrix) {
+    int rows = matrix.size();
+    int cols = matrix[0].size();
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            std::cout << matrix[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+void printMatrix(const std::vector<std::vector<int>>& matrix) {
     int rows = matrix.size();
     int cols = matrix[0].size();
 
