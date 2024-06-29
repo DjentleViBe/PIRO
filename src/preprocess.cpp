@@ -73,7 +73,7 @@ int preprocess() {
         CD.Scalars = MP.vectorlist[i];
         MP.AMR[0].CD.push_back(CD);
         MP.AMR[0].CD[i].values = initialize(MP.ICtype);
-        std::cout << MP.AMR[0].CD[i].Scalars << std::endl;
+        // std::cout << MP.AMR[0].CD[i].Scalars << std::endl;
     }
 
     SP.delta[0] = MP.l[0] / MP.n[0];
