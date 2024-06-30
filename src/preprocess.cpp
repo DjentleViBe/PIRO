@@ -12,7 +12,7 @@ std::vector<std::vector<float>> scadivmatrix, vecdivmatrix, scalapmatrix, veclap
 std::vector<float> initialize(int type){
     std::vector<float> values;
     if(type == 0){
-        values.assign(MP.n[0] * MP.n[1] * MP.n[2], 1.0);
+        values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
     }
     return values;
 }
