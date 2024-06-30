@@ -4,6 +4,7 @@
 #include "../dependencies/include/inireader.hpp"
 #include "../dependencies/include/datatypes.hpp"
 #include "../dependencies/include/extras.hpp"
+#include "../dependencies/include/bc.hpp"
 
 Giro::MeshParams MP;
 Giro::SolveParams SP;
@@ -120,6 +121,8 @@ int preprocess() {
         scalapmatrix[i][i + 1] = supd;  // -1.0 or any other desired value
         veclapmatrix[i][i + 1] = supd; 
     }
-    
+
+    readbc();
+
     return 0;
 }
