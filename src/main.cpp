@@ -8,8 +8,7 @@ int main()
 {	
 	init();
 	preprocess();
-	readbc();
-	//solve();
+	solve();
 	postprocess("T");
 	return 0;
 }
