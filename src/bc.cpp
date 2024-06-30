@@ -13,34 +13,33 @@ void initbc(){
     std::vector<std::vector<int>> indices(6, std::vector<int>());
 
     for(int ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
-        int id = ind / (MP.n[0] * MP.n[1]);
+        int kd = ind / (MP.n[1] * MP.n[2]);
         int jd = (ind % (MP.n[0] * MP.n[1])) / MP.n[2];
-        int kd = ind % MP.n[2];
+        int id = ind % MP.n[0];
 
-
-        if(jd == 0){
+        if(jd == 0 && (id != 0 && id != MP.n[0] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
             // 3 : XZ plane
             indices[3].push_back(ind);
         }
-        else if(jd == MP.n[1] - 1){
+        else if(jd == MP.n[1] - 1 && (id != 0 && id != MP.n[0] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
             // 2 : XZ plane + breadth
             indices[2].push_back(ind);
         }
-
-        if(id == 0){
+        
+        if(kd == 0 && (id != 0 && id != MP.n[1] - 1) && (jd != 0 && jd != MP.n[1] - 1)){
             // 4 : XY plane 
             indices[4].push_back(ind);
         }
-        else if(id == MP.n[2] - 1){
+        else if(kd == MP.n[2] - 1 && (id != 0 && id != MP.n[0] - 1) && (jd != 0 && jd != MP.n[1] - 1)){
             // 5 : XY plane + height
             indices[5].push_back(ind);
         }
 
-        if(kd == 0){
+        if(id == 0 && (jd != 0 && jd != MP.n[1] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
             // 1 : YZ plane
             indices[1].push_back(ind);
         }
-        else if(kd == MP.n[0] - 1){
+        else if(id == MP.n[0] - 1 && (jd != 0 && jd != MP.n[1] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
             // 0 : YZ plane + length
             indices[0].push_back(ind);
         }
