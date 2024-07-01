@@ -10,14 +10,25 @@ std::vector<std::vector<int>> indices(6, std::vector<int>());
 std::vector<std::string> BC_property;
 std::vector<float> BC_value;
 
+void setbc(){
+    Giro::Solve GS;
+    for (int ind = 0; ind < 6; ind++){
+        for(int faces = 0; faces < indices[ind].size(); faces++){
+            int msv = GS.matchscalartovar(BC_property[ind]);
+            MP.AMR[0].CD[msv].values[indices[ind][faces]] = BC_value[ind];
+        }
+    }
+}
+
 void initbc(){
+    std::cout << "Initialising boundary conditions" << std::endl;
     std::vector<int> BC_type;
     
     for(int ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
-        int kd = ind / (MP.n[1] * MP.n[2]);
-        int jd = (ind % (MP.n[0] * MP.n[1])) / MP.n[2];
+        int kd = ind / (MP.n[1] * MP.n[0]);
+        int jd = (ind % (MP.n[1] * MP.n[0])) / MP.n[0];
         int id = ind % MP.n[0];
-
+        
         if(jd == 0 && (id != 0 && id != MP.n[0] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
             // 3 : XZ plane
             indices[3].push_back(ind);
@@ -27,7 +38,7 @@ void initbc(){
             indices[2].push_back(ind);
         }
         
-        if(kd == 0 && (id != 0 && id != MP.n[1] - 1) && (jd != 0 && jd != MP.n[1] - 1)){
+        if(kd == 0 && (id != 0 && id != MP.n[0] - 1) && (jd != 0 && jd != MP.n[1] - 1)){
             // 4 : XY plane 
             indices[4].push_back(ind);
         }
@@ -50,31 +61,16 @@ void initbc(){
     BC_type = convertStringVectorToInt(splitString(reader.get("BC", "type", "default_value"), ' '));
     BC_property = splitString(reader.get("BC", "property", "default_value"), ' ');
     BC_value = convertStringVectorToFloat(splitString(reader.get("BC", "values", "default_value"), ' '));
-    Giro::Solve GS;
-    for (int ind = 0; ind < 6; ind++){
-        for(int faces = 0; faces < indices[ind].size(); faces++){
-            int msv = GS.matchscalartovar(BC_property[ind]);
-            MP.AMR[0].CD[msv].values[indices[ind][faces]] = BC_value[ind];
-        }
-    }
+    setbc();
+    std::cout << "Boundary conditions initialised" << std::endl;
 }
 
 void readbc(){
-    std::cout << "Read boundary conditions input" << std::endl;
+    std::cout << "Reading boundary conditions" << std::endl;
     IniReader reader("setup.ini");
 
     if(countSpaces(reader.get("BC", "type", "default_value")) > 1){
         initbc();
     }
 
-}
-
-void setbc(){
-    Giro::Solve GS;
-    for (int ind = 0; ind < 6; ind++){
-        for(int faces = 0; faces < indices[ind].size(); faces++){
-            int msv = GS.matchscalartovar(BC_property[ind]);
-            MP.AMR[0].CD[msv].values[indices[ind][faces]] = BC_value[ind];
-        }
-    }
 }
