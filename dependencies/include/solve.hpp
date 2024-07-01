@@ -12,7 +12,7 @@ namespace Giro{
         public:
             std::vector<float> addVectors(const std::vector<float> &v1, const std::vector<float> &v2) {
                 if (v1.size() != v2.size()) {
-                    throw std::invalid_argument("Vectors must be of the same size");
+                    throw std::invalid_argument("Added vectors must be of the same size");
                 }
 
                 std::vector<float> result(v1.size());
@@ -25,7 +25,7 @@ namespace Giro{
 
             std::vector<float> subtractVectors(const std::vector<float> &v1, const std::vector<float> &v2) {
                 if (v1.size() != v2.size()) {
-                    throw std::invalid_argument("Vectors must be of the same size");
+                    throw std::invalid_argument("Subtracted vectors must be of the same size");
                 }
 
                 std::vector<float> result(v1.size());
@@ -38,7 +38,7 @@ namespace Giro{
 
             std::vector<float> multiplyVectors(const std::vector<float> &v1, const std::vector<float> &v2) {
                 if (v1.size() != v2.size()) {
-                    throw std::invalid_argument("Vectors must be of the same size");
+                    throw std::invalid_argument("Multiplied vectors must be of the same size");
                 }
 
                 std::vector<float> result(v1.size());
@@ -51,7 +51,7 @@ namespace Giro{
 
             std::vector<float> divideVectors(const std::vector<float> &v1, const std::vector<float> &v2) {
                 if (v1.size() != v2.size()) {
-                    throw std::invalid_argument("Vectors must be of the same size");
+                    throw std::invalid_argument("Divided vectors must be of the same size");
                 }
 
                 std::vector<float> result(v1.size());
@@ -191,9 +191,9 @@ namespace Giro{
 
             std::vector<std::vector<float>> ddt(std::string var){
                 int ind = matchscalartovar(var);
-                int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
-                std::vector<std::vector<float>> A(n*n*n, std::vector<float>(n*n*n, 0.0));
-                for (int i = 0; i < n*n*n; ++i) {
+                // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
+                std::vector<std::vector<float>> A(MP.n[0] * MP.n[1] * MP.n[2], std::vector<float>(MP.n[0] * MP.n[1] * MP.n[2], 0.0));
+                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
                     A[i][i] = MP.AMR[0].CD[ind].values[i];  // 1.0 or any other desired value
                 }
                 return A;
@@ -201,10 +201,10 @@ namespace Giro{
 
             std::vector<float> ddt_r(std::string var){
                 int ind = matchscalartovar(var);
-                int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
+                // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
                 
-                std::vector<float>A (n*n*n, 0.0);
-                for (int i = 0; i < n*n*n; i++) {
+                std::vector<float>A (MP.n[0] * MP.n[1] * MP.n[2], 0.0);
+                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; i++) {
                     A[i] = MP.AMR[0].CD[ind].values[i];  // 1.0 or any other desired value
                     //std::cout << A[i] << " ";
                 }
@@ -212,11 +212,11 @@ namespace Giro{
             }
 
             std::vector<std::vector<float>> ddc(std::string var, float value){
-                int ind = matchscalartovar(var);
-                int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
-                std::vector<std::vector<float>> A(n*n*n, std::vector<float>(n*n*n, 0.0));
-                for (int i = 0; i < n*n*n; ++i) {
-                    for (int j = 0; j < n*n*n; ++j) {
+                // int ind = matchscalartovar(var);
+                // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
+                std::vector<std::vector<float>> A(MP.n[0] * MP.n[1] * MP.n[2], std::vector<float>(MP.n[0] * MP.n[1] * MP.n[2], 0.0));
+                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
+                    for (int j = 0; j < MP.n[0] * MP.n[1] * MP.n[2]; ++j) {
                         A[i][j] = value;  // 1.0 or any other desired value
                     }   
                 }   
@@ -224,36 +224,36 @@ namespace Giro{
             }
 
             std::vector<float> ddc_r(std::string var, float value){
-                int ind = matchscalartovar(var);
-                int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
-                std::vector<float>A(n*n*n, 0.0);
-                for (int i = 0; i < n*n*n; ++i) {
+                // int ind = matchscalartovar(var);
+                // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
+                std::vector<float>A(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
+                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
                         A[i] = value;  // 1.0 or any other desired value
                 }   
                 return A;
             }
 
             std::vector<std::vector<float>> laplacian(std::string var){
-                int ind = matchscalartovar(var);
-                int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
+                // int ind = matchscalartovar(var);
+                // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
                 // matrix ensemble
                 // Initialize a 2D vector (matrix) of size n x n with zeros
-                std::vector<std::vector<float>> A(n*n*n, std::vector<float>(n*n*n, 0.0));
+                std::vector<std::vector<float>> A(MP.n[0] * MP.n[1] * MP.n[2], std::vector<float>(MP.n[0] * MP.n[1] * MP.n[2], 0.0));
                 float subd = SP.deltaT / (SP.delta[0] * SP.delta[0]);
                 float supd = SP.deltaT / (SP.delta[0] * SP.delta[0]);
                 float d = -6.0 * SP.deltaT / (SP.delta[0] * SP.delta[0]);
                 // Set the main diagonal (index 0)
-                for (int i = 0; i < n*n*n; ++i) {
+                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
                     A[i][i] = d;  // 1.0 or any other desired value
                 }
 
                 // Set the subdiagonal (index -1)
-                for (int i = 1; i < n*n*n; ++i) {
+                for (int i = 1; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
                     A[i][i - 1] = subd;  // -1.0 or any other desired value
                 }
 
                 // Set the superdiagonal (index +1)
-                for (int i = 0; i < n*n*n - 1; ++i) {
+                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2] - 1; ++i) {
                     A[i][i + 1] = supd;  // -1.0 or any other desired value
                 }
 
