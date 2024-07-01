@@ -19,7 +19,7 @@ std::vector<float> initialize(int type){
 }
 
 int preprocess() {
-    std::cout << "This is the preprocess source" << std::endl;
+    std::cout << "Preprocess step initiated" << std::endl;
 
     IniReader reader("setup.ini");
     // Print all sections and key-value pairs
