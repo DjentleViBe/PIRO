@@ -47,7 +47,7 @@ namespace Giro{
             std::vector<int> n;
             std::vector<float> o;
             std::vector<float> s;
-            std::vector<int> l;
+            std::vector<float> l;
             std::vector<int> index;
             std::vector<std::string> scalarlist;
             std::vector<std::string> vectorlist;
@@ -56,10 +56,11 @@ namespace Giro{
 
     class SolveParams{
         public:
-            int timestep;
-            int totaltime;
-            int delta[3];
+            float timestep;
+            float totaltime;
+            float delta[3];
             float deltaT;
+            int totaltimesteps;
     };
         
 };

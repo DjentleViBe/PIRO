@@ -8,9 +8,12 @@ int solve(){
     std::cout << "Solving . . ." << std::endl;
     // solve equations
     Giro::Solve solver;
-    MP.AMR[0].CD[0].values = solver.ddt_r("T") - solver.ddc_r("Alpha", 1.0) * solver.laplacian_r("T");
-    // apply boundary conditions
-    setbc();
-    // update timestep
+    float time = 0.0;
+    while(time < SP.totaltime){
+        Giro::scalarMatrix UEqn(solver.ddt_r("T") + solver.ddc_r("Alpha", 1.0) * solver.laplacian_r("T"));        
+        UEqn.Solve(time);
+        time += SP.timestep;
+    }
+    
     return 0;
 }

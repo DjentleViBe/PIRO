@@ -9,9 +9,9 @@
 std::vector<std::vector<int>> indices(6, std::vector<int>());
 std::vector<std::string> BC_property;
 std::vector<float> BC_value;
+Giro::Solve GS;
 
 void setbc(){
-    Giro::Solve GS;
     for (int ind = 0; ind < 6; ind++){
         for(int faces = 0; faces < indices[ind].size(); faces++){
             int msv = GS.matchscalartovar(BC_property[ind]);

@@ -3,6 +3,8 @@
 
 #include "datatypes.hpp"
 #include "preprocess.hpp"
+#include "bc.hpp"
+#include "extras.hpp"
 #include <iostream>
 
 extern Giro::SolveParams SP;
@@ -179,7 +181,6 @@ namespace Giro{
 
     class Solve{
         public:
-
             int matchscalartovar(std::string var){
                     for(int v = 0; v < MP.AMR[0].CD.size(); v++){
                         if(var == MP.AMR[0].CD[v].Scalars){
@@ -188,16 +189,6 @@ namespace Giro{
                     }
                     return 0;
                 }
-
-            std::vector<std::vector<float>> ddt(std::string var){
-                int ind = matchscalartovar(var);
-                // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
-                std::vector<std::vector<float>> A(MP.n[0] * MP.n[1] * MP.n[2], std::vector<float>(MP.n[0] * MP.n[1] * MP.n[2], 0.0));
-                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
-                    A[i][i] = MP.AMR[0].CD[ind].values[i];  // 1.0 or any other desired value
-                }
-                return A;
-            }
 
             std::vector<float> ddt_r(std::string var){
                 int ind = matchscalartovar(var);
@@ -211,18 +202,6 @@ namespace Giro{
                 return A;
             }
 
-            std::vector<std::vector<float>> ddc(std::string var, float value){
-                // int ind = matchscalartovar(var);
-                // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
-                std::vector<std::vector<float>> A(MP.n[0] * MP.n[1] * MP.n[2], std::vector<float>(MP.n[0] * MP.n[1] * MP.n[2], 0.0));
-                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
-                    for (int j = 0; j < MP.n[0] * MP.n[1] * MP.n[2]; ++j) {
-                        A[i][j] = value;  // 1.0 or any other desired value
-                    }   
-                }   
-                return A;
-            }
-
             std::vector<float> ddc_r(std::string var, float value){
                 // int ind = matchscalartovar(var);
                 // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
@@ -230,33 +209,6 @@ namespace Giro{
                 for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
                         A[i] = value;  // 1.0 or any other desired value
                 }   
-                return A;
-            }
-
-            std::vector<std::vector<float>> laplacian(std::string var){
-                // int ind = matchscalartovar(var);
-                // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
-                // matrix ensemble
-                // Initialize a 2D vector (matrix) of size n x n with zeros
-                std::vector<std::vector<float>> A(MP.n[0] * MP.n[1] * MP.n[2], std::vector<float>(MP.n[0] * MP.n[1] * MP.n[2], 0.0));
-                float subd = SP.deltaT / (SP.delta[0] * SP.delta[0]);
-                float supd = SP.deltaT / (SP.delta[0] * SP.delta[0]);
-                float d = -6.0 * SP.deltaT / (SP.delta[0] * SP.delta[0]);
-                // Set the main diagonal (index 0)
-                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
-                    A[i][i] = d;  // 1.0 or any other desired value
-                }
-
-                // Set the subdiagonal (index -1)
-                for (int i = 1; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
-                    A[i][i - 1] = subd;  // -1.0 or any other desired value
-                }
-
-                // Set the superdiagonal (index +1)
-                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2] - 1; ++i) {
-                    A[i][i + 1] = supd;  // -1.0 or any other desired value
-                }
-
                 return A;
             }
 
@@ -271,6 +223,22 @@ namespace Giro{
 
         };
 
+        class scalarMatrix{
+            private:
+                std::vector<float> smatrix;
+            public:
+                scalarMatrix(std::vector<float> SM){
+                    smatrix = SM;
+                }
+
+                void Solve(float currenttime){
+                    std::cout << "Timestep : " << int(currenttime / SP.timestep)  << " / " << SP.totaltimesteps << std::endl;
+                    // assign variables
+                    MP.AMR[0].CD[0].values = smatrix;
+                    // apply Boundary Conditions
+                    setbc();
+                }
+        };
         
 };
 

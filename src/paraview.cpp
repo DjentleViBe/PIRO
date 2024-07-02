@@ -39,7 +39,7 @@ std::string writevti(Giro::AMR AMR){
     level += "<CellData>\n";
     
     for(int l = 0; l < AMR.CD.size() - 1; l++){
-        level.append("<DataArray type=\"Float32\" Name=\"");
+        level.append("<DataArray type=\"Float64\" Name=\"");
         level.append(AMR.CD[l].Scalars);
         level.append("\" format=\"ascii\">\n");
         level.append(concatenateStrings2(floatVectorToString(AMR.CD[l].values)));
@@ -63,11 +63,11 @@ void writevth(){
         for(int j = 0; j < MP.index[i]; j++){
             vtkfile += "<Block level=\""+ std::to_string(i) +"\" spacing=\"1 1 1\">\n";
             vtkfile += "<DataSet index=\"0\" ";
-            vtkfile += "amr_box=\"0 " + std::to_string(MP.l[0]) + " " +
+            vtkfile += "amr_box=\"0 " + std::to_string(MP.n[0]) + " " +
                         std::to_string(0) + " " +
-                        std::to_string(MP.l[1]) + " " +
+                        std::to_string(MP.n[1]) + " " +
                         std::to_string(0) + " " +
-                        std::to_string(MP.l[2]) + "\" ";
+                        std::to_string(MP.n[2]) + "\" ";
             vtkfile += "file=\"level/level_" + std::to_string(j) + ".vti\">\n";
             vtkfile += "</DataSet>\n";
             writefile(current_path.string() + "/mesh/level/level_" + std::to_string(j) + ".vti", writevti(MP.AMR[j]));
