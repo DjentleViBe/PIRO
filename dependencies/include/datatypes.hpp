@@ -49,6 +49,8 @@ namespace Giro{
             std::vector<float> s;
             std::vector<float> l;
             std::vector<int> index;
+            std::vector<std::string> constantslist;
+            std::vector<float> constantsvalues;
             std::vector<std::string> scalarlist;
             std::vector<std::string> vectorlist;
             std::vector<AMR> AMR;

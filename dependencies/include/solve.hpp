@@ -202,12 +202,12 @@ namespace Giro{
                 return A;
             }
 
-            std::vector<float> ddc_r(std::string var, float value){
-                // int ind = matchscalartovar(var);
+            std::vector<float> ddc_r(std::string var){
+                int ind = matchscalartovar(var);
                 // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
                 std::vector<float>A(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
                 for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
-                        A[i] = value;  // 1.0 or any other desired value
+                        A[i] = MP.constantsvalues[ind];  // 1.0 or any other desired value
                 }   
                 return A;
             }
