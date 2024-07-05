@@ -20,8 +20,7 @@ int writefile(std::string file_path, std::string line_to_write){
 
         // Close the file stream
         outfile.close();
-        std::cout << "Line written to file successfully" << std::endl;
-        // std::cout << "Line written to file successfully." << std::endl;
+        // std::cout << "Line written to file successfully" << std::endl;
     } else {
         std::cout << "Filed to open the file" << std::endl;
         // std::cerr << "Failed to open the file." << std::endl;
