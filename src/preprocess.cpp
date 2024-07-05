@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "../dependencies/include/preprocess.hpp"
+#include "../dependencies/include/init.hpp"
 #include "../dependencies/include/inireader.hpp"
 #include "../dependencies/include/datatypes.hpp"
 #include "../dependencies/include/extras.hpp"
@@ -30,6 +31,9 @@ int preprocess() {
     IniReader reader("setup.ini");
     // Print all sections and key-value pairs
     // reader.print();
+    SP.casename = reader.get("File", "casename", "default_value");
+    SP.restart = std::stoi(reader.get("File", "restart", "default_value"));
+    
     MP.o = convertStringVectorToFloat(splitString(reader.get("Mesh", "o", "default_value"), ' '));
     MP.s = convertStringVectorToFloat(splitString(reader.get("Mesh", "s", "default_value"), ' '));
     MP.n = convertStringVectorToInt(splitString(reader.get("Mesh", "n", "default_value"), ' '));
@@ -39,13 +43,14 @@ int preprocess() {
     MP.constantsvalues = convertStringVectorToFloat(splitString(reader.get("Simulation", "Values", "default_value"), ' '));
     MP.scalarlist = splitString(reader.get("Simulation", "Scalars", "default_value"), ' ');
     MP.vectorlist = splitString(reader.get("Simulation", "Vectors", "default_value"), ' ');
-    
     MP.meshtype = std::stoi(reader.get("Mesh", "MeshType", "default_value"));
     MP.levels = std::stoi(reader.get("Mesh", "levels", "default_value"));
 
     MP.n[0] += 2;
     MP.n[1] += 2;
     MP.n[2] += 2;
+
+    init();
 
     for(int i = 0; i <= MP.levels; i++){
 
@@ -109,13 +114,6 @@ int preprocess() {
         scalapmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
         veclapmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
     }
-    // float subd = SP.timestep / (SP.delta[0] * SP.delta[0]);
-    // float supd = SP.timestep / (SP.delta[0] * SP.delta[0]);
-    // float ds = -2.0 * SP.timestep * ((1.0 / (SP.delta[0] * SP.delta[0])) + (1.0 / (SP.delta[1] * SP.delta[1])) + (1.0 / (SP.delta[2] * SP.delta[2])));
-    // std::cout << ds << std::endl;
-    // for different ratios of cells in Y and Z directions
-    //float dv2 = -2.0 * SP.deltaT / (SP.delta[1] * SP.delta[1]);
-    //float dv3 = -2.0 * SP.deltaT / (SP.delta[2] * SP.delta[2]);
     // Set the main diagonal (index 0)
     // Fill the matrix A based on finite difference approximations
     for (int k = 0; k < MP.n[2]; ++k) {
@@ -148,7 +146,7 @@ int preprocess() {
             }
         }
     }
-    // printMatrix(scalapmatrix);
+    
     readbc();
 
     return 0;

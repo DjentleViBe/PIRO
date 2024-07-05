@@ -83,11 +83,11 @@ void writevth(int timestep){
                         std::to_string(MP.n[2] - 2) + "\" ";
             vtkfile += "file=\"level/" + ts_string + "_level_" + std::to_string(j) + ".vti\">\n";
             vtkfile += "</DataSet>\n";
-            writefile(current_path.string() + "/mesh/level/" + ts_string + "_level_" + std::to_string(j) + ".vti", writevti(MP.AMR[j]));
+            writefile(current_path.string() + "/" + SP.casename + "/mesh/level/" + ts_string + "_level_" + std::to_string(j) + ".vti", writevti(MP.AMR[j]));
         }
         vtkfile += "</Block>\n";
     }
     vtkfile += "</vtkOverlappingAMR>\n</VTKFile>\n";
-    writefile(current_path.string() + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
+    writefile(current_path.string() + "/" + SP.casename + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
 
 }
