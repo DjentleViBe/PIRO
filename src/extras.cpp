@@ -184,3 +184,10 @@ void printVector(const std::vector<float>& vec){
     }
     std::cout << std::endl;
 }
+
+void printVector(const std::vector<int>& vec){
+    for (int i = 0; i < vec.size(); ++i) {
+        std::cout << vec[i] << " ";
+    }
+    std::cout << std::endl;
+}

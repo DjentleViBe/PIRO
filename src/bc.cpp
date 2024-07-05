@@ -7,6 +7,7 @@
 #include "../dependencies/include/solve.hpp"
 
 std::vector<std::vector<int>> indices(6, std::vector<int>());
+std::vector<int> indices_toprint;
 std::vector<std::string> BC_property;
 std::vector<float> BC_value;
 Giro::Solve GS;
@@ -16,6 +17,17 @@ void setbc(){
         for(int faces = 0; faces < indices[ind].size(); faces++){
             int msv = GS.matchscalartovar(BC_property[ind]);
             MP.AMR[0].CD[msv].values[indices[ind][faces]] = BC_value[ind];
+        }
+    }
+}
+
+void prepbc(){
+    for(int ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
+        int kd = ind / (MP.n[1] * MP.n[0]);
+        int jd = (ind % (MP.n[1] * MP.n[0])) / MP.n[0];
+        int id = ind % MP.n[0];
+        if (id == 0 || id == MP.n[0] - 1 || jd == 0 || jd == MP.n[1] - 1 || kd == 0 || kd == MP.n[2] - 1){
+            indices_toprint.push_back(ind);
         }
     }
 }
@@ -62,6 +74,7 @@ void initbc(){
     BC_property = splitString(reader.get("BC", "property", "default_value"), ' ');
     BC_value = convertStringVectorToFloat(splitString(reader.get("BC", "values", "default_value"), ' '));
     setbc();
+    prepbc();
     std::cout << "Boundary conditions initialised" << std::endl;
 }
 
