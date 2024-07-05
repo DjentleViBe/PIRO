@@ -24,7 +24,7 @@ void setbc(){
 void prepbc(){
     for(int ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
         int kd = ind / (MP.n[1] * MP.n[0]);
-        int jd = (ind % (MP.n[1] * MP.n[0])) / MP.n[0];
+        int jd = (ind / MP.n[0]) % MP.n[1];
         int id = ind % MP.n[0];
         if (id == 0 || id == MP.n[0] - 1 || jd == 0 || jd == MP.n[1] - 1 || kd == 0 || kd == MP.n[2] - 1){
             indices_toprint.push_back(ind);
