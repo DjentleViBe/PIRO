@@ -9,7 +9,8 @@
 Giro::MeshParams MP;
 Giro::SolveParams SP;
 std::vector<std::vector<float>> scadivmatrix, vecdivmatrix, scalapmatrix, veclapmatrix;
-                
+int ts = 0;
+
 std::vector<float> initialize(int type){
     std::vector<float> values;
     if(type == 0){

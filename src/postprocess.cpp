@@ -13,8 +13,9 @@ template<typename T, typename... Args>
 void postprocess(T first, Args... args) {
     //Giro::Solve msv;
     //int ind = msv.matchscalartovar(first);
-    writevth();
+    writevth(ts);
     postprocess(args...);
+    std::cout << "File exported" << std::endl;
 }
 
 // Explicit instantiation to allow separate compilation
