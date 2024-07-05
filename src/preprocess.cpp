@@ -13,9 +13,14 @@ std::vector<std::vector<float>> scadivmatrix, vecdivmatrix, scalapmatrix, veclap
 std::vector<float> initialize(int type){
     std::vector<float> values;
     if(type == 0){
-        values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.01);
+        values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
     }
     return values;
+}
+
+// Function to map 3D indices to 1D
+int idx(int i, int j, int k, int N_x, int N_y) {
+    return i + j * N_x + k * N_x * N_y;
 }
 
 int preprocess() {
@@ -29,6 +34,8 @@ int preprocess() {
     MP.n = convertStringVectorToInt(splitString(reader.get("Mesh", "n", "default_value"), ' '));
     MP.l = convertStringVectorToFloat(splitString(reader.get("Mesh", "l", "default_value"), ' '));
     MP.index = convertStringVectorToInt(splitString(reader.get("Mesh", "index", "default_value"), ' '));
+    MP.constantslist = splitString(reader.get("Simulation", "Constants", "default_value"), ' ');
+    MP.constantsvalues = convertStringVectorToFloat(splitString(reader.get("Simulation", "Values", "default_value"), ' '));
     MP.scalarlist = splitString(reader.get("Simulation", "Scalars", "default_value"), ' ');
     MP.vectorlist = splitString(reader.get("Simulation", "Vectors", "default_value"), ' ');
     
@@ -38,7 +45,7 @@ int preprocess() {
     MP.n[0] += 2;
     MP.n[1] += 2;
     MP.n[2] += 2;
-    
+
     for(int i = 0; i <= MP.levels; i++){
 
         Giro::AMR AMR;
@@ -81,10 +88,10 @@ int preprocess() {
         // std::cout << MP.AMR[0].CD[i].Scalars << std::endl;
     }
 
-    SP.delta[0] = (float)MP.l[0] / (float)MP.n[0];
-    SP.delta[1] = (float)MP.l[1] / (float)MP.n[1];
-    SP.delta[2] = (float)MP.l[2] / (float)MP.n[2];
-    
+    SP.delta[0] = MP.l[0] / float(MP.n[0] - 2);
+    SP.delta[1] = MP.l[1] / float(MP.n[1] - 2);
+    SP.delta[2] = MP.l[2] / float(MP.n[2] - 2);
+
     SP.timestep = std::stof(reader.get("Solve", "Timestep", "default_value"));
     SP.totaltime = std::stof(reader.get("Solve", "TotalTime", "default_value"));
     SP.totaltimesteps = SP.totaltime / SP.timestep;
@@ -101,31 +108,46 @@ int preprocess() {
         scalapmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
         veclapmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
     }
-    float subd = SP.timestep / (SP.delta[0] * SP.delta[0]);
-    float supd = SP.timestep / (SP.delta[0] * SP.delta[0]);
-    float ds = -2.0 * SP.timestep * ((1.0 / (SP.delta[0] * SP.delta[0])) + (1.0 / (SP.delta[1] * SP.delta[1])) + (1.0 / (SP.delta[2] * SP.delta[2])));
-    std::cout << ds << std::endl;
+    // float subd = SP.timestep / (SP.delta[0] * SP.delta[0]);
+    // float supd = SP.timestep / (SP.delta[0] * SP.delta[0]);
+    // float ds = -2.0 * SP.timestep * ((1.0 / (SP.delta[0] * SP.delta[0])) + (1.0 / (SP.delta[1] * SP.delta[1])) + (1.0 / (SP.delta[2] * SP.delta[2])));
+    // std::cout << ds << std::endl;
     // for different ratios of cells in Y and Z directions
     //float dv2 = -2.0 * SP.deltaT / (SP.delta[1] * SP.delta[1]);
     //float dv3 = -2.0 * SP.deltaT / (SP.delta[2] * SP.delta[2]);
     // Set the main diagonal (index 0)
-    for (int i = 0; i < MP.n[0]*MP.n[1]*MP.n[2]; ++i) {
-        scalapmatrix[i][i] = ds;  // 1.0 or any other desired value
-        // veclapmatrix[i][i] = dv1;
-    }
+    // Fill the matrix A based on finite difference approximations
+    for (int k = 0; k < MP.n[2]; ++k) {
+        for (int j = 0; j < MP.n[1]; ++j) {
+            for (int i = 0; i < MP.n[0]; ++i) {
+                int l = idx(i, j, k, MP.n[0], MP.n[1]);
 
-    // Set the subdiagonal (index -1)
-    for (int i = 1; i < MP.n[0]*MP.n[1]*MP.n[2]; ++i) {
-        scalapmatrix[i][i - 1] = subd;  // -1.0 or any other desired value
-        // veclapmatrix[i][i - 1] = subd; 
-    }
+                // Diagonal entry
+                scalapmatrix[l][l] = -2 * SP.timestep * (1/(SP.delta[0] * SP.delta[0]) + 1/(SP.delta[1] * SP.delta[1]) + 1/(SP.delta[2] * SP.delta[2]));
 
-    // Set the superdiagonal (index +1)
-    for (int i = 0; i < MP.n[0]*MP.n[1]*MP.n[2] - 1; ++i) {
-        scalapmatrix[i][i + 1] = supd;  // -1.0 or any other desired value
-        // veclapmatrix[i][i + 1] = supd; 
+                // Off-diagonal entries
+                if (i > 0) {
+                    scalapmatrix[l][idx(i-1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
+                }
+                if (i < MP.n[0] - 1) {
+                    scalapmatrix[l][idx(i+1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
+                }
+                if (j > 0) {
+                    scalapmatrix[l][idx(i, j-1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
+                }
+                if (j < MP.n[1] - 1) {
+                    scalapmatrix[l][idx(i, j+1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
+                }
+                if (k > 0) {
+                    scalapmatrix[l][idx(i, j, k-1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
+                }
+                if (k < MP.n[2] - 1) {
+                    scalapmatrix[l][idx(i, j, k+1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
+                }
+            }
+        }
     }
-
+    // printMatrix(scalapmatrix);
     readbc();
 
     return 0;
