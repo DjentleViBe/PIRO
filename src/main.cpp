@@ -9,6 +9,6 @@ int main()
 	init();
 	preprocess();
 	solve();
-	postprocess("T");
+	//postprocess("T");
 	return 0;
 }

@@ -39,7 +39,7 @@ std::string writevti(Giro::AMR AMR){
     level += "<PointData Scalars=\"ScalarValues\">\n";
     level += "</PointData>\n";
     level += "<CellData>\n";
-    
+
     std::sort(indices_toprint.rbegin(), indices_toprint.rend());
 
     for(int l = 0; l < AMR.CD.size() - 1; l++){
@@ -65,7 +65,10 @@ std::string writevti(Giro::AMR AMR){
     return level;
 }
 
-void writevth(){
+void writevth(int timestep){
+    std::string ts_string = std::to_string(timestep);
+    ts_string = std::string(5 - ts_string.length(), '0') + ts_string;
+
     std::string vtkfile = "<?xml version=\"1.0\"?>\n";
     vtkfile += "<VTKFile type=\"vtkOverlappingAMR\" version=\"1.1\" byte_order=\"LittleEndian\" header_type=\"UInt32\">\n";
     vtkfile += "<vtkOverlappingAMR origin=\"0 0 0\" grid_description=\"XYZ\">\n";
@@ -78,13 +81,13 @@ void writevth(){
                         std::to_string(MP.n[1] - 2) + " " +
                         std::to_string(0) + " " +
                         std::to_string(MP.n[2] - 2) + "\" ";
-            vtkfile += "file=\"level/level_" + std::to_string(j) + ".vti\">\n";
+            vtkfile += "file=\"level/" + ts_string + "_level_" + std::to_string(j) + ".vti\">\n";
             vtkfile += "</DataSet>\n";
-            writefile(current_path.string() + "/mesh/level/level_" + std::to_string(j) + ".vti", writevti(MP.AMR[j]));
+            writefile(current_path.string() + "/mesh/level/" + ts_string + "_level_" + std::to_string(j) + ".vti", writevti(MP.AMR[j]));
         }
         vtkfile += "</Block>\n";
     }
     vtkfile += "</vtkOverlappingAMR>\n</VTKFile>\n";
-    writefile(current_path.string() + "/mesh/mesh.vth", vtkfile);
+    writefile(current_path.string() + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
 
 }
