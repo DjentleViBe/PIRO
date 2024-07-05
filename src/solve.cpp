@@ -10,7 +10,7 @@ int solve(){
     Giro::Solve solver;
     float time = 0.0;
     while(time < SP.totaltime){
-        Giro::scalarMatrix UEqn(solver.ddt_r("T") + solver.ddc_r("Alpha", 1.0) * solver.laplacian_r("T"));        
+        Giro::scalarMatrix UEqn(solver.ddt_r("T") + solver.ddc_r("Alpha") * solver.laplacian_r("T"));        
         UEqn.Solve(time);
         time += SP.timestep;
     }
