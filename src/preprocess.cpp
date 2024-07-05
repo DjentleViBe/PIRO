@@ -35,6 +35,10 @@ int preprocess() {
     MP.meshtype = std::stoi(reader.get("Mesh", "MeshType", "default_value"));
     MP.levels = std::stoi(reader.get("Mesh", "levels", "default_value"));
 
+    MP.n[0] += 2;
+    MP.n[1] += 2;
+    MP.n[2] += 2;
+    
     for(int i = 0; i <= MP.levels; i++){
 
         Giro::AMR AMR;
