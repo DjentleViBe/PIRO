@@ -47,6 +47,21 @@ int create_directory(std::string directoryname){
     return 0;
 }
 
+int delete_directory(std::string folderPath){
+    try {
+        if (std::filesystem::exists(folderPath)) {
+            std::filesystem::remove_all(folderPath);
+            std::cout << "Folder deleted successfully." << std::endl;
+        } else {
+            std::cout << "Folder does not exist." << std::endl;
+        }
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+
+    return 0;
+}
+
 int get_exec_directory(){
     char path[1024];
     uint32_t size = sizeof(path);
