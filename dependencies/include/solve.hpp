@@ -5,9 +5,11 @@
 #include "preprocess.hpp"
 #include "bc.hpp"
 #include "extras.hpp"
+#include "postprocess.hpp"
 #include <iostream>
 
 extern Giro::SolveParams SP;
+
 int solve();
 namespace Giro{
     class MathOperations{
@@ -232,11 +234,14 @@ namespace Giro{
                 }
 
                 void Solve(float currenttime){
-                    std::cout << "Timestep : " << int(currenttime / SP.timestep)  << " / " << SP.totaltimesteps << std::endl;
+                    ts = int(currenttime / SP.timestep);
+                    std::cout << "Timestep : " << ts  << " / " << SP.totaltimesteps << std::endl;
                     // assign variables
                     MP.AMR[0].CD[0].values = smatrix;
                     // apply Boundary Conditions
                     setbc();
+                    // export every timestep
+                    postprocess("T");
                 }
         };
         

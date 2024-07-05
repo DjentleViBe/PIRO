@@ -5,6 +5,6 @@ void postprocess();
 
 template<typename T, typename... Args>
 void postprocess(T first, Args... args);
-void writevth();
+void writevth(int timestep);
 
 #endif
