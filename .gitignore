@@ -33,3 +33,6 @@
 
 .vscode
 _exec*
+*.vti
+*.vth
+*.avi
