@@ -6,7 +6,7 @@
 
 int main()
 {	
-	init();
+	
 	preprocess();
 	solve();
 	//postprocess("T");
