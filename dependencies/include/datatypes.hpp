@@ -58,6 +58,8 @@ namespace Giro{
 
     class SolveParams{
         public:
+            std::string casename;
+            int restart;
             float timestep;
             float totaltime;
             float delta[3];
