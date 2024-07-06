@@ -140,9 +140,8 @@ std::vector<std::string> floatScalarToString(const std::vector<float>& floatScal
 
 std::vector<std::string> floatVectorToString(const std::vector<float>& floatVector, int dex) {
     std::vector<std::string> stringVector;
-
     // Iterate through each float element and convert to string
-    for (int i = dex * floatVector.size(); i <= (dex + 1) * floatVector.size(); ++i) {
+    for (int i = dex * floatVector.size() / 3; i < (dex + 1) * floatVector.size() / 3; ++i) {
         // Convert float to string
         std::ostringstream oss;
         oss << floatVector[i];

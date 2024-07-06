@@ -39,18 +39,16 @@ std::string writevti(Giro::AMR AMR){
     level += "<PointData Scalars=\"ScalarValues\">\n";
     level += "</PointData>\n";
     level += "<CellData>\n";
-
-    std::sort(indices_toprint.rbegin(), indices_toprint.rend());
-
+    
     for(int l = 0; l < AMR.CD.size(); l++){
         
         if(AMR.CD[l].type == 0){
             
             for (int pos : indices_toprint) {
-            if (pos >= 0 && pos < AMR.CD[l].values.size()) {
-                AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
+                if (pos >= 0 && pos < AMR.CD[l].values.size()) {
+                    AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
+                    }
                 }
-            }
             level.append("<DataArray type=\"Float64\" Name=\"");
             level.append(AMR.CD[l].Scalars);
             level.append("\" format=\"ascii\">\n");
@@ -58,14 +56,14 @@ std::string writevti(Giro::AMR AMR){
             level.append("</DataArray>\n");
         }
         else{
-            for(int vec = 0; vec < 3; vec++){
-                for (int pos : indices_toprint) {
+            for (int pos : indices_toprint_vec) {
                 if (pos >= 0 && pos < AMR.CD[l].values.size()) {
                     AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
                     }
                 }
+            for(int vec = 0; vec < 3; vec++){
                 switch(vec){
-                    case 0:
+                    case 0: 
                         level.append("<DataArray type=\"Float64\" Name=\"");
                         level.append(AMR.CD[l].Scalars + "_x");
                         level.append("\" format=\"ascii\">\n");

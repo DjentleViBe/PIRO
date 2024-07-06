@@ -102,6 +102,7 @@ int preprocess() {
         MP.AMR[0].CD.push_back(CD);
         MP.AMR[0].CD[i].values = initialize_vector(MP.ICtype);
         MP.AMR[0].CD[i].type = 1;
+        
     }
 
     SP.delta[0] = MP.l[0] / float(MP.n[0] - 2);

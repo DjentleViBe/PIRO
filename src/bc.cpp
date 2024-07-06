@@ -5,9 +5,11 @@
 #include "../dependencies/include/extras.hpp"
 #include "../dependencies/include/bc.hpp"
 #include "../dependencies/include/solve.hpp"
+#include <algorithm>
 
 std::vector<std::vector<int>> indices(6, std::vector<int>());
 std::vector<int> indices_toprint;
+std::vector<int> indices_toprint_vec;
 std::vector<std::string> BC_property;
 std::vector<float> BC_value;
 Giro::Solve GS;
@@ -28,8 +30,14 @@ void prepbc(){
         int id = ind % MP.n[0];
         if (id == 0 || id == MP.n[0] - 1 || jd == 0 || jd == MP.n[1] - 1 || kd == 0 || kd == MP.n[2] - 1){
             indices_toprint.push_back(ind);
+            indices_toprint_vec.push_back(ind);
+            indices_toprint_vec.push_back(ind + MP.n[0]*MP.n[1]*MP.n[2]);
+            indices_toprint_vec.push_back(ind + 2 * MP.n[0]*MP.n[1]*MP.n[2]);
+            
         }
     }
+    std::sort(indices_toprint.rbegin(), indices_toprint.rend());
+    std::sort(indices_toprint_vec.rbegin(), indices_toprint_vec.rend());
 }
 
 void initbc(){
