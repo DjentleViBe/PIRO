@@ -5,6 +5,7 @@
 #include "../dependencies/include/inireader.hpp"
 #include "../dependencies/include/datatypes.hpp"
 #include "../dependencies/include/extras.hpp"
+#include "../dependencies/include/solve.hpp"
 #include "../dependencies/include/bc.hpp"
 
 Giro::MeshParams MP;
@@ -12,10 +13,18 @@ Giro::SolveParams SP;
 std::vector<std::vector<float>> scadivmatrix, vecdivmatrix, scalapmatrix, veclapmatrix;
 int ts = 0;
 
-std::vector<float> initialize(int type){
+std::vector<float> initialize_scalar(int type){
     std::vector<float> values;
     if(type == 0){
         values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
+    }
+    return values;
+}
+
+std::vector<float> initialize_vector(int type){
+    std::vector<float> values;
+    if(type == 0){
+        values.assign(MP.n[0] * MP.n[1] * MP.n[2] * 3, 0.0);
     }
     return values;
 }
@@ -82,7 +91,7 @@ int preprocess() {
         Giro::CellData CD;
         CD.Scalars = MP.scalarlist[i];
         MP.AMR[0].CD.push_back(CD);
-        MP.AMR[0].CD[i].values = initialize(MP.ICtype);
+        MP.AMR[0].CD[i].values = initialize_scalar(MP.ICtype);
         
         j += 1;
     }
@@ -90,8 +99,7 @@ int preprocess() {
         Giro::CellData CD;
         CD.Scalars = MP.vectorlist[i];
         MP.AMR[0].CD.push_back(CD);
-        MP.AMR[0].CD[i].values = initialize(MP.ICtype);
-        // std::cout << MP.AMR[0].CD[i].Scalars << std::endl;
+        MP.AMR[0].CD[i].values = initialize_vector(MP.ICtype);
     }
 
     SP.delta[0] = MP.l[0] / float(MP.n[0] - 2);
@@ -107,12 +115,14 @@ int preprocess() {
     // Generate scalar and vector laplacian matrix for the cells
     // Resize the outer vector to have 3 rows
     scalapmatrix.resize(MP.n[0]*MP.n[1]*MP.n[2]);
-    veclapmatrix.resize(MP.n[0]*MP.n[1]*MP.n[2]);
+    scadivmatrix.resize(MP.n[0]*MP.n[1]*MP.n[2]);
+    // veclapmatrix.resize(MP.n[0]*MP.n[1]*MP.n[2]);
 
     // Resize each inner vector to have 4 columns and initialize elements to 0.0f
     for (size_t i = 0; i < scalapmatrix.size(); ++i) {
         scalapmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
-        veclapmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
+        scadivmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
+        // veclapmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
     }
     // Set the main diagonal (index 0)
     // Fill the matrix A based on finite difference approximations
@@ -123,29 +133,40 @@ int preprocess() {
 
                 // Diagonal entry
                 scalapmatrix[l][l] = -2 * SP.timestep * (1/(SP.delta[0] * SP.delta[0]) + 1/(SP.delta[1] * SP.delta[1]) + 1/(SP.delta[2] * SP.delta[2]));
+                scadivmatrix[l][l] = 1;
 
                 // Off-diagonal entries
                 if (i > 0) {
                     scalapmatrix[l][idx(i-1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
+                    scadivmatrix[l][idx(i-1, j, k, MP.n[0], MP.n[1])] = -SP.timestep / (2 * SP.delta[0]);
                 }
                 if (i < MP.n[0] - 1) {
                     scalapmatrix[l][idx(i+1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
+                    scadivmatrix[l][idx(i+1, j, k, MP.n[0], MP.n[1])] = SP.timestep / (2 * SP.delta[0]);
                 }
                 if (j > 0) {
                     scalapmatrix[l][idx(i, j-1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
+                    scadivmatrix[l][idx(i, j-1, k, MP.n[0], MP.n[1])] = -SP.timestep / (2 * SP.delta[1]);
                 }
                 if (j < MP.n[1] - 1) {
                     scalapmatrix[l][idx(i, j+1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
+                    scadivmatrix[l][idx(i, j+1, k, MP.n[0], MP.n[1])] = SP.timestep / (2 * SP.delta[1]);
                 }
                 if (k > 0) {
                     scalapmatrix[l][idx(i, j, k-1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
+                    scadivmatrix[l][idx(i, j, k-1, MP.n[0], MP.n[1])] = -SP.timestep / (2 * SP.delta[2]);
                 }
                 if (k < MP.n[2] - 1) {
                     scalapmatrix[l][idx(i, j, k+1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
+                    scadivmatrix[l][idx(i, j, k+1, MP.n[0], MP.n[1])] = SP.timestep / (2 * SP.delta[2]);
                 }
             }
         }
     }
+    
+    Giro::MathOperations GMO;
+    vecdivmatrix = GMO.convertTo6x3(scadivmatrix);
+    veclapmatrix = GMO.convertTo6x3(scalapmatrix);
     
     readbc();
 

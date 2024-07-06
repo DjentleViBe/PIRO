@@ -179,6 +179,17 @@ namespace Giro{
 
             return C;
         }
+
+        std::vector<std::vector<float>> convertTo6x3(std::vector<std::vector<float>> mtx){
+            std::vector<std::vector<float>> result(mtx[0].size() * 3, std::vector<float>(mtx[0].size(), 0));
+            for (int i = 0; i < mtx[0].size(); ++i) {
+                for (int j = 0; j < mtx[0].size(); ++j) {
+                    result[i][j] = mtx[i][j]; // Copying original elements
+                    result[i + 3][j] = mtx[i][j]; // Copying again into the next set of rows
+                }
+            }
+        return result;
+        } 
     };
 
     class Solve{
@@ -221,6 +232,13 @@ namespace Giro{
                 // Initialize a 2D vector (matrix) of size n x n with zeros
                 MathOperations dM;
                 return dM.dotMatrices(scalapmatrix, prop);
+            }
+
+            std::vector<float> div_r(std::string var){
+                int ind = matchscalartovar(var);
+                std::vector<float> prop = MP.AMR[0].CD[ind].values;
+                MathOperations dM;
+                return dM.dotMatrices(scadivmatrix, prop);
             }
 
         };
