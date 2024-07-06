@@ -124,14 +124,28 @@ std::vector<float> convertStringVectorToFloat(const std::vector<std::string>& st
     return intVector;
 }
 
-std::vector<std::string> floatVectorToString(const std::vector<float>& floatVector) {
-    std::vector<std::string> stringVector;
+std::vector<std::string> floatScalarToString(const std::vector<float>& floatScalar) {
+    std::vector<std::string> stringScalar;
 
     // Iterate through each float element and convert to string
-    for (float value : floatVector) {
+    for (float value : floatScalar) {
         // Convert float to string
         std::ostringstream oss;
         oss << value;
+        stringScalar.push_back(oss.str());
+    }
+
+    return stringScalar;
+}
+
+std::vector<std::string> floatVectorToString(const std::vector<float>& floatVector, int dex) {
+    std::vector<std::string> stringVector;
+
+    // Iterate through each float element and convert to string
+    for (int i = dex * floatVector.size(); i <= (dex + 1) * floatVector.size(); ++i) {
+        // Convert float to string
+        std::ostringstream oss;
+        oss << floatVector[i];
         stringVector.push_back(oss.str());
     }
 

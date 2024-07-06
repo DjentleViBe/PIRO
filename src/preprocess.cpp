@@ -87,19 +87,21 @@ int preprocess() {
     MP.vectornum = countSpaces(reader.get("Simulation", "Vectors", "default_value")) + 1;
     MP.ICtype = std::stoi(reader.get("IC", "type", "default_value"));
     int j = 0;
+    Giro::CellData CD;
     for (int i = 0; i < MP.scalarnum; i++){
-        Giro::CellData CD;
+        
         CD.Scalars = MP.scalarlist[i];
         MP.AMR[0].CD.push_back(CD);
         MP.AMR[0].CD[i].values = initialize_scalar(MP.ICtype);
-        
+        MP.AMR[0].CD[i].type = 0;
         j += 1;
     }
-    for (int i = j - 1; i < j + MP.vectornum; i++){
-        Giro::CellData CD;
-        CD.Scalars = MP.vectorlist[i];
+    for (int i = j; i < j + MP.vectornum; i++){
+        
+        CD.Scalars = MP.vectorlist[i - j];
         MP.AMR[0].CD.push_back(CD);
         MP.AMR[0].CD[i].values = initialize_vector(MP.ICtype);
+        MP.AMR[0].CD[i].type = 1;
     }
 
     SP.delta[0] = MP.l[0] / float(MP.n[0] - 2);
@@ -163,7 +165,7 @@ int preprocess() {
             }
         }
     }
-    
+
     Giro::MathOperations GMO;
     vecdivmatrix = GMO.convertTo6x3(scadivmatrix);
     veclapmatrix = GMO.convertTo6x3(scalapmatrix);

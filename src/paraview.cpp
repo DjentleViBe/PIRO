@@ -42,18 +42,56 @@ std::string writevti(Giro::AMR AMR){
 
     std::sort(indices_toprint.rbegin(), indices_toprint.rend());
 
-    for(int l = 0; l < AMR.CD.size() - 1; l++){
-        for (int pos : indices_toprint) {
+    for(int l = 0; l < AMR.CD.size(); l++){
+        
+        if(AMR.CD[l].type == 0){
+            
+            for (int pos : indices_toprint) {
             if (pos >= 0 && pos < AMR.CD[l].values.size()) {
                 AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
+                }
             }
+            level.append("<DataArray type=\"Float64\" Name=\"");
+            level.append(AMR.CD[l].Scalars);
+            level.append("\" format=\"ascii\">\n");
+            level.append(concatenateStrings2(floatScalarToString(AMR.CD[l].values)));
+            level.append("</DataArray>\n");
+        }
+        else{
+            for(int vec = 0; vec < 3; vec++){
+                for (int pos : indices_toprint) {
+                if (pos >= 0 && pos < AMR.CD[l].values.size()) {
+                    AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
+                    }
+                }
+                switch(vec){
+                    case 0:
+                        level.append("<DataArray type=\"Float64\" Name=\"");
+                        level.append(AMR.CD[l].Scalars + "_x");
+                        level.append("\" format=\"ascii\">\n");
+                        level.append(concatenateStrings2(floatVectorToString(AMR.CD[l].values, 0)));
+                        level.append("</DataArray>\n");
+                        break;
+                    case 1:
+                        level.append("<DataArray type=\"Float64\" Name=\"");
+                        level.append(AMR.CD[l].Scalars + "_y");
+                        level.append("\" format=\"ascii\">\n");
+                        level.append(concatenateStrings2(floatVectorToString(AMR.CD[l].values, 1)));
+                        level.append("</DataArray>\n");
+                        break;
+                    case 2:
+                        level.append("<DataArray type=\"Float64\" Name=\"");
+                        level.append(AMR.CD[l].Scalars + "_z");
+                        level.append("\" format=\"ascii\">\n");
+                        level.append(concatenateStrings2(floatVectorToString(AMR.CD[l].values, 2)));
+                        level.append("</DataArray>\n");
+                        break;
+                }
+
+            }
+
         }
         
-        level.append("<DataArray type=\"Float64\" Name=\"");
-        level.append(AMR.CD[l].Scalars);
-        level.append("\" format=\"ascii\">\n");
-        level.append(concatenateStrings2(floatVectorToString(AMR.CD[l].values)));
-        level.append("</DataArray>\n");
         
     }
     

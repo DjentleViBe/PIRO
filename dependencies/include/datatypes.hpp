@@ -22,6 +22,7 @@ namespace Giro{
 
     class CellData{
         public:
+            int type;
             std::string Scalars;
             std::vector<float> values;
     };

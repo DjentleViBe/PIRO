@@ -238,7 +238,13 @@ namespace Giro{
                 int ind = matchscalartovar(var);
                 std::vector<float> prop = MP.AMR[0].CD[ind].values;
                 MathOperations dM;
-                return dM.dotMatrices(scadivmatrix, prop);
+                if(MP.AMR[0].CD[ind].type == 0){
+                    return dM.dotMatrices(scadivmatrix, prop);
+                }
+                else{
+                    return dM.dotMatrices(vecdivmatrix, prop);
+                }
+                
             }
 
         };
