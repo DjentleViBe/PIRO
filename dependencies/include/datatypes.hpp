@@ -43,7 +43,8 @@ namespace Giro{
             int levels;
             int scalarnum;
             int vectornum;
-            int ICtype;
+            std::vector<int> ICtype;
+            std::vector<std::string> ICfiles;
             std::string ICfile;
             std::vector<int> n;
             std::vector<float> o;
