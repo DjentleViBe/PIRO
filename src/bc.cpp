@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "../dependencies/include/preprocess.hpp"
+#include "../dependencies/include/init.hpp"
 #include "../dependencies/include/inireader.hpp"
 #include "../dependencies/include/extras.hpp"
 #include "../dependencies/include/bc.hpp"
@@ -24,6 +25,7 @@ void setbc(){
 }
 
 void prepbc(){
+    std::cout << "Preparing cells to print" << std::endl;
     for(int ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
         int kd = ind / (MP.n[1] * MP.n[0]);
         int jd = (ind / MP.n[0]) % MP.n[1];
@@ -77,7 +79,7 @@ void initbc(){
         }
     }
 
-    IniReader reader("setup.ini");
+    IniReader reader(current_path.string() + "/assets/setup.ini");
     BC_type = convertStringVectorToInt(splitString(reader.get("BC", "type", "default_value"), ' '));
     BC_property = splitString(reader.get("BC", "property", "default_value"), ' ');
     BC_value = convertStringVectorToFloat(splitString(reader.get("BC", "values", "default_value"), ' '));
@@ -88,7 +90,7 @@ void initbc(){
 
 void readbc(){
     std::cout << "Reading boundary conditions" << std::endl;
-    IniReader reader("setup.ini");
+    IniReader reader(current_path.string() + "/assets/setup.ini");
 
     if(countSpaces(reader.get("BC", "type", "default_value")) > 1){
         initbc();
