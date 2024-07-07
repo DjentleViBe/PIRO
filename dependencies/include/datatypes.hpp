@@ -60,6 +60,8 @@ namespace Giro{
 
     class SolveParams{
         public:
+            int timescheme;
+            int spacescheme;
             std::string casename;
             int restart;
             float timestep;
