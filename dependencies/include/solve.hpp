@@ -232,6 +232,8 @@ namespace Giro{
     };
 
     class Solve{
+        private:
+            bool sgm = false;
         public:
             int matchscalartovar(std::string var){
                     for(int v = 0; v < MP.AMR[0].CD.size(); v++){
@@ -277,7 +279,10 @@ namespace Giro{
                 int ind1 = matchscalartovar(var1);
                 int ind2 = matchscalartovar(var2);
                 MathOperations dM;
-                scagradmatrix = dM.multiplyMatrices(scagradmatrix, dM.generatevectormatrix(MP.AMR[0].CD[ind2].values));
+                if(sgm == false){
+                    scagradmatrix = dM.multiplyMatrices(scagradmatrix, dM.generatevectormatrix(MP.AMR[0].CD[ind2].values));
+                    sgm = true;
+                }
                 //printMatrix(scagradmatrix);
                 if(MP.AMR[0].CD[ind1].type == 0){
                     return dM.dotMatrices(scagradmatrix,  MP.AMR[0].CD[ind1].values);
