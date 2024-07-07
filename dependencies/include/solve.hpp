@@ -190,6 +190,45 @@ namespace Giro{
             }
         return result;
         } 
+
+        int idx(int i, int j, int k, int N_x, int N_y) {
+            return i + j * N_x + k * N_x * N_y;
+        }
+
+        std::vector<std::vector<float>> generatevectormatrix(std::vector<float> U){
+            std::vector<std::vector<float>> result(MP.n[0]*MP.n[1]*MP.n[2], std::vector<float>(MP.n[0]*MP.n[1]*MP.n[2], 0));
+            for (int k = 0; k < MP.n[2]; ++k) {
+                for (int j = 0; j < MP.n[1]; ++j) {
+                    for (int i = 0; i < MP.n[0]; ++i) {
+                        int l = idx(i, j, k, MP.n[0], MP.n[1]);
+
+                        // Diagonal entry
+                        result[l][l] = 0;
+
+                        // Off-diagonal entries
+                        if (i > 0) {
+                            result[l][idx(i-1, j, k, MP.n[0], MP.n[1])] = U[idx(i-1, j, k, MP.n[0], MP.n[1])];
+                        }
+                        if (i < MP.n[0] - 1) {
+                            result[l][idx(i+1, j, k, MP.n[0], MP.n[1])] = U[idx(i+1, j, k, MP.n[0], MP.n[1])];
+                        }
+                        if (j > 0) {
+                            result[l][idx(i, j-1, k, MP.n[0], MP.n[1])] = U[MP.n[0]*MP.n[1]*MP.n[2] + idx(i, j-1, k, MP.n[0], MP.n[1])];
+                        }
+                        if (j < MP.n[1] - 1) {
+                            result[l][idx(i, j+1, k, MP.n[0], MP.n[1])] = U[MP.n[0]*MP.n[1]*MP.n[2] + idx(i, j+1, k, MP.n[0], MP.n[1])];
+                        }
+                        if (k > 0) {
+                            result[l][idx(i, j, k-1, MP.n[0], MP.n[1])] = U[2 * MP.n[0]*MP.n[1]*MP.n[2] + idx(i, j, k-1, MP.n[0], MP.n[1])];
+                        }
+                        if (k < MP.n[2] - 1) {
+                            result[l][idx(i, j, k+1, MP.n[0], MP.n[1])] = U[2 * MP.n[0]*MP.n[1]*MP.n[2] + idx(i, j, k+1, MP.n[0], MP.n[1])];
+                        }
+                    }
+                }
+            }
+            return result;
+        }
     };
 
     class Solve{
@@ -234,15 +273,16 @@ namespace Giro{
                 return dM.dotMatrices(scalapmatrix, prop);
             }
 
-            std::vector<float> div_r(std::string var){
-                int ind = matchscalartovar(var);
-                std::vector<float> prop = MP.AMR[0].CD[ind].values;
+            std::vector<float> grad_r(std::string var1, std::string var2){
+                int ind1 = matchscalartovar(var1);
+                int ind2 = matchscalartovar(var2);
                 MathOperations dM;
-                if(MP.AMR[0].CD[ind].type == 0){
-                    return dM.dotMatrices(scadivmatrix, prop);
-                }
-                else{
-                    return dM.dotMatrices(vecdivmatrix, prop);
+                scagradmatrix = dM.multiplyMatrices(scagradmatrix, dM.generatevectormatrix(MP.AMR[0].CD[ind2].values));
+                //printMatrix(scagradmatrix);
+                if(MP.AMR[0].CD[ind1].type == 0){
+                    return dM.dotMatrices(scagradmatrix,  MP.AMR[0].CD[ind1].values);
+                }else{
+                    return MP.AMR[0].CD[ind1].values;
                 }
                 
             }
