@@ -49,7 +49,8 @@ $(OBJDIR):
 setup:
 	@echo "Running setup commands..."
 #	cp prefs.json bin/.
-#	cp -r assets/* bin/.
+	mkdir -p bin/assets
+	cp -r dependencies/assets/* bin/assets/.
 
 .PHONY: clean
 # Clean up
