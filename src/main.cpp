@@ -9,6 +9,6 @@ int main()
 	get_exec_directory();
 	preprocess();
 	solve();
-	//postprocess("T");
+	// postprocess("T");
 	return 0;
 }

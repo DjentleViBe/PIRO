@@ -20,5 +20,5 @@ void printMatrix(const std::vector<std::vector<float>>& matrix);
 void printMatrix(const std::vector<std::vector<int>>& matrix);
 void printVector(const std::vector<float>& vec);
 void printVector(const std::vector<int>& vec);
-
+void print_time();
 #endif

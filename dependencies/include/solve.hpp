@@ -9,6 +9,8 @@
 #include <iostream>
 
 extern Giro::SolveParams SP;
+extern char* dt;
+extern std::time_t now;
 
 int solve();
 namespace Giro{
@@ -310,7 +312,12 @@ namespace Giro{
                     // apply Boundary Conditions
                     setbc();
                     // export every timestep
+                    
+                    std::cout << "Post processing started" << std::endl;
+                    print_time();
                     postprocess("T");
+                    print_time();
+                    std::cout << "Post processing finished" << std::endl;
                 }
         };
         

@@ -8,6 +8,7 @@
 #include <mach-o/dyld.h>
 #include <numeric>
 #include <vector>
+#include <chrono>
 
 int writefile(std::string file_path, std::string line_to_write){
     // Create an output file stream (ofstream) object
@@ -217,4 +218,23 @@ void printVector(const std::vector<int>& vec){
         std::cout << vec[i] << " ";
     }
     std::cout << std::endl;
+}
+
+void print_time(){
+    // Get current time as a time_point
+    auto now = std::chrono::system_clock::now();
+
+    // Convert to std::time_t to get the calendar time
+    std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+
+    // Get milliseconds
+    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+    auto ms = now_ms.time_since_epoch().count() % 1000;
+
+    // Convert to local time
+    std::tm now_tm = *std::localtime(&now_time_t);
+
+    // Print the time with milliseconds
+    std::cout << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0') << std::setw(3) << ms << std::endl;
+    
 }
