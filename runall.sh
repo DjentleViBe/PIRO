@@ -1,2 +1,3 @@
 cp -r ./dependencies/assets ./bin/.
-./bin/GIRO
+mkdir -p logs
+./bin/GIRO &> ./logs/output.txt
