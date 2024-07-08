@@ -2,6 +2,7 @@
 #include "../dependencies/include/solve.hpp"
 #include "../dependencies/include/extras.hpp"
 #include "../dependencies/include/operatoroverload.hpp"
+#include "../dependencies/include/python_performance.hpp"
 #include <iostream>
 #include <ctime>
 
@@ -9,6 +10,7 @@ char* dt;
 std::time_t now;
 
 int solve(){
+    callpython();
     std::cout << "Solving . . ." << std::endl;
     // solve equations
     Giro::Solve solver;

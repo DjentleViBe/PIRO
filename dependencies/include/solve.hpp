@@ -7,6 +7,8 @@
 #include "extras.hpp"
 #include "postprocess.hpp"
 #include <iostream>
+#include "Python.h"
+#include "python_performance.hpp"
 
 extern Giro::SolveParams SP;
 extern char* dt;
@@ -166,6 +168,8 @@ namespace Giro{
         }
 
         std::vector<float> dotMatrices(const std::vector<std::vector<float>>& A, const std::vector<float>& B) {
+            std::cout << "matmulstarted" << std::endl;
+            print_time();
             int m = A.size();    // Number of rows in A
             int n = A[0].size(); // Number of columns in A (should be equal to size of B)
 
@@ -178,7 +182,8 @@ namespace Giro{
                     C[i] += A[i][j] * B[j];
                 }
             }
-
+            std::cout << "matmulend" << std::endl;
+            print_time();
             return C;
         }
 
@@ -273,8 +278,10 @@ namespace Giro{
                 std::vector<float> prop = MP.AMR[0].CD[ind].values;
                 // matrix ensemble
                 // Initialize a 2D vector (matrix) of size n x n with zeros
-                MathOperations dM;
-                return dM.dotMatrices(scalapmatrix, prop);
+                // MathOperations dM;
+
+                return mul_using_numpy(scalapmatrix, prop);
+                //return dM.dotMatrices(scalapmatrix, prop);
             }
 
             std::vector<float> grad_r(std::string var1, std::string var2){
