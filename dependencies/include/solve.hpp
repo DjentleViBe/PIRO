@@ -312,7 +312,7 @@ namespace Giro{
                 MathOperations dM;
 
                 //return mul_using_numpy(scalapmatrix, prop);
-                return dM.dotMatricesoptim(scalapmatrix, prop);
+                return dM.dotMatrices(scalapmatrix, prop);
             }
 
             std::vector<float> grad_r(std::string var1, std::string var2){
