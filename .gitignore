@@ -36,3 +36,5 @@ _exec*
 *.vti
 *.vth
 *.avi
+bin_archive
+*.odp*
