@@ -38,4 +38,5 @@ _exec*
 *.avi
 bin_archive
 *.odp*
+*.ods*
 logs
