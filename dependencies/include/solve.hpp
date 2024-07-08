@@ -187,6 +187,37 @@ namespace Giro{
             return C;
         }
 
+        std::vector<float> dotMatricesoptim(const std::vector<std::vector<float>>& A, const std::vector<float>& B){
+            std::cout << "matmulstarted" << std::endl;
+            print_time();
+
+            int m = A.size();    // Number of rows in A
+            int n = A[0].size(); // Number of columns in A (should be equal to size of B)
+            std::vector<float> C(m, 0.0);
+            // Perform matrix-vector multiplication with loop unrolling
+            for (int i = 0; i < m; ++i) {
+                const std::vector<float>& row = A[i];
+                float sum = 0.0f;
+                
+                int j = 0;
+                // Unroll the loop by processing 4 elements per iteration
+                for (; j <= n - 4; j += 4) {
+                    sum += row[j] * B[j];
+                    sum += row[j + 1] * B[j + 1];
+                    sum += row[j + 2] * B[j + 2];
+                    sum += row[j + 3] * B[j + 3];
+                }
+                // Process any remaining elements
+                for (; j < n; ++j) {
+                    sum += row[j] * B[j];
+                }
+                C[i] = sum;
+            }
+            std::cout << "matmulend" << std::endl;
+            print_time();
+            return C;
+        }
+
         std::vector<std::vector<float>> convertTo6x3(std::vector<std::vector<float>> mtx){
             std::vector<std::vector<float>> result(mtx[0].size() * 3, std::vector<float>(mtx[0].size(), 0));
             for (int i = 0; i < mtx[0].size(); ++i) {
@@ -278,10 +309,10 @@ namespace Giro{
                 std::vector<float> prop = MP.AMR[0].CD[ind].values;
                 // matrix ensemble
                 // Initialize a 2D vector (matrix) of size n x n with zeros
-                // MathOperations dM;
+                MathOperations dM;
 
-                return mul_using_numpy(scalapmatrix, prop);
-                //return dM.dotMatrices(scalapmatrix, prop);
+                //return mul_using_numpy(scalapmatrix, prop);
+                return dM.dotMatricesoptim(scalapmatrix, prop);
             }
 
             std::vector<float> grad_r(std::string var1, std::string var2){
