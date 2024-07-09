@@ -54,7 +54,7 @@ namespace Giro{
                 for (size_t i = 0; i < v1.size(); ++i) {
                     result[i] = v1[i] * v2[i];
                 }
-                printVector(result);
+                
                 return result;
             }
 
@@ -231,7 +231,7 @@ namespace Giro{
             }
             std::cout << "matmulend" << std::endl;
             print_time();
-            printVector(C);
+            
             return C;
         }
 
