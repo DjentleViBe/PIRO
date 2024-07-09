@@ -234,13 +234,13 @@ namespace Giro{
             return C;
         }
 
-        std::vector<float> dotMatricesBLAS(const std::vector<float>& A, const std::vector<float>& B) {
+        std::vector<float> dotMatricesDSPID(const std::vector<float>& A, const std::vector<float>& B) {
             
             int m = MP.n[0] * MP.n[1] * MP.n[2];     // Number of rows in A
-            int n = m; // Number of columns in A (should be equal to size of B)
-
+            int n = 1; // Number of columns in A (should be equal to size of B)
+            int k = m;
             // Ensure B's size matches A's column count
-            if (B.size() != n) {
+            if (B.size() != m) {
                 throw std::invalid_argument("The size of vector B must match the number of columns in matrix A.");
             }
 
@@ -251,7 +251,8 @@ namespace Giro{
             // Perform the matrix-vector multiplication using cblas_sgemv
             // C = A * B
             // A is m-by-n, B is n-by-1, C is m-by-1
-            cblas_sgemv(CblasRowMajor, CblasNoTrans, m, n, 1.0, A.data(), n, B.data(), 1, 0.0, C.data(), 1);
+            vDSP_mmul(A.data(), 1, B.data(), 1, C.data(), 1, m, n, k);
+            // cblas_sgemv(CblasRowMajor, CblasNoTrans, m, n, 1.0, A.data(), n, B.data(), 1, 0.0, C.data(), 1);
             std::cout << "matmulend" << std::endl;
             print_time();
             return C;
@@ -351,7 +352,7 @@ namespace Giro{
                 MathOperations dM;
 
                 //return mul_using_numpy(scalapmatrix, prop);
-                return dM.dotMatricesBLAS(scalapvector, prop);
+                return dM.dotMatricesDSPID(scalapvector, prop);
             }
 
             std::vector<float> grad_r(std::string var1, std::string var2){
