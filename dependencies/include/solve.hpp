@@ -9,6 +9,7 @@
 #include <iostream>
 #include "Python.h"
 #include "python_performance.hpp"
+#include <immintrin.h>
 
 extern Giro::SolveParams SP;
 extern char* dt;
@@ -187,6 +188,51 @@ namespace Giro{
             return C;
         }
 
+        std::vector<float> dotMatricesSIMD(const std::vector<std::vector<float>>& A, const std::vector<float>& B) {
+            std::cout << "matmulstarted" << std::endl;
+            print_time();
+            int m = A.size();    // Number of rows in A
+            int n = A[0].size(); // Number of columns in A (should be equal to size of B)
+
+            // Ensure B's size matches A's column count
+            if (B.size() != n) {
+                throw std::invalid_argument("The size of vector B must match the number of columns in matrix A.");
+            }
+
+            // Resulting vector C will have size m
+            std::vector<float> C(m, 0.0);
+
+            // Perform matrix-vector multiplication with AVX
+            for (int i = 0; i < m; ++i) {
+                const float* row = A[i].data();
+                __m256 sum = _mm256_setzero_ps(); // Initialize sum vector to zero
+
+                int j = 0;
+                for (; j <= n - 8; j += 8) {
+                    __m256 a = _mm256_loadu_ps(&row[j]);
+                    __m256 b = _mm256_loadu_ps(&B[j]);
+                    sum = _mm256_add_ps(sum, _mm256_mul_ps(a, b));
+                }
+
+                // Reduce sum vector to a single value
+                __m128 sum_low = _mm256_castps256_ps128(sum);
+                __m128 sum_high = _mm256_extractf128_ps(sum, 1);
+                sum_low = _mm_add_ps(sum_low, sum_high);
+                sum_low = _mm_hadd_ps(sum_low, sum_low);
+                sum_low = _mm_hadd_ps(sum_low, sum_low);
+                float partial_sum = _mm_cvtss_f32(sum_low);
+
+                // Process any remaining elements
+                for (; j < n; ++j) {
+                    partial_sum += row[j] * B[j];
+                }
+                C[i] = partial_sum;
+            }
+            std::cout << "matmulend" << std::endl;
+            print_time();
+            return C;
+        }
+
         std::vector<std::vector<float>> convertTo6x3(std::vector<std::vector<float>> mtx){
             std::vector<std::vector<float>> result(mtx[0].size() * 3, std::vector<float>(mtx[0].size(), 0));
             for (int i = 0; i < mtx[0].size(); ++i) {
@@ -278,10 +324,10 @@ namespace Giro{
                 std::vector<float> prop = MP.AMR[0].CD[ind].values;
                 // matrix ensemble
                 // Initialize a 2D vector (matrix) of size n x n with zeros
-                // MathOperations dM;
+                MathOperations dM;
 
-                return mul_using_numpy(scalapmatrix, prop);
-                //return dM.dotMatrices(scalapmatrix, prop);
+                //return mul_using_numpy(scalapmatrix, prop);
+                return dM.dotMatricesSIMD(scalapmatrix, prop);
             }
 
             std::vector<float> grad_r(std::string var1, std::string var2){
