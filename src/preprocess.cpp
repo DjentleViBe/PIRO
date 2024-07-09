@@ -11,9 +11,9 @@
 
 Giro::MeshParams MP;
 Giro::SolveParams SP;
-std::vector<std::vector<float>> scagradmatrix, scadivmatrix, scalapmatrix, vecmatrix;
+std::vector<std::vector<float>> scagradmatrix, scadivmatrix, vecmatrix;
 int ts = 0;
-
+std::vector<float> scalapvector;
 // Function to map 3D indices to 1D
 int idx(int i, int j, int k, int N_x, int N_y) {
     return i + j * N_x + k * N_x * N_y;
@@ -107,15 +107,19 @@ int preprocess() {
     
     // Generate scalar and vector laplacian matrix for the cells
     // Resize the outer vector to have 3 rows
-    scalapmatrix.resize(MP.n[0]*MP.n[1]*MP.n[2]);
+    //scalapmatrix.resize(MP.n[0]*MP.n[1]*MP.n[2]);
     scagradmatrix.resize(MP.n[0]*MP.n[1]*MP.n[2]);
 
     // Resize each inner vector to have 4 columns and initialize elements to 0.0f
-    for (size_t i = 0; i < scalapmatrix.size(); ++i) {
-        scalapmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
+    for (size_t i = 0; i < scagradmatrix.size(); ++i) {
+        //scalapmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
         scagradmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
         
     }
+    // Set the main diagonal (index 0)
+    // Fill the matrix A based on finite difference approximations
+    int size = MP.n[0]*MP.n[1]*MP.n[2];
+    scalapvector.resize(size * size);
     // Set the main diagonal (index 0)
     // Fill the matrix A based on finite difference approximations
     for (int k = 0; k < MP.n[2]; ++k) {
@@ -124,39 +128,26 @@ int preprocess() {
                 int l = idx(i, j, k, MP.n[0], MP.n[1]);
 
                 // Diagonal entry
-                scalapmatrix[l][l] = -2 * SP.timestep * (1/(SP.delta[0] * SP.delta[0]) + 1/(SP.delta[1] * SP.delta[1]) + 1/(SP.delta[2] * SP.delta[2]));
-                scagradmatrix[l][l] = 0;
+                scalapvector[l * size + l] = -2 * SP.timestep * (1 / (SP.delta[0] * SP.delta[0]) + 1 / (SP.delta[1] * SP.delta[1]) + 1 / (SP.delta[2] * SP.delta[2]));
 
                 // Off-diagonal entries
                 if (i > 0) {
-                    scalapmatrix[l][idx(i-1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
-                    scagradmatrix[l][idx(i-1, j, k, MP.n[0], MP.n[1])] = -SP.timestep / (2 * SP.delta[0]);
-                    
+                    scalapvector[l * size + idx(i - 1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
                 }
                 if (i < MP.n[0] - 1) {
-                    scalapmatrix[l][idx(i+1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
-                    scagradmatrix[l][idx(i+1, j, k, MP.n[0], MP.n[1])] = SP.timestep / (2 * SP.delta[0]);
-                    
+                    scalapvector[l * size + idx(i + 1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
                 }
                 if (j > 0) {
-                    scalapmatrix[l][idx(i, j-1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
-                    scagradmatrix[l][idx(i, j-1, k, MP.n[0], MP.n[1])] = -SP.timestep / (2 * SP.delta[1]);
-                    
+                    scalapvector[l * size + idx(i, j - 1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
                 }
                 if (j < MP.n[1] - 1) {
-                    scalapmatrix[l][idx(i, j+1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
-                    scagradmatrix[l][idx(i, j+1, k, MP.n[0], MP.n[1])] = SP.timestep / (2 * SP.delta[1]);
-                    
+                    scalapvector[l * size + idx(i, j + 1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
                 }
                 if (k > 0) {
-                    scalapmatrix[l][idx(i, j, k-1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
-                    scagradmatrix[l][idx(i, j, k-1, MP.n[0], MP.n[1])] = -SP.timestep / (2 * SP.delta[2]);
-                    
+                    scalapvector[l * size + idx(i, j, k - 1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
                 }
                 if (k < MP.n[2] - 1) {
-                    scalapmatrix[l][idx(i, j, k+1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
-                    scagradmatrix[l][idx(i, j, k+1, MP.n[0], MP.n[1])] = SP.timestep / (2 * SP.delta[2]);
-                    
+                    scalapvector[l * size + idx(i, j, k + 1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
                 }
             }
         }
