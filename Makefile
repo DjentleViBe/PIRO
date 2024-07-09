@@ -1,7 +1,7 @@
 CC = /usr/bin/clang++
 
 # Compiler flags
-CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -mavx
+CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -DACCELERATE_NEW_LAPACK 
 
 MAKEFILE_DIR := $(CURDIR)
 # Directories
@@ -15,7 +15,7 @@ BINDIR = $(MAKEFILE_DIR)/bin/
 LIBS = -lpython3.10
 LIBDIR = $(MAKEFILE_DIR)/dependencies/library
 SHAREDLIB = $(MAKEFILE_DIR)/sharedlib
-FRAMEWORKS = -framework CoreFoundation
+FRAMEWORKS = -framework CoreFoundation -framework Accelerate
 # Source files
 SOURCES_C := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.c))
 SOURCES_CPP := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
