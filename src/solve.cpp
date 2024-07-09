@@ -10,7 +10,7 @@ char* dt;
 std::time_t now;
 
 int solve(){
-    callpython();
+    // callpython();
     std::cout << "Solving . . ." << std::endl;
     // solve equations
     Giro::Solve solver;

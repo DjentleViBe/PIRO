@@ -54,7 +54,7 @@ namespace Giro{
                 for (size_t i = 0; i < v1.size(); ++i) {
                     result[i] = v1[i] * v2[i];
                 }
-
+                printVector(result);
                 return result;
             }
 
@@ -188,11 +188,10 @@ namespace Giro{
             return C;
         }
 
-        std::vector<float> dotMatricesSIMD(const std::vector<std::vector<float>>& A, const std::vector<float>& B) {
-            std::cout << "matmulstarted" << std::endl;
-            print_time();
-            int m = A.size();    // Number of rows in A
-            int n = A[0].size(); // Number of columns in A (should be equal to size of B)
+        std::vector<float> dotMatricesSIMD(const std::vector<float>& A, const std::vector<float>& B) {
+            
+            int m = MP.n[0] * MP.n[1] * MP.n[2];    // Number of rows in A
+            int n = m; // Number of columns in A (should be equal to size of B)
 
             // Ensure B's size matches A's column count
             if (B.size() != n) {
@@ -202,9 +201,11 @@ namespace Giro{
             // Resulting vector C will have size m
             std::vector<float> C(m, 0.0);
 
-            // Perform matrix-vector multiplication with AVX
+            std::cout << "matmulstarted" << std::endl;
+            print_time();
+            // Perform matrix multiplication using AVX intrinsics
             for (int i = 0; i < m; ++i) {
-                const float* row = A[i].data();
+                const float* row = &A[i * n];
                 __m256 sum = _mm256_setzero_ps(); // Initialize sum vector to zero
 
                 int j = 0;
@@ -230,6 +231,7 @@ namespace Giro{
             }
             std::cout << "matmulend" << std::endl;
             print_time();
+            printVector(C);
             return C;
         }
 
@@ -327,7 +329,7 @@ namespace Giro{
                 MathOperations dM;
 
                 //return mul_using_numpy(scalapmatrix, prop);
-                return dM.dotMatricesSIMD(scalapmatrix, prop);
+                return dM.dotMatricesSIMD(scalapvector, prop);
             }
 
             std::vector<float> grad_r(std::string var1, std::string var2){
