@@ -1,7 +1,7 @@
 CC = /usr/bin/clang++
 
 # Compiler flags
-CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -DACCELERATE_NEW_LAPACK 
+CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64
 
 MAKEFILE_DIR := $(CURDIR)
 # Directories
