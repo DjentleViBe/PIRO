@@ -40,3 +40,4 @@ bin_archive
 *.odp*
 *.ods*
 logs
+*png
