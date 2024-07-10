@@ -46,7 +46,7 @@ namespace Giro{
             std::vector<int> ICtype;
             std::vector<std::string> ICfiles;
             std::string ICfile;
-            std::vector<int> n;
+            std::vector<uint> n;
             std::vector<float> o;
             std::vector<float> s;
             std::vector<float> l;

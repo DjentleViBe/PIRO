@@ -33,7 +33,7 @@ int preprocess() {
 
     MP.o = convertStringVectorToFloat(splitString(reader.get("Mesh", "o", "default_value"), ' '));
     MP.s = convertStringVectorToFloat(splitString(reader.get("Mesh", "s", "default_value"), ' '));
-    MP.n = convertStringVectorToInt(splitString(reader.get("Mesh", "n", "default_value"), ' '));
+    MP.n = convertStringVectorToUInt(splitString(reader.get("Mesh", "n", "default_value"), ' '));
     MP.l = convertStringVectorToFloat(splitString(reader.get("Mesh", "l", "default_value"), ' '));
     MP.index = convertStringVectorToInt(splitString(reader.get("Mesh", "index", "default_value"), ' '));
     MP.constantslist = splitString(reader.get("Simulation", "Constants", "default_value"), ' ');
@@ -119,15 +119,14 @@ int preprocess() {
     }
     // Set the main diagonal (index 0)
     // Fill the matrix A based on finite difference approximations
-    int size = MP.n[0]*MP.n[1]*MP.n[2];
-    scalapvectorpointer = new float[size * size];
+    uint size = MP.n[0]*MP.n[1]*MP.n[2];
+    scalapvectorpointer = new float[size * size]();
     // Set the main diagonal (index 0)
     // Fill the matrix A based on finite difference approximations
     for (int k = 0; k < MP.n[2]; ++k) {
         for (int j = 0; j < MP.n[1]; ++j) {
             for (int i = 0; i < MP.n[0]; ++i) {
                 int l = idx(i, j, k, MP.n[0], MP.n[1]);
-
                 // Diagonal entry
                 scalapvectorpointer[l * size + l] = -2 * SP.timestep * (1 / (SP.delta[0] * SP.delta[0]) + 1 / (SP.delta[1] * SP.delta[1]) + 1 / (SP.delta[2] * SP.delta[2]));
 

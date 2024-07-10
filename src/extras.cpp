@@ -107,6 +107,24 @@ std::vector<int> convertStringVectorToInt(const std::vector<std::string>& string
     return intVector;
 }
 
+std::vector<uint> convertStringVectorToUInt(const std::vector<std::string>& stringVector) {
+    std::vector<uint> intVector;
+    
+    for (const std::string& str : stringVector) {
+        std::istringstream iss(str);
+        uint num;
+        if (iss >> num) {
+            intVector.push_back(num);
+        } else {
+            // Handle error if conversion fails
+            std::cerr << "Error: Conversion failed for string '" << str << "'" << std::endl;
+            // You may choose to throw an exception or handle the error in another way
+        }
+    }
+    
+    return intVector;
+}
+
 std::vector<float> convertStringVectorToFloat(const std::vector<std::string>& stringVector) {
     std::vector<float> intVector;
     
