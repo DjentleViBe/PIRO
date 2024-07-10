@@ -234,7 +234,7 @@ namespace Giro{
             return C;
         }
 
-        std::vector<float> dotMatricesDSPID(const std::vector<float>& A, const std::vector<float>& B) {
+        std::vector<float> dotMatricesDSPID(float* A_ptr, const std::vector<float>& B) {
             
             int m = MP.n[0] * MP.n[1] * MP.n[2];     // Number of rows in A
             int n = 1; // Number of columns in A (should be equal to size of B)
@@ -246,7 +246,7 @@ namespace Giro{
 
             // Resulting vector C will have size m
             std::vector<float> C(m, 0.0);
-            const float* A_ptr = A.data();
+            // const float* A_ptr = A.data();
             const float* B_ptr = B.data();
             float* C_ptr = C.data();
             std::cout << "matmulstarted" << std::endl;
@@ -355,7 +355,7 @@ namespace Giro{
                 MathOperations dM;
 
                 //return mul_using_numpy(scalapmatrix, prop);
-                return dM.dotMatricesDSPID(scalapvector, prop);
+                return dM.dotMatricesDSPID(scalapvectorpointer, prop);
             }
 
             std::vector<float> grad_r(std::string var1, std::string var2){
