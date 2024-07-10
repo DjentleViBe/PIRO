@@ -13,7 +13,8 @@ Giro::MeshParams MP;
 Giro::SolveParams SP;
 std::vector<std::vector<float>> scagradmatrix, scadivmatrix, vecmatrix;
 int ts = 0;
-std::vector<float> scalapvector;
+float* scalapvectorpointer;
+
 // Function to map 3D indices to 1D
 int idx(int i, int j, int k, int N_x, int N_y) {
     return i + j * N_x + k * N_x * N_y;
@@ -119,7 +120,7 @@ int preprocess() {
     // Set the main diagonal (index 0)
     // Fill the matrix A based on finite difference approximations
     int size = MP.n[0]*MP.n[1]*MP.n[2];
-    scalapvector.resize(size * size);
+    scalapvectorpointer = new float[size * size];
     // Set the main diagonal (index 0)
     // Fill the matrix A based on finite difference approximations
     for (int k = 0; k < MP.n[2]; ++k) {
@@ -128,26 +129,26 @@ int preprocess() {
                 int l = idx(i, j, k, MP.n[0], MP.n[1]);
 
                 // Diagonal entry
-                scalapvector[l * size + l] = -2 * SP.timestep * (1 / (SP.delta[0] * SP.delta[0]) + 1 / (SP.delta[1] * SP.delta[1]) + 1 / (SP.delta[2] * SP.delta[2]));
+                scalapvectorpointer[l * size + l] = -2 * SP.timestep * (1 / (SP.delta[0] * SP.delta[0]) + 1 / (SP.delta[1] * SP.delta[1]) + 1 / (SP.delta[2] * SP.delta[2]));
 
                 // Off-diagonal entries
                 if (i > 0) {
-                    scalapvector[l * size + idx(i - 1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
+                    scalapvectorpointer[l * size + idx(i - 1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
                 }
                 if (i < MP.n[0] - 1) {
-                    scalapvector[l * size + idx(i + 1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
+                    scalapvectorpointer[l * size + idx(i + 1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
                 }
                 if (j > 0) {
-                    scalapvector[l * size + idx(i, j - 1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
+                    scalapvectorpointer[l * size + idx(i, j - 1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
                 }
                 if (j < MP.n[1] - 1) {
-                    scalapvector[l * size + idx(i, j + 1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
+                    scalapvectorpointer[l * size + idx(i, j + 1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
                 }
                 if (k > 0) {
-                    scalapvector[l * size + idx(i, j, k - 1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
+                    scalapvectorpointer[l * size + idx(i, j, k - 1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
                 }
                 if (k < MP.n[2] - 1) {
-                    scalapvector[l * size + idx(i, j, k + 1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
+                    scalapvectorpointer[l * size + idx(i, j, k + 1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
                 }
             }
         }
