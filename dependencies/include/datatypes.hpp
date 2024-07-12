@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+typedef unsigned int uint;
+
 namespace Giro{
     class fvMatrix{
         public:

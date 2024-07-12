@@ -4,7 +4,11 @@
 #include "../dependencies/include/ic.hpp"
 #include "../dependencies/include/inireader.hpp"
 #include "../dependencies/include/extras.hpp"
-#include <math.h>
+#include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 float calculategaussian(std::vector<float> coord, std::vector<float> mean, std::vector<float> sigma){
     float gaussian = exp(-0.5 * (pow((coord[0] - mean[0])/sigma[0], 2) + 

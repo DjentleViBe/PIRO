@@ -4,15 +4,20 @@
 #include <iostream>
 #include <filesystem>
 #include "../dependencies/include/extras.hpp"
+#include "../dependencies/include/datatypes.hpp"
 #include "../dependencies/include/init.hpp"
 #ifdef __APPLE__
     #include <mach-o/dyld.h>
 #elif _WIN32
-    #include "Windows.h"
+    #include "windows.h"
+#else 
+    #include "windows.h"
 #endif
 #include <numeric>
 #include <vector>
 #include <chrono>
+#include <string>
+#include <algorithm>
 
 int writefile(std::string file_path, std::string line_to_write){
     // Create an output file stream (ofstream) object
@@ -35,7 +40,7 @@ int writefile(std::string file_path, std::string line_to_write){
 
 int create_directory(std::string directoryname){
     std::filesystem::path dir(directoryname);
-
+    std::cout << "Creating directory" << std::endl;
     try {
         if (std::filesystem::exists(dir)) {
             std::cout << "Directory already exists: " << dir << std::endl;
@@ -79,21 +84,26 @@ int get_exec_directory(){
         } else {
             std::cerr << "Buffer size is too small; need size " << size << std::endl;
         }
-    #elif _WIN32
+    #else
         char path[1024];
         // Get the executable path
         DWORD size = GetModuleFileName(NULL, path, 1024);
-        if (size > 0 && size < 1024) {
-            // Successfully retrieved the path
-            std::filesystem::path exe_path = path;
-            std::filesystem::path current_path = exe_path.parent_path();
+        if (size > 0 && size < MAX_PATH) {
+        std::filesystem::path exe_path(path);
 
-            // Print the executable directory
-            std::cout << "Executable directory: " << current_path.string() << std::endl;
-        } else {
-            // Buffer was too small or failed to get the path
-            std::cerr << "Failed to get executable path" << std::endl;
-        }
+        std::string exe_path_string = exe_path.string();
+        std::replace(exe_path_string.begin(), exe_path_string.end(), '\\', '/');
+
+        // Convert the modified string back to a filesystem path
+        std::filesystem::path modified_exe_path = exe_path_string;
+        current_path = modified_exe_path.parent_path();
+
+        std::cout << "Original executable path: " << exe_path.string() << std::endl;
+        std::cout << "Executable directory : " << current_path.string() << std::endl;
+    } else {
+        std::cerr << "Failed to retrieve executable path. Error code: " << GetLastError() << std::endl;
+    }
+
     #endif
     return 0;
 }

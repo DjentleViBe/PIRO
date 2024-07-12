@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "datatypes.hpp"
 
 int writefile(std::string file_path, std::string line_to_write);
 int create_directory(std::string directoryname);

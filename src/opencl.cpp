@@ -1,6 +1,12 @@
 #define CL_HPP_TARGET_OPENCL_VERSION 200 
 #include <iostream>
-#include <OpenCL/opencl.h>
+#ifdef __APPLE__
+    #include <OpenCL/opencl.h>
+#elif _WIN32
+    #include "../dependencies/include/CL/opencl.h"
+#else
+    #include "../dependencies/include/CL/opencl.h"
+#endif
 #include "../dependencies/include/gpuinit.hpp"
 #include "../dependencies/include/kernel.cl.h"
 #include "../dependencies/include/extras.hpp"
@@ -19,6 +25,7 @@ static void print_device_info(cl_device_id device){
 }
 
 int opencl_call(float* hostA, float* hostB, int time, int N, int M, int P){
+    
     cl_int err;
     cl_platform_id platform;
     cl_uint num_devices;
@@ -36,7 +43,7 @@ int opencl_call(float* hostA, float* hostB, int time, int N, int M, int P){
         std::cerr << "Failed to get platform IDs" << std::endl;
         return 1;
     }
-
+    
     // Get number of devices
     err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
     if (err != CL_SUCCESS) {
@@ -57,13 +64,13 @@ int opencl_call(float* hostA, float* hostB, int time, int N, int M, int P){
 
     // Print information for each device
     // for (cl_uint i = 0; i < num_devices; ++i) {
-    //    std::cout << "Device #" << i + 1 << std::endl;
+    //   std::cout << "Device #" << i + 1 << std::endl;
     //    print_device_info(devices[i]);
-    // }
+    //}
     // Set default device
-    // std::cout << "Active device" << std::endl;
-    device = devices[2];
-
+    std::cout << "Active device" << std::endl;
+    device = devices[0];
+    
     // Initialize OpenCL
     err = clGetPlatformIDs(1, &platform, NULL);
     if (err != CL_SUCCESS) {
@@ -72,7 +79,7 @@ int opencl_call(float* hostA, float* hostB, int time, int N, int M, int P){
     }
 
     print_device_info(device);
-
+    std::cout << "Calling OpenCL" << std::endl;
     // Create OpenCL context
     context = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
     if (err != CL_SUCCESS) {
