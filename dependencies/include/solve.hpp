@@ -8,7 +8,10 @@
 #include "postprocess.hpp"
 #include <iostream>
 #include <immintrin.h>
-#include <Accelerate/Accelerate.h>
+#include <ctime>
+#ifdef __APPLE__
+    #include <Accelerate/Accelerate.h>
+#endif
 #include "gpuinit.hpp"
 
 extern Giro::SolveParams SP;

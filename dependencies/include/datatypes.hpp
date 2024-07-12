@@ -1,6 +1,7 @@
 #ifndef datatypes_hpp
 #define datatypes_hpp
 #include <vector>
+#include <string>
 
 namespace Giro{
     class fvMatrix{

@@ -5,14 +5,18 @@
 #include <filesystem>
 #include "../dependencies/include/extras.hpp"
 #include "../dependencies/include/init.hpp"
-#include <mach-o/dyld.h>
+#ifdef __APPLE__
+    #include <mach-o/dyld.h>
+#elif _WIN32
+    #include "Windows.h"
+#endif
 #include <numeric>
 #include <vector>
 #include <chrono>
 
 int writefile(std::string file_path, std::string line_to_write){
     // Create an output file stream (ofstream) object
-    //std::ofstream outfile(file_path, std::ios::app);  // Open the file in append mode
+    // std::ofstream outfile(file_path, std::ios::app);  // Open the file in append mode
     std::ofstream outfile(file_path);
     // Check if the file is open
     if (outfile.is_open()) {
@@ -64,15 +68,33 @@ int delete_directory(std::string folderPath){
 }
 
 int get_exec_directory(){
-    char path[1024];
-    uint32_t size = sizeof(path);
-    if (_NSGetExecutablePath(path, &size) == 0) {
-        std::filesystem::path exe_path = path;
-        current_path = exe_path.parent_path();
-        //std::cout << "Executable directory: " current_path.string() << std::endl;
-    } else {
-        std::cerr << "Buffer size is too small; need size " << size << std::endl;
-    }
+    
+    #ifdef __APPLE__
+        char path[1024];
+        uint32_t size = sizeof(path);
+        if (_NSGetExecutablePath(path, &size) == 0) {
+            std::filesystem::path exe_path = path;
+            current_path = exe_path.parent_path();
+            //std::cout << "Executable directory: " current_path.string() << std::endl;
+        } else {
+            std::cerr << "Buffer size is too small; need size " << size << std::endl;
+        }
+    #elif _WIN32
+        char path[1024];
+        // Get the executable path
+        DWORD size = GetModuleFileName(NULL, path, 1024);
+        if (size > 0 && size < 1024) {
+            // Successfully retrieved the path
+            std::filesystem::path exe_path = path;
+            std::filesystem::path current_path = exe_path.parent_path();
+
+            // Print the executable directory
+            std::cout << "Executable directory: " << current_path.string() << std::endl;
+        } else {
+            // Buffer was too small or failed to get the path
+            std::cerr << "Failed to get executable path" << std::endl;
+        }
+    #endif
     return 0;
 }
 
