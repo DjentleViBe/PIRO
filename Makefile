@@ -15,7 +15,7 @@ BINDIR = $(MAKEFILE_DIR)/bin/
 LIBS = 
 LIBDIR = $(MAKEFILE_DIR)/dependencies/library
 SHAREDLIB = $(MAKEFILE_DIR)/sharedlib
-FRAMEWORKS = -framework CoreFoundation -framework Accelerate
+FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
 # Source files
 SOURCES_C := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.c))
 SOURCES_CPP := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))

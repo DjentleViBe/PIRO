@@ -256,3 +256,10 @@ void print_time(){
     std::cout << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0') << std::setw(3) << ms << std::endl;
     
 }
+
+void printArray(float* array, uint size){
+    std::cout << "Printing array" << std::endl;
+    for (uint i = 0; i < size; i++) {
+        std::cout << array[i] << " ";
+    }
+}
