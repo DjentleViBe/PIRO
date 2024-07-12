@@ -7,8 +7,6 @@
 #include "extras.hpp"
 #include "postprocess.hpp"
 #include <iostream>
-#include "Python.h"
-#include "python_performance.hpp"
 #include <immintrin.h>
 #include <Accelerate/Accelerate.h>
 
