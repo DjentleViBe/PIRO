@@ -151,7 +151,7 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
                           sizeof(uint) * Q, flattenvector(indices).data(), &err);
     // Set kernel arguments
     std::cout << "Buffers created" << std::endl;
-    std::vector<float> hostC(N * P);
+    // std::vector<float> hostC(N * P);
     err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &memA);
     err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &memB);
     err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &memC);
