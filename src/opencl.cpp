@@ -36,7 +36,7 @@ int opencl_call(float* hostA, float* hostB, int time, int N, int M, int P){
     cl_command_queue queue;
     cl_program program;
     cl_kernel kernel;
-    cl_mem memA, memB;
+    cl_mem memA, memB, memC;
     
     // Initialize OpenCL
     err = clGetPlatformIDs(1, &platform, NULL);
@@ -129,14 +129,17 @@ int opencl_call(float* hostA, float* hostB, int time, int N, int M, int P){
                           sizeof(float) * N * M, hostA, &err);
     memB = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * M * P, hostB, &err);
+    memC = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * M * P, hostB, &err);
     // Set kernel arguments
     std::cout << "Buffers created" << std::endl;
 
     err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &memA);
     err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &memB);
-    err |= clSetKernelArg(kernel, 2, sizeof(cl_uint), &N);
-    err |= clSetKernelArg(kernel, 3, sizeof(cl_uint), &M);
-    err |= clSetKernelArg(kernel, 4, sizeof(cl_uint), &P);
+    err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &memC);
+    err |= clSetKernelArg(kernel, 3, sizeof(cl_uint), &N);
+    err |= clSetKernelArg(kernel, 4, sizeof(cl_uint), &M);
+    err |= clSetKernelArg(kernel, 5, sizeof(cl_uint), &P);
 
     size_t globalWorkSize[2] = { (size_t)P, (size_t)N };  // Number of work-items
     std::cout << "matmulstarted" << std::endl;
@@ -147,7 +150,7 @@ int opencl_call(float* hostA, float* hostB, int time, int N, int M, int P){
     }
     std::cout << "matmulend" << std::endl;
     print_time();
-    err = clEnqueueReadBuffer(queue, memB, CL_TRUE, 0,
+    err = clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                               sizeof(float) * N * P, hostB, 0, NULL, NULL);
     // Clean up
     free(devices);

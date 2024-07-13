@@ -4,7 +4,8 @@
 const char *kernelSource = R"CLC(
 // Define your OpenCL kernel code here
 __kernel void matrixMultiply(__global const float *A,
-                        __global float *B,
+                        __global const float *B,
+                        __global float *C,
                         int N, int M, int P) {
     // Get the index of the current element to be processed
     int row = get_global_id(1);
@@ -17,7 +18,7 @@ __kernel void matrixMultiply(__global const float *A,
         for(int k = 0; k < M; k++){
             sum += A[row * M + k] * B[k * P + col];
         }
-        B[row * P + col] = sum;
+        C[row * P + col] = sum;
 
     }
     
