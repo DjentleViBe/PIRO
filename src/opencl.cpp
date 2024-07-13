@@ -134,7 +134,7 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
                           sizeof(float) * M * P, hostB, &err);
     // Set kernel arguments
     std::cout << "Buffers created" << std::endl;
-
+    std::vector<float> hostC(N * P);
     err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &memA);
     err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &memB);
     err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &memC);
@@ -146,13 +146,16 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     std::cout << "matmulstarted" << std::endl;
     print_time();
     for(int ti = 0; ti < time; ti++){
+        std::cout << ti << std::endl;
         err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-        
+        err = clEnqueueCopyBuffer(queue, memC, memB, 0, 0, sizeof(float) * N * P, 0, NULL, NULL);
     }
-    std::cout << "matmulend" << std::endl;
-    print_time();
     err = clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                               sizeof(float) * N * P, hostB, 0, NULL, NULL);
+    printArray(hostB, M);
+    std::cout << "matmulend" << std::endl;
+    print_time();
+    
     // Clean up
     free(devices);
     // Cleanup

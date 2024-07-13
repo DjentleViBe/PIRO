@@ -257,7 +257,7 @@ namespace Giro{
             // A is m-by-n, B is n-by-1, C is m-by-1
             // vDSP_mmul(A_ptr, 1, B_ptr, 1, C_ptr, 1, m, n, k);
             // cblas_sgemv(CblasRowMajor, CblasNoTrans, m, n, 1.0, A.data(), n, B.data(), 1, 0.0, C.data(), 1);
-            opencl_call(A_ptr, B_ptr, 1, m, n, k);
+            opencl_call(A_ptr, B_ptr, 10, m, n, k);
             // printArray(B_ptr, n * k);
             
             return B;
