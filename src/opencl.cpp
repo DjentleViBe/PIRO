@@ -178,10 +178,11 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
         err = clEnqueueNDRangeKernel(queue, kernelBC, 1, NULL, globalWorkSizeBC, NULL, 0, NULL, NULL);
         
     }
-    err = clEnqueueReadBuffer(queue, memB, CL_TRUE, 0,
-                              sizeof(float) * N * P, hostB, 0, NULL, NULL);
     std::cout << "matmulend" << std::endl;
     print_time();
+    err = clEnqueueReadBuffer(queue, memB, CL_TRUE, 0,
+                              sizeof(float) * N * P, hostB, 0, NULL, NULL);
+    
     
     // Clean up
     free(devices);
