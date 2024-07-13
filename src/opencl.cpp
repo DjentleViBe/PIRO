@@ -188,9 +188,13 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     // Cleanup
     clReleaseMemObject(memA);
     clReleaseMemObject(memB);
+    clReleaseMemObject(memC);
+    clReleaseMemObject(memD);
     // clReleaseMemObject(memC);
     clReleaseKernel(kernel);
+    clReleaseKernel(kernelBC);
     clReleaseProgram(program);
+    clReleaseProgram(program_setBC);
     clReleaseCommandQueue(queue);
     clReleaseContext(context);
 
