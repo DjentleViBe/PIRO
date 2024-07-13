@@ -23,5 +23,6 @@ void printMatrix(const std::vector<std::vector<int>>& matrix);
 void printVector(const std::vector<float>& vec);
 void printVector(const std::vector<int>& vec);
 void printArray(float* array, uint size);
+std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector);
 void print_time();
 #endif
