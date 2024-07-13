@@ -9,6 +9,7 @@ ifeq ($(OS), Darwin)
 	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library/
 	LIBS = 
 	EXENAME = GIRO
+	FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
 else
     CC = g++
     MAKEFILE_DIR=.
@@ -29,7 +30,6 @@ BINDIR = $(MAKEFILE_DIR)/bin/
 #LIBS = -lglfw.3.3 -lportaudio
 
 SHAREDLIB = $(MAKEFILE_DIR)/sharedlib
-FRAMEWORKS =
 # Source files
 SOURCES_C := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.c))
 SOURCES_CPP := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
