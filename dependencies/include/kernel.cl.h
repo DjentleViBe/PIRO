@@ -25,4 +25,18 @@ __kernel void matrixMultiply(__global const float *A,
 }
 )CLC";
 
+
+// Kernel source for element-wise addition
+const char *setBC = R"CLC(
+__kernel void setBC(__global float *A,
+                    __global const float *B,
+                    __global uint *indices,
+                    uint size) {
+    uint id = get_global_id(0);
+    if (id < size) {
+        A[indices[id]] = B[indices[id]];
+    }
+}
+)CLC";
+
 #endif // KERNEL_CL_H
