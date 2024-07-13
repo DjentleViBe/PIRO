@@ -11,6 +11,7 @@
 
 Giro::MeshParams MP;
 Giro::SolveParams SP;
+Giro::DeviceParams DP;
 std::vector<std::vector<float>> scagradmatrix, scadivmatrix, vecmatrix;
 int ts = 0;
 float* scalapvectorpointer;
@@ -26,6 +27,9 @@ int preprocess() {
     IniReader reader(current_path.string() + "/assets/setup.ini");
     // Print all sections and key-value pairs
     // reader.print();
+    DP.id = std::stoi(reader.get("Device", "id", "default_value"));
+    DP.type = std::stoi(reader.get("Device", "type", "default_value"));
+
     SP.casename = reader.get("File", "casename", "default_value");
     SP.restart = std::stoi(reader.get("File", "restart", "default_value"));
     SP.timescheme = std::stoi(reader.get("Schemes", "Time", "default_value"));
@@ -123,10 +127,10 @@ int preprocess() {
     scalapvectorpointer = new float[size * size]();
     // Set the main diagonal (index 0)
     // Fill the matrix A based on finite difference approximations
-    for (int k = 0; k < MP.n[2]; ++k) {
-        for (int j = 0; j < MP.n[1]; ++j) {
-            for (int i = 0; i < MP.n[0]; ++i) {
-                int l = idx(i, j, k, MP.n[0], MP.n[1]);
+    for (uint k = 0; k < MP.n[2]; ++k) {
+        for (uint j = 0; j < MP.n[1]; ++j) {
+            for (uint i = 0; i < MP.n[0]; ++i) {
+                uint l = idx(i, j, k, MP.n[0], MP.n[1]);
                 // Diagonal entry
                 scalapvectorpointer[l * size + l] = -2 * SP.timestep * (1 / (SP.delta[0] * SP.delta[0]) + 1 / (SP.delta[1] * SP.delta[1]) + 1 / (SP.delta[2] * SP.delta[2]));
 

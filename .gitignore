@@ -24,10 +24,8 @@
 *.lai
 *.la
 *.a
-*.lib
 
 # Executables
-*.exe
 *.out
 *.app
 
@@ -40,4 +38,5 @@ bin_archive
 *.odp*
 *.ods*
 logs
-*png
+*.png
+*.pdf

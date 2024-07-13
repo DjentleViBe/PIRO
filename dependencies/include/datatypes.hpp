@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+typedef unsigned int uint;
+
 namespace Giro{
     class fvMatrix{
         public:
@@ -71,7 +73,12 @@ namespace Giro{
             float deltaT;
             int totaltimesteps;
     };
-        
+    
+    class DeviceParams{
+        public:
+            int id;
+            int type;
+    };
 };
 
 #endif

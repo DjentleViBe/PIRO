@@ -17,7 +17,7 @@ Giro::Solve GS;
 
 void setbc(){
     for (int ind = 0; ind < 6; ind++){
-        for(int faces = 0; faces < indices[ind].size(); faces++){
+        for(uint faces = 0; faces < indices[ind].size(); faces++){
             int msv = GS.matchscalartovar(BC_property[ind]);
             MP.AMR[0].CD[msv].values[indices[ind][faces]] = BC_value[ind];
         }
@@ -26,10 +26,10 @@ void setbc(){
 
 void prepbc(){
     std::cout << "Preparing cells to print" << std::endl;
-    for(int ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
-        int kd = ind / (MP.n[1] * MP.n[0]);
-        int jd = (ind / MP.n[0]) % MP.n[1];
-        int id = ind % MP.n[0];
+    for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
+        uint kd = ind / (MP.n[1] * MP.n[0]);
+        uint jd = (ind / MP.n[0]) % MP.n[1];
+        uint id = ind % MP.n[0];
         if (id == 0 || id == MP.n[0] - 1 || jd == 0 || jd == MP.n[1] - 1 || kd == 0 || kd == MP.n[2] - 1){
             indices_toprint.push_back(ind);
             indices_toprint_vec.push_back(ind);
@@ -46,10 +46,10 @@ void initbc(){
     std::cout << "Initialising boundary conditions" << std::endl;
     std::vector<int> BC_type;
     
-    for(int ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
-        int kd = ind / (MP.n[1] * MP.n[0]);
-        int jd = (ind % (MP.n[1] * MP.n[0])) / MP.n[0];
-        int id = ind % MP.n[0];
+    for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
+        uint kd = ind / (MP.n[1] * MP.n[0]);
+        uint jd = (ind % (MP.n[1] * MP.n[0])) / MP.n[0];
+        uint id = ind % MP.n[0];
         
         if(jd == 0 && (id != 0 && id != MP.n[0] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
             // 3 : XZ plane
