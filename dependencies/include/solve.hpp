@@ -251,8 +251,7 @@ namespace Giro{
             // const float* A_ptr = A.data();
             float* B_ptr = B.data();
             // float* C_ptr = C.data();
-            std::cout << "matmulstarted" << std::endl;
-            print_time();
+            
             // Perform the matrix-vector multiplication using cblas_sgemv
             // C = A * B
             // A is m-by-n, B is n-by-1, C is m-by-1
@@ -260,9 +259,7 @@ namespace Giro{
             // cblas_sgemv(CblasRowMajor, CblasNoTrans, m, n, 1.0, A.data(), n, B.data(), 1, 0.0, C.data(), 1);
             opencl_call(A_ptr, B_ptr, 1, m, n, k);
             // printArray(B_ptr, n * k);
-            std::cout << "matmulend" << std::endl;
             
-            print_time();
             return B;
         }
 

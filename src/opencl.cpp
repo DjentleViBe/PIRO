@@ -139,11 +139,14 @@ int opencl_call(float* hostA, float* hostB, int time, int N, int M, int P){
     err |= clSetKernelArg(kernel, 4, sizeof(cl_uint), &P);
 
     size_t globalWorkSize[2] = { (size_t)P, (size_t)N };  // Number of work-items
+    std::cout << "matmulstarted" << std::endl;
+    print_time();
     for(int ti = 0; ti < time; ti++){
         err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
         
     }
-
+    std::cout << "matmulend" << std::endl;
+    print_time();
     err = clEnqueueReadBuffer(queue, memB, CL_TRUE, 0,
                               sizeof(float) * N * P, hostB, 0, NULL, NULL);
     // Clean up
