@@ -11,6 +11,7 @@
 
 Giro::MeshParams MP;
 Giro::SolveParams SP;
+Giro::DeviceParams DP;
 std::vector<std::vector<float>> scagradmatrix, scadivmatrix, vecmatrix;
 int ts = 0;
 float* scalapvectorpointer;
@@ -26,6 +27,8 @@ int preprocess() {
     IniReader reader(current_path.string() + "/assets/setup.ini");
     // Print all sections and key-value pairs
     // reader.print();
+    DP.id = std::stoi(reader.get("Device", "id", "default_value"));
+
     SP.casename = reader.get("File", "casename", "default_value");
     SP.restart = std::stoi(reader.get("File", "restart", "default_value"));
     SP.timescheme = std::stoi(reader.get("Schemes", "Time", "default_value"));

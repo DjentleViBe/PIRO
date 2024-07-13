@@ -10,6 +10,7 @@
 #include "../dependencies/include/gpuinit.hpp"
 #include "../dependencies/include/kernel.cl.h"
 #include "../dependencies/include/extras.hpp"
+#include "../dependencies/include/preprocess.hpp"
 
 float* B_ptr;
 
@@ -69,7 +70,7 @@ int opencl_call(float* hostA, float* hostB, int time, int N, int M, int P){
     //}
     // Set default device
     std::cout << "Active device" << std::endl;
-    device = devices[0];
+    device = devices[DP.id];
     
     // Initialize OpenCL
     err = clGetPlatformIDs(1, &platform, NULL);
