@@ -11,6 +11,7 @@
 #include "../dependencies/include/kernel.cl.h"
 #include "../dependencies/include/extras.hpp"
 #include "../dependencies/include/preprocess.hpp"
+#include "../dependencies/include/datatypes.hpp"
 
 float* B_ptr;
 
@@ -25,7 +26,7 @@ static void print_device_info(cl_device_id device){
 
 }
 
-int opencl_call(float* hostA, float* hostB, int time, int N, int M, int P){
+int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     
     cl_int err;
     cl_platform_id platform;

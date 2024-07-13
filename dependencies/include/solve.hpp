@@ -238,9 +238,9 @@ namespace Giro{
 
         std::vector<float> dotMatricesOpenCL(float* A_ptr, std::vector<float>& B) {
             
-            int m = MP.n[0] * MP.n[1] * MP.n[2];     // Number of rows in A
-            int n = m; // Number of columns in A (should be equal to size of B)
-            int k = 1;
+            uint m = MP.n[0] * MP.n[1] * MP.n[2];     // Number of rows in A
+            uint n = m; // Number of columns in A (should be equal to size of B)
+            uint k = 1;
             // Ensure B's size matches A's column count
             if (B.size() != m) {
                 throw std::invalid_argument("The size of vector B must match the number of columns in matrix A.");

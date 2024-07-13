@@ -126,10 +126,10 @@ int preprocess() {
     scalapvectorpointer = new float[size * size]();
     // Set the main diagonal (index 0)
     // Fill the matrix A based on finite difference approximations
-    for (int k = 0; k < MP.n[2]; ++k) {
-        for (int j = 0; j < MP.n[1]; ++j) {
-            for (int i = 0; i < MP.n[0]; ++i) {
-                int l = idx(i, j, k, MP.n[0], MP.n[1]);
+    for (uint k = 0; k < MP.n[2]; ++k) {
+        for (uint j = 0; j < MP.n[1]; ++j) {
+            for (uint i = 0; i < MP.n[0]; ++i) {
+                uint l = idx(i, j, k, MP.n[0], MP.n[1]);
                 // Diagonal entry
                 scalapvectorpointer[l * size + l] = -2 * SP.timestep * (1 / (SP.delta[0] * SP.delta[0]) + 1 / (SP.delta[1] * SP.delta[1]) + 1 / (SP.delta[2] * SP.delta[2]));
 
