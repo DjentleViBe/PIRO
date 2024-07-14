@@ -41,14 +41,21 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     cl_mem memA, memB, memC, memD, memE;
     
     // Initialize OpenCL
-    err = clGetPlatformIDs(1, &platform, NULL);
-    if (err != CL_SUCCESS) {
-        std::cerr << "Failed to get platform IDs" << std::endl;
-        return 1;
-    }
+    cl_uint platformCount;
+    clGetPlatformIDs(0, nullptr, &platformCount);
+    std::vector<cl_platform_id> platforms(platformCount);
+    clGetPlatformIDs(platformCount, platforms.data(), nullptr);
+    /*
+    for (cl_platform_id platform : platforms) {
+        size_t size;
+        clGetPlatformInfo(platform, CL_PLATFORM_NAME, 0, nullptr, &size);
+        std::string name(size, '\0');
+        clGetPlatformInfo(platform, CL_PLATFORM_NAME, size, &name[0], nullptr);
+        std::cout << "Platform: " << name << std::endl;
+    }*/
     
     // Get number of devices
-    err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
+    err = clGetDeviceIDs(platforms[DP.platformid], CL_DEVICE_TYPE_ALL, 3, NULL, &num_devices);
     if (err != CL_SUCCESS) {
         std::cerr << "Failed to get number of devices" << std::endl;
         return 1;
@@ -58,7 +65,7 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     devices = (cl_device_id *)malloc(num_devices * sizeof(cl_device_id));
 
     // Get all device IDs
-    err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
+    err = clGetDeviceIDs(platforms[DP.platformid], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
     if (err != CL_SUCCESS) {
         std::cerr << "Failed to get device IDs" << std::endl;
         free(devices);
@@ -66,20 +73,15 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     }
 
     // Print information for each device
-    // for (cl_uint i = 0; i < num_devices; ++i) {
-    //   std::cout << "Device #" << i + 1 << std::endl;
-    //    print_device_info(devices[i]);
-    //}
+    for (cl_uint i = 0; i < num_devices; ++i) {
+       std::cout << "Device #" << i + 1 << std::endl;
+        print_device_info(devices[i]);
+    }
     // Set default device
     std::cout << "Active device" << std::endl;
     device = devices[DP.id];
     
     // Initialize OpenCL
-    err = clGetPlatformIDs(1, &platform, NULL);
-    if (err != CL_SUCCESS) {
-        std::cerr << "Failed to get platform IDs" << std::endl;
-        return 1;
-    }
 
     print_device_info(device);
     std::cout << "Calling OpenCL" << std::endl;
