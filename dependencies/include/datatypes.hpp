@@ -77,6 +77,7 @@ namespace Giro{
     class DeviceParams{
         public:
             int id;
+            int platformid;
             int type;
     };
 };
