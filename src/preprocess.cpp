@@ -29,6 +29,7 @@ int preprocess() {
     // reader.print();
     DP.id = std::stoi(reader.get("Device", "id", "default_value"));
     DP.type = std::stoi(reader.get("Device", "type", "default_value"));
+    DP.platformid = std::stoi(reader.get("Device", "platformid", "default_value"));
 
     SP.casename = reader.get("File", "casename", "default_value");
     SP.restart = std::stoi(reader.get("File", "restart", "default_value"));
