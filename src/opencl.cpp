@@ -30,7 +30,7 @@ static void print_device_info(cl_device_id device){
 int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     
     cl_int err;
-    cl_platform_id platform;
+    // cl_platform_id platform;
     cl_uint num_devices;
     cl_device_id *devices;
     cl_device_id device;
@@ -45,6 +45,7 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     clGetPlatformIDs(0, nullptr, &platformCount);
     std::vector<cl_platform_id> platforms(platformCount);
     clGetPlatformIDs(platformCount, platforms.data(), nullptr);
+
     /*
     for (cl_platform_id platform : platforms) {
         size_t size;
@@ -73,10 +74,10 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     }
 
     // Print information for each device
-    for (cl_uint i = 0; i < num_devices; ++i) {
-       std::cout << "Device #" << i + 1 << std::endl;
-        print_device_info(devices[i]);
-    }
+    // for (cl_uint i = 0; i < num_devices; ++i) {
+    //   std::cout << "Device #" << i + 1 << std::endl;
+    //    print_device_info(devices[i]);
+    // }
     // Set default device
     std::cout << "Active device" << std::endl;
     device = devices[DP.id];
@@ -133,6 +134,7 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
         clReleaseContext(context);
         return 1;
     }
+
     std::cout << "Creating kernel" << std::endl;
     kernel = clCreateKernel(program, "matrixMultiply", &err);
     kernelBC = clCreateKernel(program_setBC, "setBC", &err);
@@ -160,7 +162,6 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     err |= clSetKernelArg(kernel, 3, sizeof(cl_uint), &N);
     err |= clSetKernelArg(kernel, 4, sizeof(cl_uint), &M);
     err |= clSetKernelArg(kernel, 5, sizeof(cl_uint), &P);
-
     
     err |= clSetKernelArg(kernelBC, 0, sizeof(cl_mem), &memB);
     err |= clSetKernelArg(kernelBC, 1, sizeof(cl_mem), &memD);
@@ -173,7 +174,7 @@ int opencl_call(float* hostA, float* hostB, int time, uint N, uint M, uint P){
     print_time();
     int totaliter = SP.totaltime / SP.timestep;
     for(int ti = 0; ti < totaliter; ti++){
-        std::cout << ti << std::endl;
+        std::cout << "Timestep : " << ti + 1 << "/"  << totaliter << std::endl;
         err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
         err = clEnqueueCopyBuffer(queue, memC, memB, 0, 0, sizeof(float) * N * P, 0, NULL, NULL);
         // set boundary condition
