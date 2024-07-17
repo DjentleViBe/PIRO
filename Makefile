@@ -8,7 +8,7 @@ ifeq ($(OS), Darwin)
 	CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64
 	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library/
 	LIBS = 
-	EXENAME = GIRO
+	EXENAME = GIRO_devices
 	FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
 else
     CC = g++
@@ -17,7 +17,7 @@ else
 	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library
 	CFLAGS = -std=c++23 -Wno-deprecated
 	LIBS = -lOpenCL
-	EXENAME = GIRO.exe
+	EXENAME = GIRO_devices.exe
 endif
 
 # Directories

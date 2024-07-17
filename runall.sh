@@ -1,15 +1,4 @@
 #!/bin/bash
-extension=""
-
-show_help() {
-    echo "Usage: $0 [-h] [-f NAME]"
-    echo
-    echo "Example script to demonstrate argument handling in bash."
-    echo
-    echo "Options:"
-    echo "  -h         Display this help message and exit"
-    echo "  -f FILE    Specify the name"
-}
 
 detect_os() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -29,45 +18,10 @@ detect_os() {
         echo "Operating System: Unknown"
     fi
 }
-# Initialize variables
-FILE=""
-
-# Parse command line arguments
-while getopts ":hf:" opt; do
-    case ${opt} in
-        h)
-            show_help
-            exit 0
-            ;;
-        f)
-            FILE=$OPTARG
-            ;;
-        \?)
-            echo "Invalid option: -$OPTARG" >&2
-            show_help
-            exit 1
-            ;;
-        :)
-            echo "Option -$OPTARG requires an argument." >&2
-            show_help
-            exit 1
-            ;;
-    esac
-done
-
-# Check if required arguments are provided
-if [ -z "$FILE" ]; then
-    echo "Error: Missing required arguments."
-    show_help
-    exit 1
-fi
-
-# Main script logic
-echo "Setup file: $FILE"
 
 detect_os
 
 cp -r ./dependencies/assets ./bin/.
 mkdir -p logs
 
-./bin/GIRO$extension $FILE &> ./logs/$FILE.txt
+./bin/GIRO_devices$extension &> ./logs/devices.txt
