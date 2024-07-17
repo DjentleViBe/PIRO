@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <string>
+
 #include "../dependencies/include/preprocess.hpp"
 #include "../dependencies/include/init.hpp"
 #include "../dependencies/include/inireader.hpp"
@@ -21,10 +23,11 @@ int idx(int i, int j, int k, int N_x, int N_y) {
     return i + j * N_x + k * N_x * N_y;
 }
 
-int preprocess() {
+int preprocess(const std::string& name) {
     
     std::cout << "Preprocess step initiated" << std::endl;
-    IniReader reader(current_path.string() + "/assets/setup.ini");
+    std::cout << "Setup file : " << name << std::endl;
+    IniReader reader(current_path.string() + "/assets/" + name);
     // Print all sections and key-value pairs
     // reader.print();
     DP.id = std::stoi(reader.get("Device", "id", "default_value"));
