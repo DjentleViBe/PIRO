@@ -1,5 +1,7 @@
 #define CL_HPP_TARGET_OPENCL_VERSION 200 
 #include <iostream>
+#include <vector>
+
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
 #elif _WIN32
