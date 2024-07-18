@@ -15,7 +15,7 @@ else
     MAKEFILE_DIR=.
     $(info Current Directory: $(MAKEFILE_DIR))
 	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library
-	CFLAGS = -std=c++23 -Wno-deprecated
+	CFLAGS = -std=c++23 -Wno-deprecated -static
 	LIBS = -lOpenCL
 	EXENAME = GIRO_devices.exe
 endif
