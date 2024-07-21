@@ -3,11 +3,19 @@
 #include "../dependencies/include/solve.hpp"
 #include "../dependencies/include/postprocess.hpp"
 #include "../dependencies/include/bc.hpp"
+#include <string>
 
-int main()
+int main(int argc, char* argv[])
 {	
+	if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <name>" << std::endl;
+        return 1;
+    }
+    
+    std::string name = argv[1];
+
 	get_exec_directory();
-	preprocess();
+	preprocess(name);
 	solve();
 	// postprocess("T");
 	return 0;
