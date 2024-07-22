@@ -236,7 +236,7 @@ namespace Giro{
             return C;
         }
 
-        std::vector<float> dotMatricesOpenCL(float* A_ptr, std::vector<float>& B) {
+        /*std::vector<float> dotMatricesOpenCL(float* A_ptr, std::vector<float>& B) {
             
             uint m = MP.n[0] * MP.n[1] * MP.n[2];     // Number of rows in A
             uint n = m; // Number of columns in A (should be equal to size of B)
@@ -246,19 +246,24 @@ namespace Giro{
                 throw std::invalid_argument("The size of vector B must match the number of columns in matrix A.");
             }
 
-            // Resulting vector C will have size m
-            // std::vector<float> C(m, 0.0);
-            // const float* A_ptr = A.data();
             float* B_ptr = B.data();
-            // float* C_ptr = C.data();
             
-            // Perform the matrix-vector multiplication using cblas_sgemv
-            // C = A * B
-            // A is m-by-n, B is n-by-1, C is m-by-1
-            // vDSP_mmul(A_ptr, 1, B_ptr, 1, C_ptr, 1, m, n, k);
-            // cblas_sgemv(CblasRowMajor, CblasNoTrans, m, n, 1.0, A.data(), n, B.data(), 1, 0.0, C.data(), 1);
             opencl_call(A_ptr, B_ptr, 10, m, n, k);
-            // printArray(B_ptr, n * k);
+            
+            return B;
+        }*/
+
+        std::vector<float> laplacianOpenCL(std::vector<float>& B) {
+            
+            uint m = MP.n[0] * MP.n[1] * MP.n[2];     // Number of rows in A
+            uint n = m; // Number of columns in A (should be equal to size of B)
+            uint k = 1;
+            // Ensure B's size matches A's column count
+            if (B.size() != m) {
+                throw std::invalid_argument("The size of vector B must match the number of columns in matrix A.");
+            }
+            float* B_ptr = B.data();
+            opencl_laplacian(B_ptr, 10, m, n, k);
             
             return B;
         }
@@ -357,7 +362,7 @@ namespace Giro{
                 MathOperations dM;
 
                 //return mul_using_numpy(scalapmatrix, prop);
-                return dM.dotMatricesOpenCL(scalapvectorpointer, prop);
+                return dM.laplacianOpenCL(prop);
             }
 
             std::vector<float> grad_r(std::string var1, std::string var2){
