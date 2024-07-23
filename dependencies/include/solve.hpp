@@ -6,6 +6,7 @@
 #include "bc.hpp"
 #include "extras.hpp"
 #include "postprocess.hpp"
+#include "operatoroverload.hpp"
 #include <iostream>
 #include <immintrin.h>
 #include <ctime>
@@ -13,7 +14,13 @@
     #include <Accelerate/Accelerate.h>
 #endif
 #include "gpuinit.hpp"
-
+#ifdef __APPLE__
+    #include <OpenCL/opencl.h>
+#elif _WIN32
+    #include "../dependencies/include/CL/opencl.h"
+#else
+    #include "../dependencies/include/CL/opencl.h"
+#endif
 extern Giro::SolveParams SP;
 extern char* dt;
 extern std::time_t now;
@@ -344,25 +351,45 @@ namespace Giro{
                 return A;
             }
 
-            std::vector<float> ddc_r(std::string var){
+            cl_mem ddc_r(std::string var){
+                cl_int err;
                 int ind = matchscalartovar(var);
+                int N = MP.n[0] * MP.n[1] * MP.n[2];
                 // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
-                std::vector<float>A(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
-                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; ++i) {
+                std::vector<float>A(N, 0.0);
+                for (int i = 0; i < N; ++i) {
                         A[i] = MP.constantsvalues[ind];  // 1.0 or any other desired value
-                }   
-                return A;
+                }
+                cl_mem memB = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * N, A.data(), &err);
+                
+                return memB;
             }
 
-            std::vector<float> laplacian_r(std::string var){
+            cl_mem laplacian_r(std::string var){
+                cl_int err;
+                int N = MP.n[0] * MP.n[1] * MP.n[2];
                 int ind = matchscalartovar(var);
                 std::vector<float> prop = MP.AMR[0].CD[ind].values;
-                // matrix ensemble
-                // Initialize a 2D vector (matrix) of size n x n with zeros
-                MathOperations dM;
+                size_t globalWorkSizelaplacian[1] = { (size_t)N };
+                // call openkernel for laplacian
+                cl_mem memB = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * N, MP.AMR[0].CD[ind].values.data(), &err);
+                cl_mem memC = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * N, prop.data(), &err);
+                err = clEnqueueNDRangeKernel(queue, kernellaplacian, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
+                
+                err |= clSetKernelArg(kernellaplacian, 0, sizeof(cl_mem), &memB);
+                err |= clSetKernelArg(kernellaplacian, 1, sizeof(cl_mem), &memC);
+                err |= clSetKernelArg(kernellaplacian, 2, sizeof(cl_float), &SP.delta[0]);
+                err |= clSetKernelArg(kernellaplacian, 3, sizeof(cl_float), &SP.delta[1]);
+                err |= clSetKernelArg(kernellaplacian, 4, sizeof(cl_float), &SP.delta[2]);
+                err |= clSetKernelArg(kernellaplacian, 5, sizeof(cl_uint), &MP.n[0]);
+                err |= clSetKernelArg(kernellaplacian, 6, sizeof(cl_uint), &MP.n[1]);
+                err |= clSetKernelArg(kernellaplacian, 7, sizeof(cl_float), &SP.timestep);
+                err |= clSetKernelArg(kernellaplacian, 8, sizeof(cl_uint), &N);
 
-                //return mul_using_numpy(scalapmatrix, prop);
-                return dM.laplacianOpenCL(prop);
+                return memB;
             }
 
             std::vector<float> grad_r(std::string var1, std::string var2){
@@ -386,21 +413,25 @@ namespace Giro{
 
         class scalarMatrix{
             private:
-                std::vector<float> smatrix;
+                cl_mem smatrix;
             public:
-                scalarMatrix(std::vector<float> SM){
+                scalarMatrix(cl_mem SM){
                     smatrix = SM;
                 }
 
                 void Solve(float currenttime){
+                    cl_int err;
+                    int N = MP.n[0] * MP.n[1] * MP.n[2];
                     ts = int(currenttime / SP.timestep);
                     std::cout << "Timestep : " << ts  << " / " << SP.totaltimesteps << std::endl;
-                    // assign variables
-                    MP.AMR[0].CD[0].values = smatrix;
                     // apply Boundary Conditions
                     setbc();
                     // export every timestep
-                    
+                    err = clEnqueueReadBuffer(queue, smatrix, CL_TRUE, 0,
+                              sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
+                    if (err != CL_SUCCESS){
+                        std::cout << "read error" << std::endl;
+                    }
                     std::cout << "Post processing started" << std::endl;
                     print_time();
                     postprocess("T");
