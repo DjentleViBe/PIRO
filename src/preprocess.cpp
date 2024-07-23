@@ -56,7 +56,9 @@ int preprocess(const std::string& name) {
     MP.n[2] += 2;
 
     init();
-
+    opencl_init();
+    opencl_build();
+    
     for(int i = 0; i <= MP.levels; i++){
 
         Giro::AMR AMR;
@@ -111,55 +113,8 @@ int preprocess(const std::string& name) {
     SP.timestep = std::stof(reader.get("Solve", "Timestep", "default_value"));
     SP.totaltime = std::stof(reader.get("Solve", "TotalTime", "default_value"));
     SP.totaltimesteps = SP.totaltime / SP.timestep;
-    // Generate scalar and vector divergence matrix for the cells
-
     
-    // Generate scalar and vector laplacian matrix for the cells
-    // Resize the outer vector to have 3 rows
-    //scalapmatrix.resize(MP.n[0]*MP.n[1]*MP.n[2]);
-    scagradmatrix.resize(MP.n[0]*MP.n[1]*MP.n[2]);
 
-    // Resize each inner vector to have 4 columns and initialize elements to 0.0f
-    for (size_t i = 0; i < scagradmatrix.size(); ++i) {
-        //scalapmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
-        scagradmatrix[i].resize(MP.n[0]*MP.n[1]*MP.n[2], 0.0f);
-        
-    }
-    // Set the main diagonal (index 0)
-    // Fill the matrix A based on finite difference approximations
-    uint size = MP.n[0]*MP.n[1]*MP.n[2];
-    scalapvectorpointer = new float[size * size]();
-    // Set the main diagonal (index 0)
-    // Fill the matrix A based on finite difference approximations
-    for (uint k = 0; k < MP.n[2]; ++k) {
-        for (uint j = 0; j < MP.n[1]; ++j) {
-            for (uint i = 0; i < MP.n[0]; ++i) {
-                uint l = idx(i, j, k, MP.n[0], MP.n[1]);
-                // Diagonal entry
-                scalapvectorpointer[l * size + l] = -2 * SP.timestep * (1 / (SP.delta[0] * SP.delta[0]) + 1 / (SP.delta[1] * SP.delta[1]) + 1 / (SP.delta[2] * SP.delta[2]));
-
-                // Off-diagonal entries
-                if (i > 0) {
-                    scalapvectorpointer[l * size + idx(i - 1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
-                }
-                if (i < MP.n[0] - 1) {
-                    scalapvectorpointer[l * size + idx(i + 1, j, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[0] * SP.delta[0]);
-                }
-                if (j > 0) {
-                    scalapvectorpointer[l * size + idx(i, j - 1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
-                }
-                if (j < MP.n[1] - 1) {
-                    scalapvectorpointer[l * size + idx(i, j + 1, k, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[1] * SP.delta[1]);
-                }
-                if (k > 0) {
-                    scalapvectorpointer[l * size + idx(i, j, k - 1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
-                }
-                if (k < MP.n[2] - 1) {
-                    scalapvectorpointer[l * size + idx(i, j, k + 1, MP.n[0], MP.n[1])] = 1 * SP.timestep / (SP.delta[2] * SP.delta[2]);
-                }
-            }
-        }
-    }
     
     readbc();
 
