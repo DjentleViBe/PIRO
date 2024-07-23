@@ -15,6 +15,21 @@
 #include "../dependencies/include/bc.hpp"
 
 float* B_ptr;
+cl_int err;
+// cl_platform_id platform;
+cl_uint platformCount;
+cl_uint num_devices;
+cl_device_id *devices;
+cl_device_id device;
+cl_context context;
+cl_command_queue queue;
+cl_program  program_multiplyVec, 
+            program_laplacian, 
+            program_setBC;
+cl_kernel   kernel_multiplyVec,
+            kernellaplacian,
+            kernelBC;
+cl_mem memB, memC, memD, memE;
 
 static void print_device_info(cl_device_id device){
     char name[128];
@@ -27,21 +42,9 @@ static void print_device_info(cl_device_id device){
 
 }
 
-int opencl_laplacian(float* hostB, int time, uint N, uint M, uint P){
-    
-    cl_int err;
-    // cl_platform_id platform;
-    cl_uint num_devices;
-    cl_device_id *devices;
-    cl_device_id device;
-    cl_context context;
-    cl_command_queue queue;
-    cl_program program_laplacian, program_setBC;
-    cl_kernel kernelBC, kernellaplacian;
-    cl_mem memB, memC, memD, memE;
-    
-    // Initialize OpenCL
-    cl_uint platformCount;
+int opencl_init(){
+    std::cout << "Initialising OpenCL" << std::endl;
+     // Initialize OpenCL
     clGetPlatformIDs(0, nullptr, &platformCount);
     std::vector<cl_platform_id> platforms(platformCount);
     clGetPlatformIDs(platformCount, platforms.data(), nullptr);
@@ -67,10 +70,9 @@ int opencl_laplacian(float* hostB, int time, uint N, uint M, uint P){
     // Set default device
     std::cout << "Active device" << std::endl;
     device = devices[DP.id];
-    
-    // Initialize OpenCL
-
     print_device_info(device);
+
+    // Initialize OpenCL
     std::cout << "Calling OpenCL" << std::endl;
     // Create OpenCL context
     context = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
@@ -86,46 +88,57 @@ int opencl_laplacian(float* hostB, int time, uint N, uint M, uint P){
         clReleaseContext(context);
         return 1;
     }
-
-    // Create program object
-    program_laplacian = clCreateProgramWithSource(context, 1, &laplaciancalc, NULL, &err);
-    if (err != CL_SUCCESS) {
-        std::cerr << "Failed to create program with source" << std::endl;
-        clReleaseCommandQueue(queue);
-        clReleaseContext(context);
-        return 1;
-    }
-
-    program_setBC = clCreateProgramWithSource(context, 1, &setBC, NULL, &err);
-    if (err != CL_SUCCESS) {
-        std::cerr << "Failed to create program with source" << std::endl;
-        clReleaseCommandQueue(queue);
-        clReleaseContext(context);
-        return 1;
-    }
     
-    // Build program
-    err = clBuildProgram(program_laplacian, 1, &device, NULL, NULL, NULL);
-    err = clBuildProgram(program_setBC, 1, &device, NULL, NULL, NULL);
+    return 0;
+}
+
+cl_program opencl_CreateProgram(const char* dialog){
+    cl_program program = clCreateProgramWithSource(context, 1, &dialog, NULL, &err);
+    if (err != CL_SUCCESS) {
+        std::cerr << "Failed to create program with source" << std::endl;
+        clReleaseCommandQueue(queue);
+        clReleaseContext(context);
+    }
+    return program;
+}
+
+cl_int opencl_BuildProgram(cl_program program){
+    err = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
     if (err != CL_SUCCESS) {
         std::cerr << "Failed to build program" << std::endl;
         size_t log_size;
-        clGetProgramBuildInfo(program_setBC, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
         char *log = (char *)malloc(log_size);
-        clGetProgramBuildInfo(program_setBC, device, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
         std::cerr << "Build log:\n" << log << std::endl;
         free(log);
-        clReleaseProgram(program_setBC);
+        clReleaseProgram(program);
         clReleaseCommandQueue(queue);
         clReleaseContext(context);
         return 1;
     }
+    return err;
+}
 
+int opencl_build(){
+     // Create program objects
+    std::cout << "Building program : " << std::endl;
+    program_multiplyVec = opencl_CreateProgram(multiplyVectors);
+    program_laplacian = opencl_CreateProgram(laplaciancalc);
+    program_setBC = opencl_CreateProgram(setBC);
+    err = opencl_BuildProgram(program_laplacian);
+    err = opencl_BuildProgram(program_setBC);
+    
     std::cout << "Creating kernel" << std::endl;
-    // kernel = clCreateKernel(program, "matrixMultiply", &err);
+    kernel_multiplyVec = clCreateKernel(program_laplacian, "multiplyVectors", &err);
     kernelBC = clCreateKernel(program_setBC, "setBC", &err);
     kernellaplacian = clCreateKernel(program_laplacian, "laplacian", &err);
 
+    return 0;
+}
+
+int opencl_laplacian(float* hostB, int time, uint N, uint M, uint P){
+    
     std::cout << "Creating buffers" << std::endl;
     // Create buffer for input data
     memB = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -156,7 +169,6 @@ int opencl_laplacian(float* hostB, int time, uint N, uint M, uint P){
     err |= clSetKernelArg(kernelBC, 2, sizeof(cl_mem), &memE);
     err |= clSetKernelArg(kernelBC, 3, sizeof(cl_uint), &Q);
 
-    // size_t globalWorkSize[2] = { (size_t)P, (size_t)N };  // Number of work-items
     size_t globalWorkSizelaplacian[1] = { (size_t)N };
     size_t globalWorkSizeBC[1] = { (size_t)Q };  // Number of work-items
     std::cout << "matmulstarted" << std::endl;
