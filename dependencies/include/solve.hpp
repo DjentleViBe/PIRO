@@ -339,16 +339,20 @@ namespace Giro{
                     return 0;
                 }
 
-            std::vector<float> ddt_r(std::string var){
+            CLBuffer ddt_r(std::string var){
+                int N = MP.n[0] * MP.n[1] * MP.n[2];
                 int ind = matchscalartovar(var);
                 // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
-                
-                std::vector<float>A (MP.n[0] * MP.n[1] * MP.n[2], 0.0);
-                for (int i = 0; i < MP.n[0] * MP.n[1] * MP.n[2]; i++) {
+                CLBuffer memB;
+                std::vector<float>A (N, 0.0);
+                for (int i = 0; i < N; i++) {
                     A[i] = MP.AMR[0].CD[ind].values[i];  // 1.0 or any other desired value
                     //std::cout << A[i] << " ";
                 }
-                return A;
+                memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * N, A.data(), &err);
+                
+                return memB;
             }
 
             CLBuffer ddc_r(std::string var){
@@ -362,8 +366,6 @@ namespace Giro{
                 CLBuffer memB;
                 memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, A.data(), &err);
-                
-                // printVector(A);
                 
                 return memB;
             }
@@ -432,7 +434,7 @@ namespace Giro{
                 void Solve(float currenttime){
                     // int N = MP.n[0] * MP.n[1] * MP.n[2];
                     ts = int(currenttime / SP.timestep);
-                    std::cout << "Timestep : " << ts  << " / " << SP.totaltimesteps << std::endl;
+                    std::cout << "Timestep : " << ts + 1  << " / " << SP.totaltimesteps << std::endl;
                     // apply Boundary Conditions
                     opencl_setBC(smatrix.buffer);
                     // export every timestep

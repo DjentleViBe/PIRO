@@ -38,6 +38,25 @@ class CLBuffer{
 
             return partC;
         }
+
+        friend CLBuffer operator+(CLBuffer partA, CLBuffer partB){
+            cl_int err;
+            int N = MP.n[0] * MP.n[1] * MP.n[2];
+            std::vector<float>A(N, 0.0);
+            CLBuffer partC;
+            partC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * N, A.data(), &err);
+
+            
+            size_t globalWorkSize[1] = { (size_t)N };
+            err |= clSetKernelArg(kernel_addVec, 0, sizeof(cl_mem), &partC.buffer);
+            err |= clSetKernelArg(kernel_addVec, 1, sizeof(cl_mem), &partA.buffer);
+            err |= clSetKernelArg(kernel_addVec, 2, sizeof(cl_mem), &partB.buffer);
+            err |= clSetKernelArg(kernel_addVec, 3, sizeof(cl_uint), &N);
+            err = clEnqueueNDRangeKernel(queue, kernel_addVec, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+
+            return partC;
+        }
 };
 
 

@@ -19,10 +19,12 @@ extern std::vector<std::vector<float>> scagradmatrix, scadivmatrix;
 extern int ts;
 extern float* scalapvectorpointer;
 
-extern cl_program   program_multiplyVec, 
+extern cl_program   program_addVec,
+                    program_multiplyVec, 
                     program_laplacian, 
                     program_setBC;
-extern cl_kernel    kernel_multiplyVec,
+extern cl_kernel    kernel_addVec,
+                    kernel_multiplyVec,
                     kernellaplacian,
                     kernelBC;
 extern cl_context   context;
