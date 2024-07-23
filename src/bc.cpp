@@ -49,8 +49,6 @@ void opencl_setBC(cl_mem memB){
     if (err != CL_SUCCESS){
         std::cout << "BC error" << std::endl;
         }
-    err = clEnqueueReadBuffer(queue, memB, CL_TRUE, 0,
-                              sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
     
 }
 

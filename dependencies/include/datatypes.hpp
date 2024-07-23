@@ -72,6 +72,7 @@ namespace Giro{
             float delta[3];
             float deltaT;
             int totaltimesteps;
+            int save;
     };
     
     class DeviceParams{

@@ -112,9 +112,8 @@ int preprocess(const std::string& name) {
 
     SP.timestep = std::stof(reader.get("Solve", "Timestep", "default_value"));
     SP.totaltime = std::stof(reader.get("Solve", "TotalTime", "default_value"));
+    SP.save = std::stoi(reader.get("Solve", "Save", "default_value"));
     SP.totaltimesteps = SP.totaltime / SP.timestep;
-    
-
     
     readbc();
 

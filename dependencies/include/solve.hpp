@@ -432,18 +432,25 @@ namespace Giro{
                 }
 
                 void Solve(float currenttime){
-                    // int N = MP.n[0] * MP.n[1] * MP.n[2];
+                    int N = MP.n[0] * MP.n[1] * MP.n[2];
                     ts = int(currenttime / SP.timestep);
                     std::cout << "Timestep : " << ts + 1  << " / " << SP.totaltimesteps << std::endl;
                     // apply Boundary Conditions
                     opencl_setBC(smatrix.buffer);
                     // export every timestep
                     // printVector(MP.AMR[0].CD[0].values);
-                    std::cout << "Post processing started" << std::endl;
-                    print_time();
-                    postprocess("T");
-                    print_time();
-                    std::cout << "Post processing finished" << std::endl;
+                    
+                    err = clEnqueueReadBuffer(queue, smatrix.buffer, CL_TRUE, 0,
+                              sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
+                    
+                    
+                    if((ts + 1) % SP.save == 0){
+                        std::cout << "Post processing started" << std::endl;
+                        print_time();
+                        postprocess("T");
+                        print_time();
+                        std::cout << "Post processing finished" << std::endl;
+                    }
                 }
         };
         
