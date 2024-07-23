@@ -7,6 +7,13 @@
 #include "../dependencies/include/bc.hpp"
 #include "../dependencies/include/solve.hpp"
 #include <algorithm>
+#ifdef __APPLE__
+    #include <OpenCL/opencl.h>
+#elif _WIN32
+    #include "../dependencies/include/CL/opencl.h"
+#else
+    #include "../dependencies/include/CL/opencl.h"
+#endif
 
 std::vector<std::vector<int>> indices(6, std::vector<int>());
 std::vector<int> indices_toprint;
@@ -14,6 +21,38 @@ std::vector<int> indices_toprint_vec;
 std::vector<std::string> BC_property;
 std::vector<float> BC_value;
 Giro::Solve GS;
+uint Q;
+cl_mem memD, memE;
+
+void opencl_initBC(){
+    int N = MP.n[0] * MP.n[1] * MP.n[2];
+    Q = flattenvector(indices).size();
+    memE = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(uint) * Q, flattenvector(indices).data(), &err);
+    memD = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * N, MP.AMR[0].CD[0].values.data(), &err);
+    if (err != CL_SUCCESS){
+        std::cout << "BC error" << std::endl;
+        }
+}
+
+void opencl_setBC(cl_mem memB){
+    int N = MP.n[0] * MP.n[1] * MP.n[2];
+    size_t globalWorkSizeBC[1] = { (size_t)Q };
+
+    err |= clSetKernelArg(kernelBC, 0, sizeof(cl_mem), &memB);
+    err |= clSetKernelArg(kernelBC, 1, sizeof(cl_mem), &memD);
+    err |= clSetKernelArg(kernelBC, 2, sizeof(cl_mem), &memE);
+    err |= clSetKernelArg(kernelBC, 3, sizeof(cl_uint), &Q);
+
+    err = clEnqueueNDRangeKernel(queue, kernelBC, 1, NULL, globalWorkSizeBC, NULL, 0, NULL, NULL);
+    if (err != CL_SUCCESS){
+        std::cout << "BC error" << std::endl;
+        }
+    err = clEnqueueReadBuffer(queue, memB, CL_TRUE, 0,
+                              sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
+    
+}
 
 void setbc(){
     for (int ind = 0; ind < 6; ind++){
@@ -85,6 +124,8 @@ void initbc(){
     BC_value = convertStringVectorToFloat(splitString(reader.get("BC", "values", "default_value"), ' '));
     setbc();
     prepbc();
+
+    opencl_initBC();
     std::cout << "Boundary conditions initialised" << std::endl;
 }
 

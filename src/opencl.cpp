@@ -29,7 +29,7 @@ cl_program  program_multiplyVec,
 cl_kernel   kernel_multiplyVec,
             kernellaplacian,
             kernelBC;
-cl_mem memB, memC, memD, memE;
+cl_mem memBx, memCx, memDx, memEx;
 
 static void print_device_info(cl_device_id device){
     char name[128];
@@ -126,11 +126,12 @@ int opencl_build(){
     program_multiplyVec = opencl_CreateProgram(multiplyVectors);
     program_laplacian = opencl_CreateProgram(laplaciancalc);
     program_setBC = opencl_CreateProgram(setBC);
+    err = opencl_BuildProgram(program_multiplyVec);
     err = opencl_BuildProgram(program_laplacian);
     err = opencl_BuildProgram(program_setBC);
     
     std::cout << "Creating kernel" << std::endl;
-    kernel_multiplyVec = clCreateKernel(program_laplacian, "multiplyVectors", &err);
+    kernel_multiplyVec = clCreateKernel(program_multiplyVec, "multiplyVectors", &err);
     kernelBC = clCreateKernel(program_setBC, "setBC", &err);
     kernellaplacian = clCreateKernel(program_laplacian, "laplacian", &err);
 
@@ -141,21 +142,21 @@ int opencl_laplacian(float* hostB, int time, uint N, uint M, uint P){
     
     std::cout << "Creating buffers" << std::endl;
     // Create buffer for input data
-    memB = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    memBx = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, hostB, &err);
-    memC = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    memCx = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, hostB, &err);
-    memD = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    memDx = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, MP.AMR[0].CD[0].values.data(), &err);
     
     uint Q = flattenvector(indices).size();
-    memE = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    memEx = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(uint) * Q, flattenvector(indices).data(), &err);
     // Set kernel arguments
     std::cout << "Buffers created" << std::endl;
     // std::vector<float> hostC(N * P);
-    err |= clSetKernelArg(kernellaplacian, 0, sizeof(cl_mem), &memB);
-    err |= clSetKernelArg(kernellaplacian, 1, sizeof(cl_mem), &memC);
+    err |= clSetKernelArg(kernellaplacian, 0, sizeof(cl_mem), &memBx);
+    err |= clSetKernelArg(kernellaplacian, 1, sizeof(cl_mem), &memCx);
     err |= clSetKernelArg(kernellaplacian, 2, sizeof(cl_float), &SP.delta[0]);
     err |= clSetKernelArg(kernellaplacian, 3, sizeof(cl_float), &SP.delta[1]);
     err |= clSetKernelArg(kernellaplacian, 4, sizeof(cl_float), &SP.delta[2]);
@@ -164,9 +165,9 @@ int opencl_laplacian(float* hostB, int time, uint N, uint M, uint P){
     err |= clSetKernelArg(kernellaplacian, 7, sizeof(cl_float), &SP.timestep);
     err |= clSetKernelArg(kernellaplacian, 8, sizeof(cl_uint), &N);
     
-    err |= clSetKernelArg(kernelBC, 0, sizeof(cl_mem), &memB);
-    err |= clSetKernelArg(kernelBC, 1, sizeof(cl_mem), &memD);
-    err |= clSetKernelArg(kernelBC, 2, sizeof(cl_mem), &memE);
+    err |= clSetKernelArg(kernelBC, 0, sizeof(cl_mem), &memBx);
+    err |= clSetKernelArg(kernelBC, 1, sizeof(cl_mem), &memDx);
+    err |= clSetKernelArg(kernelBC, 2, sizeof(cl_mem), &memEx);
     err |= clSetKernelArg(kernelBC, 3, sizeof(cl_uint), &Q);
 
     size_t globalWorkSizelaplacian[1] = { (size_t)N };
@@ -177,14 +178,14 @@ int opencl_laplacian(float* hostB, int time, uint N, uint M, uint P){
     for(int ti = 0; ti < totaliter; ti++){
         std::cout << "Timestep : " << ti + 1 << "/"  << totaliter << std::endl;
         err = clEnqueueNDRangeKernel(queue, kernellaplacian, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
-        err = clEnqueueCopyBuffer(queue, memC, memB, 0, 0, sizeof(float) * N, 0, NULL, NULL);
+        err = clEnqueueCopyBuffer(queue, memCx, memBx, 0, 0, sizeof(float) * N, 0, NULL, NULL);
         // set boundary condition
         err = clEnqueueNDRangeKernel(queue, kernelBC, 1, NULL, globalWorkSizeBC, NULL, 0, NULL, NULL);
         
     }
     std::cout << "matmulend" << std::endl;
     print_time();
-    err = clEnqueueReadBuffer(queue, memB, CL_TRUE, 0,
+    err = clEnqueueReadBuffer(queue, memBx, CL_TRUE, 0,
                               sizeof(float) * N, hostB, 0, NULL, NULL);
     
     std::cout << "Cleanup started" << std::endl;
@@ -192,10 +193,10 @@ int opencl_laplacian(float* hostB, int time, uint N, uint M, uint P){
     free(devices);
     // Cleanup
     // clReleaseMemObject(memA);
-    clReleaseMemObject(memB);
-    clReleaseMemObject(memC);
-    clReleaseMemObject(memD);
-    clReleaseMemObject(memE);
+    clReleaseMemObject(memBx);
+    clReleaseMemObject(memCx);
+    clReleaseMemObject(memDx);
+    clReleaseMemObject(memEx);
     // clReleaseMemObject(memC);
     clReleaseKernel(kernellaplacian);
     clReleaseKernel(kernelBC);

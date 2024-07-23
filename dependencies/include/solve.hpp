@@ -352,7 +352,6 @@ namespace Giro{
             }
 
             CLBuffer ddc_r(std::string var){
-                cl_int err;
                 int ind = matchscalartovar(var);
                 int N = MP.n[0] * MP.n[1] * MP.n[2];
                 // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
@@ -363,6 +362,8 @@ namespace Giro{
                 CLBuffer memB;
                 memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, A.data(), &err);
+                
+                // printVector(A);
                 
                 return memB;
             }
@@ -380,10 +381,9 @@ namespace Giro{
                           sizeof(float) * N, MP.AMR[0].CD[ind].values.data(), &err);
                 memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, prop.data(), &err);
-                err = clEnqueueNDRangeKernel(queue, kernellaplacian, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
                 
-                err |= clSetKernelArg(kernellaplacian, 0, sizeof(cl_mem), &memB);
-                err |= clSetKernelArg(kernellaplacian, 1, sizeof(cl_mem), &memC);
+                err |= clSetKernelArg(kernellaplacian, 0, sizeof(cl_mem), &memB.buffer);
+                err |= clSetKernelArg(kernellaplacian, 1, sizeof(cl_mem), &memC.buffer);
                 err |= clSetKernelArg(kernellaplacian, 2, sizeof(cl_float), &SP.delta[0]);
                 err |= clSetKernelArg(kernellaplacian, 3, sizeof(cl_float), &SP.delta[1]);
                 err |= clSetKernelArg(kernellaplacian, 4, sizeof(cl_float), &SP.delta[2]);
@@ -392,7 +392,14 @@ namespace Giro{
                 err |= clSetKernelArg(kernellaplacian, 7, sizeof(cl_float), &SP.timestep);
                 err |= clSetKernelArg(kernellaplacian, 8, sizeof(cl_uint), &N);
 
-                return memB;
+                err = clEnqueueNDRangeKernel(queue, kernellaplacian, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
+                
+                // err = clEnqueueReadBuffer(queue, memC.buffer, CL_TRUE, 0,
+                //              sizeof(float) * N, prop.data(), 0, NULL, NULL);
+    
+                //printVector(prop);
+
+                return memC;
             }
 
             std::vector<float> grad_r(std::string var1, std::string var2){
@@ -423,18 +430,13 @@ namespace Giro{
                 }
 
                 void Solve(float currenttime){
-                    cl_int err;
-                    int N = MP.n[0] * MP.n[1] * MP.n[2];
+                    // int N = MP.n[0] * MP.n[1] * MP.n[2];
                     ts = int(currenttime / SP.timestep);
                     std::cout << "Timestep : " << ts  << " / " << SP.totaltimesteps << std::endl;
                     // apply Boundary Conditions
-                    setbc();
+                    opencl_setBC(smatrix.buffer);
                     // export every timestep
-                    err = clEnqueueReadBuffer(queue, smatrix.buffer, CL_TRUE, 0,
-                              sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
-                    if (err != CL_SUCCESS){
-                        std::cout << "read error" << std::endl;
-                    }
+                    // printVector(MP.AMR[0].CD[0].values);
                     std::cout << "Post processing started" << std::endl;
                     print_time();
                     postprocess("T");
