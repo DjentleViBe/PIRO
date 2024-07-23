@@ -30,7 +30,7 @@ std::vector<std::vector<float>> operator-(const std::vector<std::vector<float>> 
     return subM.subtractMatrices(v1, v2);
 }
 
-
+/*
 cl_mem operator*(cl_mem partA, cl_mem partB) {
     cl_int err;
     int N = MP.n[0] * MP.n[1] * MP.n[2];
@@ -40,7 +40,7 @@ cl_mem operator*(cl_mem partA, cl_mem partB) {
     err = clEnqueueNDRangeKernel(queue, kernel_multiplyVec, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
     
     return partA;
-}
+}*/
 
 /*
 std::vector<std::vector<float>> operator*(const std::vector<std::vector<float>> &v1, const std::vector<std::vector<float>> &v2) {

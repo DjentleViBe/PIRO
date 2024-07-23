@@ -351,7 +351,7 @@ namespace Giro{
                 return A;
             }
 
-            cl_mem ddc_r(std::string var){
+            CLBuffer ddc_r(std::string var){
                 cl_int err;
                 int ind = matchscalartovar(var);
                 int N = MP.n[0] * MP.n[1] * MP.n[2];
@@ -360,22 +360,25 @@ namespace Giro{
                 for (int i = 0; i < N; ++i) {
                         A[i] = MP.constantsvalues[ind];  // 1.0 or any other desired value
                 }
-                cl_mem memB = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                CLBuffer memB;
+                memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, A.data(), &err);
                 
                 return memB;
             }
 
-            cl_mem laplacian_r(std::string var){
+            CLBuffer laplacian_r(std::string var){
                 cl_int err;
                 int N = MP.n[0] * MP.n[1] * MP.n[2];
                 int ind = matchscalartovar(var);
                 std::vector<float> prop = MP.AMR[0].CD[ind].values;
                 size_t globalWorkSizelaplacian[1] = { (size_t)N };
                 // call openkernel for laplacian
-                cl_mem memB = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                CLBuffer memB;
+                CLBuffer memC;
+                memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, MP.AMR[0].CD[ind].values.data(), &err);
-                cl_mem memC = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, prop.data(), &err);
                 err = clEnqueueNDRangeKernel(queue, kernellaplacian, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
                 
@@ -413,9 +416,9 @@ namespace Giro{
 
         class scalarMatrix{
             private:
-                cl_mem smatrix;
+                CLBuffer smatrix;
             public:
-                scalarMatrix(cl_mem SM){
+                scalarMatrix(CLBuffer SM){
                     smatrix = SM;
                 }
 
@@ -427,7 +430,7 @@ namespace Giro{
                     // apply Boundary Conditions
                     setbc();
                     // export every timestep
-                    err = clEnqueueReadBuffer(queue, smatrix, CL_TRUE, 0,
+                    err = clEnqueueReadBuffer(queue, smatrix.buffer, CL_TRUE, 0,
                               sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
                     if (err != CL_SUCCESS){
                         std::cout << "read error" << std::endl;
