@@ -7,9 +7,9 @@
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
 #elif _WIN32
-    #include "../dependencies/include/CL/opencl.h"
+    #include "./CL/opencl.h"
 #else
-    #include "../dependencies/include/CL/opencl.h"
+    #include "./CL/opencl.h"
 #endif
 
 extern Giro::MeshParams MP;
