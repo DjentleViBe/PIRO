@@ -441,12 +441,12 @@ namespace Giro{
                     opencl_setBC(0);
                     // export every timestep
                     // printVector(MP.AMR[0].CD[0].values);
-                    err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
-                              sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
                     //std::cout << "after solving" << std::endl;
                     //printVector(MP.AMR[0].CD[0].values);
                     if((ts + 1) % SP.save == 0){
                         std::cout << "Post processing started" << std::endl;
+                        err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
+                              sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
                         print_time();
                         postprocess("T");
                         print_time();
