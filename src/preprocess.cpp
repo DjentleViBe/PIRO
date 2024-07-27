@@ -11,9 +11,18 @@
 #include "../dependencies/include/ic.hpp"
 #include "../dependencies/include/bc.hpp"
 
+#ifdef __APPLE__
+    #include <OpenCL/opencl.h>
+#elif _WIN32
+    #include "../dependencies/include/CL/opencl.h"
+#else
+    #include "../dependencies/include/CL/opencl.h"
+#endif
+
 Giro::MeshParams MP;
 Giro::SolveParams SP;
 Giro::DeviceParams DP;
+Giro::CellDataGPU CDGPU;
 std::vector<std::vector<float>> scagradmatrix, scadivmatrix, vecmatrix;
 int ts = 0;
 float* scalapvectorpointer;
@@ -88,13 +97,18 @@ int preprocess(const std::string& name) {
     std::cout << "Initialising scalars and vectors" << std::endl;
     int j = 0;
     Giro::CellData CD;
+    CLBuffer CD_GPU;
+    int N = MP.n[0] * MP.n[1] * MP.n[2];
     for (int i = 0; i < MP.scalarnum; i++){
         
         CD.Scalars = MP.scalarlist[i];
         MP.AMR[0].CD.push_back(CD);
         MP.AMR[0].CD[i].type = 0;
         MP.AMR[0].CD[i].values = initialcondition(i, MP.AMR[0].CD[i].type, MP.ICtype[i]);
-        
+        // push scalar data to gpu
+        CDGPU.values_gpu.push_back(CD_GPU);
+        CDGPU.values_gpu[i].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * N, MP.AMR[0].CD[i].values.data(), &err);
         j += 1;
     }
     for (int i = j; i < j + MP.vectornum; i++){
@@ -103,6 +117,10 @@ int preprocess(const std::string& name) {
         MP.AMR[0].CD.push_back(CD);
         MP.AMR[0].CD[i].type = 1;
         MP.AMR[0].CD[i].values = initialcondition(i, MP.AMR[0].CD[i].type, MP.ICtype[i]);
+        // push vector data to gpu
+        CDGPU.values_gpu.push_back(CD_GPU);
+        CDGPU.values_gpu[i].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * N, MP.AMR[0].CD[i].values.data(), &err);
         
     }
     std::cout << "Initialising scalars and vectors completed!" << std::endl;

@@ -59,6 +59,12 @@ class CLBuffer{
         }
 };
 
+namespace Giro{
+    class CellDataGPU{
+        public:
+            std::vector<CLBuffer> values_gpu;
+    };
+};
 
 // cl_mem operator*(cl_mem partA, cl_mem partB);
 //std::vector<float> operator*(const std::vector<float> &v1, const std::vector<float> &v2);
