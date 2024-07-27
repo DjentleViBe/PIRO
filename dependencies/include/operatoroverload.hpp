@@ -11,6 +11,7 @@
 #endif
 #include "preprocess.hpp"
 #include <vector>
+#include <iostream>
 
 std::vector<float> operator+(const std::vector<float> &v1, const std::vector<float> &v2);
 std::vector<std::vector<float>> operator+(const std::vector<std::vector<float>> &v1, const std::vector<std::vector<float>> &v2);
@@ -55,6 +56,11 @@ class CLBuffer{
             err |= clSetKernelArg(kernel_addVec, 3, sizeof(cl_uint), &N);
             err = clEnqueueNDRangeKernel(queue, kernel_addVec, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
 
+            // err = clEnqueueReadBuffer(queue, partC.buffer, CL_TRUE, 0,
+            //  sizeof(float) * N, A.data(), 0, NULL, NULL);
+            // std::cout << "after addition" << std::endl;
+            // printVector(A);
+
             return partC;
         }
 };
@@ -66,6 +72,7 @@ namespace Giro{
     };
 };
 
+extern Giro::CellDataGPU CDGPU;
 // cl_mem operator*(cl_mem partA, cl_mem partB);
 //std::vector<float> operator*(const std::vector<float> &v1, const std::vector<float> &v2);
 //std::vector<std::vector<float>> operator*(const std::vector<std::vector<float>> &v1, const std::vector<std::vector<float>> &v2);

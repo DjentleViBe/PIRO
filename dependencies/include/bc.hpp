@@ -16,6 +16,6 @@ extern std::vector<int> indices_toprint_vec;
 extern cl_int err;
 void readbc();
 void setbc();
-void opencl_setBC(cl_mem memB);
+void opencl_setBC(int ind);
 
 #endif

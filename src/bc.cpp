@@ -36,11 +36,17 @@ void opencl_initBC(){
         }
 }
 
-void opencl_setBC(cl_mem memB){
-    // int N = MP.n[0] * MP.n[1] * MP.n[2];
+void opencl_setBC(int ind){
+    int N = MP.n[0] * MP.n[1] * MP.n[2];
     size_t globalWorkSizeBC[1] = { (size_t)Q };
+    std::vector<float> prop = MP.AMR[0].CD[ind].values;
 
-    err |= clSetKernelArg(kernelBC, 0, sizeof(cl_mem), &memB);
+    err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
+              sizeof(float) * N, prop.data(), 0, NULL, NULL);
+    // std::cout << "before setting BC" << std::endl;
+    // printVector(prop);
+
+    err |= clSetKernelArg(kernelBC, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
     err |= clSetKernelArg(kernelBC, 1, sizeof(cl_mem), &memD);
     err |= clSetKernelArg(kernelBC, 2, sizeof(cl_mem), &memE);
     err |= clSetKernelArg(kernelBC, 3, sizeof(cl_uint), &Q);
@@ -49,6 +55,11 @@ void opencl_setBC(cl_mem memB){
     if (err != CL_SUCCESS){
         std::cout << "BC error" << std::endl;
         }
+    
+    err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
+              sizeof(float) * N, prop.data(), 0, NULL, NULL);
+    // std::cout << "after setting BC" << std::endl;
+    // printVector(prop);
     
 }
 
