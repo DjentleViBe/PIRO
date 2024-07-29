@@ -37,12 +37,12 @@ void opencl_initBC(){
 }
 
 void opencl_setBC(int ind){
-    int N = MP.n[0] * MP.n[1] * MP.n[2];
+    // int N = MP.n[0] * MP.n[1] * MP.n[2];
     size_t globalWorkSizeBC[1] = { (size_t)Q };
-    std::vector<float> prop = MP.AMR[0].CD[ind].values;
+    // std::vector<float> prop = MP.AMR[0].CD[ind].values;
 
-    err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
-              sizeof(float) * N, prop.data(), 0, NULL, NULL);
+    // err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
+    //          sizeof(float) * N, prop.data(), 0, NULL, NULL);
     // std::cout << "before setting BC" << std::endl;
     // printVector(prop);
 
@@ -56,8 +56,8 @@ void opencl_setBC(int ind){
         std::cout << "BC error" << std::endl;
         }
     
-    err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
-              sizeof(float) * N, prop.data(), 0, NULL, NULL);
+    // err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
+    //           sizeof(float) * N, prop.data(), 0, NULL, NULL);
     // std::cout << "after setting BC" << std::endl;
     // printVector(prop);
     

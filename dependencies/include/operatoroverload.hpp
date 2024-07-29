@@ -26,11 +26,11 @@ class CLBuffer{
 
             
             size_t globalWorkSize[1] = { (size_t)N };
-            err |= clSetKernelArg(kernel_multiplyVec, 0, sizeof(cl_mem), &partC.buffer);
-            err |= clSetKernelArg(kernel_multiplyVec, 1, sizeof(cl_mem), &partA.buffer);
-            err |= clSetKernelArg(kernel_multiplyVec, 2, sizeof(cl_mem), &partB.buffer);
-            err |= clSetKernelArg(kernel_multiplyVec, 3, sizeof(cl_uint), &N);
-            err = clEnqueueNDRangeKernel(queue, kernel_multiplyVec, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+            err |= clSetKernelArg(kernel_math[2], 0, sizeof(cl_mem), &partC.buffer);
+            err |= clSetKernelArg(kernel_math[2], 1, sizeof(cl_mem), &partA.buffer);
+            err |= clSetKernelArg(kernel_math[2], 2, sizeof(cl_mem), &partB.buffer);
+            err |= clSetKernelArg(kernel_math[2], 3, sizeof(cl_uint), &N);
+            err = clEnqueueNDRangeKernel(queue, kernel_math[2], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
 
             return partC;
         }
@@ -45,16 +45,16 @@ class CLBuffer{
 
             
             size_t globalWorkSize[1] = { (size_t)N };
-            err |= clSetKernelArg(kernel_addVec, 0, sizeof(cl_mem), &partC.buffer);
-            err |= clSetKernelArg(kernel_addVec, 1, sizeof(cl_mem), &partA.buffer);
-            err |= clSetKernelArg(kernel_addVec, 2, sizeof(cl_mem), &partB.buffer);
-            err |= clSetKernelArg(kernel_addVec, 3, sizeof(cl_uint), &N);
-            err = clEnqueueNDRangeKernel(queue, kernel_addVec, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+            err |= clSetKernelArg(kernel_math[0], 0, sizeof(cl_mem), &partC.buffer);
+            err |= clSetKernelArg(kernel_math[0], 1, sizeof(cl_mem), &partA.buffer);
+            err |= clSetKernelArg(kernel_math[0], 2, sizeof(cl_mem), &partB.buffer);
+            err |= clSetKernelArg(kernel_math[0], 3, sizeof(cl_uint), &N);
+            err = clEnqueueNDRangeKernel(queue, kernel_math[0], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
 
-            // err = clEnqueueReadBuffer(queue, partC.buffer, CL_TRUE, 0,
-            //  sizeof(float) * N, A.data(), 0, NULL, NULL);
-            // std::cout << "after addition" << std::endl;
-            // printVector(A);
+            //err = clEnqueueReadBuffer(queue, partC.buffer, CL_TRUE, 0,
+            //sizeof(float) * N, A.data(), 0, NULL, NULL);
+            //std::cout << "after addition" << std::endl;
+            //printVector(A);
 
             return partC;
         }
@@ -69,11 +69,11 @@ class CLBuffer{
 
             
             size_t globalWorkSize[1] = { (size_t)N };
-            err |= clSetKernelArg(kernel_subtractVec, 0, sizeof(cl_mem), &partC.buffer);
-            err |= clSetKernelArg(kernel_subtractVec, 1, sizeof(cl_mem), &partA.buffer);
-            err |= clSetKernelArg(kernel_subtractVec, 2, sizeof(cl_mem), &partB.buffer);
-            err |= clSetKernelArg(kernel_subtractVec, 3, sizeof(cl_uint), &N);
-            err = clEnqueueNDRangeKernel(queue, kernel_subtractVec, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+            err |= clSetKernelArg(kernel_math[1], 0, sizeof(cl_mem), &partC.buffer);
+            err |= clSetKernelArg(kernel_math[1], 1, sizeof(cl_mem), &partA.buffer);
+            err |= clSetKernelArg(kernel_math[1], 2, sizeof(cl_mem), &partB.buffer);
+            err |= clSetKernelArg(kernel_math[1], 3, sizeof(cl_uint), &N);
+            err = clEnqueueNDRangeKernel(queue, kernel_math[1], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
 
             return partC;
         }
@@ -88,11 +88,11 @@ class CLBuffer{
 
             
             size_t globalWorkSize[1] = { (size_t)N };
-            err |= clSetKernelArg(kernel_divideVec, 0, sizeof(cl_mem), &partC.buffer);
-            err |= clSetKernelArg(kernel_divideVec, 1, sizeof(cl_mem), &partA.buffer);
-            err |= clSetKernelArg(kernel_divideVec, 2, sizeof(cl_mem), &partB.buffer);
-            err |= clSetKernelArg(kernel_divideVec, 3, sizeof(cl_uint), &N);
-            err = clEnqueueNDRangeKernel(queue, kernel_divideVec, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+            err |= clSetKernelArg(kernel_math[3], 0, sizeof(cl_mem), &partC.buffer);
+            err |= clSetKernelArg(kernel_math[3], 1, sizeof(cl_mem), &partA.buffer);
+            err |= clSetKernelArg(kernel_math[3], 2, sizeof(cl_mem), &partB.buffer);
+            err |= clSetKernelArg(kernel_math[3], 3, sizeof(cl_uint), &N);
+            err = clEnqueueNDRangeKernel(queue, kernel_math[3], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
 
             return partC;
         }
@@ -106,9 +106,5 @@ namespace Giro{
 };
 
 extern Giro::CellDataGPU CDGPU;
-// cl_mem operator*(cl_mem partA, cl_mem partB);
-//std::vector<float> operator*(const std::vector<float> &v1, const std::vector<float> &v2);
-//std::vector<std::vector<float>> operator*(const std::vector<std::vector<float>> &v1, const std::vector<std::vector<float>> &v2);
-//std::vector<float> operator/(const std::vector<float> &v1, const std::vector<float> &v2);
-//std::vector<std::vector<float>> operator/(const std::vector<std::vector<float>> &v1, const std::vector<std::vector<float>> &v2);
+
 #endif // OPERATOR_OVERLOAD_HPP

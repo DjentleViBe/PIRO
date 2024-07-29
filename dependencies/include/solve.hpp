@@ -342,15 +342,6 @@ namespace Giro{
             CLBuffer ddt_r(std::string var){
                 // int N = MP.n[0] * MP.n[1] * MP.n[2];
                 int ind = matchscalartovar(var);
-                // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
-                // CLBuffer memB;
-                // std::vector<float>A (N, 0.0);
-                /*for (int i = 0; i < N; i++) {
-                    A[i] = MP.AMR[0].CD[ind].values[i];  // 1.0 or any other desired value
-                    //std::cout << A[i] << " ";
-                }*/
-                // memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                //          sizeof(float) * N, A.data(), &err);
                 
                 return CDGPU.values_gpu[ind];
             }
@@ -397,10 +388,10 @@ namespace Giro{
 
                 err = clEnqueueNDRangeKernel(queue, kernellaplacian, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
                 
-                err = clEnqueueReadBuffer(queue, memC.buffer, CL_TRUE, 0,
-                              sizeof(float) * N, prop.data(), 0, NULL, NULL);
-                // std::cout << "laplacian" << std::endl;
-                // printVector(prop);
+                //err = clEnqueueReadBuffer(queue, memC.buffer, CL_TRUE, 0,
+                //              sizeof(float) * N, prop.data(), 0, NULL, NULL);
+                //std::cout << "laplacian" << std::endl;
+                //printVector(prop);
 
                 return memC;
             }
@@ -438,7 +429,12 @@ namespace Giro{
                     std::cout << "Timestep : " << ts + 1  << " / " << SP.totaltimesteps << std::endl;
                     // apply Boundary Conditions
                     err = clEnqueueCopyBuffer(queue, smatrix.buffer, CDGPU.values_gpu[0].buffer, 0, 0, sizeof(float) * N, 0, NULL, NULL);
+                    // std::cout << "timestep" << std::endl;
+                    // err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
+                    //          sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
+                    // printVector(MP.AMR[0].CD[0].values);
                     opencl_setBC(0);
+                    
                     // export every timestep
                     // printVector(MP.AMR[0].CD[0].values);
                     //std::cout << "after solving" << std::endl;

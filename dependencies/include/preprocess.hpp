@@ -19,18 +19,14 @@ extern std::vector<std::vector<float>> scagradmatrix, scadivmatrix;
 extern int ts;
 extern float* scalapvectorpointer;
 
-extern cl_program  program_addVec,
-            program_subtractVec,
-            program_multiplyVec, 
-            program_divideVec, 
-            program_laplacian, 
-            program_setBC;
-extern cl_kernel   kernel_addVec,
-            kernel_subtractVec,
-            kernel_multiplyVec,
-            kernel_divideVec,
-            kernellaplacian,
-            kernelBC;
+extern std::vector<cl_program> program_math;
+extern std::vector<cl_kernel> kernel_math;
+
+extern cl_program   program_laplacian, 
+                    program_setBC;
+extern cl_kernel    kernellaplacian,
+                    kernelBC;
+
 extern cl_context   context;
 extern cl_command_queue queue;
 int preprocess(const std::string& name);

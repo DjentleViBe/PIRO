@@ -23,17 +23,20 @@ cl_device_id *devices;
 cl_device_id device;
 cl_context context;
 cl_command_queue queue;
-cl_program  program_addVec,
-            program_subtractVec,
-            program_multiplyVec, 
-            program_divideVec, 
-            program_laplacian, 
+
+// math opertions programs and kernels
+// 0: add
+// 1: subtract
+// 2: multiply
+// 3: divide
+std::vector<cl_program> program_math(4);
+std::vector<cl_kernel> kernel_math(4);
+std::vector<const char*> kernelSources = {addVectors, subtractVectors, multiplyVectors, divideVectors};
+std::vector<const char*> kernelNames = {"addVectors", "subtractVectors", "multiplyVectors", "divideVectors"};
+
+cl_program  program_laplacian, 
             program_setBC;
-cl_kernel   kernel_addVec,
-            kernel_subtractVec,
-            kernel_multiplyVec,
-            kernel_divideVec,
-            kernellaplacian,
+cl_kernel   kernellaplacian,
             kernelBC;
 cl_mem memBx, memCx, memDx, memEx;
 
@@ -129,24 +132,22 @@ cl_int opencl_BuildProgram(cl_program program){
 int opencl_build(){
      // Create program objects
     std::cout << "Building program : " << std::endl;
-    program_addVec = opencl_CreateProgram(addVectors);
-    program_multiplyVec = opencl_CreateProgram(multiplyVectors);
-    program_subtractVec = opencl_CreateProgram(subtractVectors);
-    program_divideVec = opencl_CreateProgram(divideVectors);
+    for(size_t i = 0; i < program_math.size(); i++){
+        program_math[i] = opencl_CreateProgram(kernelSources[i]);
+        err = opencl_BuildProgram(program_math[i]);
+        kernel_math[i] = clCreateKernel(program_math[i], kernelNames[i], &err);
+    }
     program_laplacian = opencl_CreateProgram(laplaciancalc);
     program_setBC = opencl_CreateProgram(setBC);
-    err = opencl_BuildProgram(program_addVec);
-    err = opencl_BuildProgram(program_subtractVec);
-    err = opencl_BuildProgram(program_multiplyVec);
-    err = opencl_BuildProgram(program_divideVec);
+    
     err = opencl_BuildProgram(program_laplacian);
     err = opencl_BuildProgram(program_setBC);
+
+    if (err != CL_SUCCESS){
+        std::cout << "program error" << std::endl;
+    }
     
     std::cout << "Creating kernel" << std::endl;
-    kernel_addVec = clCreateKernel(program_addVec, "addVectors", &err);
-    kernel_multiplyVec = clCreateKernel(program_multiplyVec, "multiplyVectors", &err);
-    kernel_subtractVec = clCreateKernel(program_subtractVec, "subtractVectors", &err);
-    kernel_divideVec = clCreateKernel(program_divideVec, "divideVectors", &err);
     kernelBC = clCreateKernel(program_setBC, "setBC", &err);
     kernellaplacian = clCreateKernel(program_laplacian, "laplacian", &err);
 
@@ -164,10 +165,10 @@ int opencl_cleanup(){
     clReleaseMemObject(memDx);
     clReleaseMemObject(memEx);
     clReleaseKernel(kernellaplacian);
-    clReleaseKernel(kernel_addVec);
-    clReleaseKernel(kernel_subtractVec);
-    clReleaseKernel(kernel_multiplyVec);
-    clReleaseKernel(kernel_divideVec);
+    for(size_t i = 0; i < program_math.size(); i++){
+        clReleaseKernel(kernel_math[i]);
+        clReleaseProgram(program_math[i]);
+    }
     clReleaseKernel(kernelBC);
     clReleaseProgram(program_laplacian);
     clReleaseProgram(program_setBC);
