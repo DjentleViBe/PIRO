@@ -23,12 +23,16 @@ cl_device_id *devices;
 cl_device_id device;
 cl_context context;
 cl_command_queue queue;
-cl_program  program_addVec, 
+cl_program  program_addVec,
+            program_subtractVec,
             program_multiplyVec, 
+            program_divideVec, 
             program_laplacian, 
             program_setBC;
 cl_kernel   kernel_addVec,
+            kernel_subtractVec,
             kernel_multiplyVec,
+            kernel_divideVec,
             kernellaplacian,
             kernelBC;
 cl_mem memBx, memCx, memDx, memEx;
@@ -127,16 +131,22 @@ int opencl_build(){
     std::cout << "Building program : " << std::endl;
     program_addVec = opencl_CreateProgram(addVectors);
     program_multiplyVec = opencl_CreateProgram(multiplyVectors);
+    program_subtractVec = opencl_CreateProgram(subtractVectors);
+    program_divideVec = opencl_CreateProgram(divideVectors);
     program_laplacian = opencl_CreateProgram(laplaciancalc);
     program_setBC = opencl_CreateProgram(setBC);
     err = opencl_BuildProgram(program_addVec);
+    err = opencl_BuildProgram(program_subtractVec);
     err = opencl_BuildProgram(program_multiplyVec);
+    err = opencl_BuildProgram(program_divideVec);
     err = opencl_BuildProgram(program_laplacian);
     err = opencl_BuildProgram(program_setBC);
     
     std::cout << "Creating kernel" << std::endl;
     kernel_addVec = clCreateKernel(program_addVec, "addVectors", &err);
     kernel_multiplyVec = clCreateKernel(program_multiplyVec, "multiplyVectors", &err);
+    kernel_subtractVec = clCreateKernel(program_subtractVec, "subtractVectors", &err);
+    kernel_divideVec = clCreateKernel(program_divideVec, "divideVectors", &err);
     kernelBC = clCreateKernel(program_setBC, "setBC", &err);
     kernellaplacian = clCreateKernel(program_laplacian, "laplacian", &err);
 
@@ -149,13 +159,15 @@ int opencl_cleanup(){
     // Clean up
     free(devices);
     // Cleanup
-    // clReleaseMemObject(memA);
     clReleaseMemObject(memBx);
     clReleaseMemObject(memCx);
     clReleaseMemObject(memDx);
     clReleaseMemObject(memEx);
-    // clReleaseMemObject(memC);
     clReleaseKernel(kernellaplacian);
+    clReleaseKernel(kernel_addVec);
+    clReleaseKernel(kernel_subtractVec);
+    clReleaseKernel(kernel_multiplyVec);
+    clReleaseKernel(kernel_divideVec);
     clReleaseKernel(kernelBC);
     clReleaseProgram(program_laplacian);
     clReleaseProgram(program_setBC);
