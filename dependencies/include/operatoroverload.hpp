@@ -126,7 +126,7 @@ class CLBuffer{
             err |= clSetKernelArg(kernel_math[5], 1, sizeof(cl_mem), &partA);
             err |= clSetKernelArg(kernel_math[5], 2, sizeof(cl_mem), &partB.buffer);
             err |= clSetKernelArg(kernel_math[5], 3, sizeof(cl_uint), &N);
-            err = clEnqueueNDRangeKernel(queue, kernel_math[6], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+            err = clEnqueueNDRangeKernel(queue, kernel_math[5], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
 
             return partC;
         }
