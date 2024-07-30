@@ -340,25 +340,15 @@ namespace Giro{
                 }
 
             CLBuffer ddt_r(std::string var){
-                // int N = MP.n[0] * MP.n[1] * MP.n[2];
                 int ind = matchscalartovar(var);
                 
                 return CDGPU.values_gpu[ind];
             }
 
-            CLBuffer ddc_r(std::string var){
+            const float ddc_r(std::string var){
                 int ind = matchscalartovar(var);
-                int N = MP.n[0] * MP.n[1] * MP.n[2];
-                // int n = std::cbrt(MP.AMR[0].CD[ind].values.size());
-                std::vector<float>A(N, 0.0);
-                for (int i = 0; i < N; ++i) {
-                        A[i] = MP.constantsvalues[ind];  // 1.0 or any other desired value
-                }
-                CLBuffer memB;
-                memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                          sizeof(float) * N, A.data(), &err);
                 
-                return memB;
+                return MP.constantsvalues[ind];
             }
 
             CLBuffer laplacian_r(std::string var){

@@ -75,6 +75,18 @@ __kernel void multiplyVectors(__global float *A,
 }
 )CLC";
 
+const char *multiplyVectors_constant = R"CLC(
+__kernel void multiplyVectors_constant(__global float *A,
+                                const float B,
+                                __global const float *C,
+                                uint size) {
+    uint id = get_global_id(0);
+    if (id < size) {
+        A[id] = B * C[id];
+    }
+}
+)CLC";
+
 const char *addVectors = R"CLC(
 __kernel void addVectors(__global float *A,
                         __global const float *B,
@@ -83,6 +95,18 @@ __kernel void addVectors(__global float *A,
     uint id = get_global_id(0);
     if (id < size) {
         A[id] = B[id] + C[id];
+    }
+}
+)CLC";
+
+const char *addVectors_constant = R"CLC(
+__kernel void addVectors_constant(__global float *A,
+                                const float B,
+                                __global const float *C,
+                                uint size) {
+    uint id = get_global_id(0);
+    if (id < size) {
+        A[id] = B + C[id];
     }
 }
 )CLC";
@@ -99,6 +123,18 @@ __kernel void subtractVectors(__global float *A,
 }
 )CLC";
 
+const char *subtractVectors_constant = R"CLC(
+__kernel void subtractVectors_constant(__global float *A,
+                                const float B,
+                                __global const float *C,
+                                uint size) {
+    uint id = get_global_id(0);
+    if (id < size) {
+        A[id] = C[id] - B;
+    }
+}
+)CLC";
+
 const char *divideVectors = R"CLC(
 __kernel void divideVectors(__global float *A,
                         __global const float *B,
@@ -110,5 +146,18 @@ __kernel void divideVectors(__global float *A,
     }
 }
 )CLC";
+
+const char *divideVectors_constant = R"CLC(
+__kernel void divideVectors_constant(__global float *A,
+                                const float B,
+                                __global const float *C,
+                                uint size) {
+    uint id = get_global_id(0);
+    if (id < size) {
+        A[id] = C[id] / B;
+    }
+}
+)CLC";
+
 
 #endif // KERNEL_CL_H
