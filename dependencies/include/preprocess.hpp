@@ -22,9 +22,11 @@ extern float* scalapvectorpointer;
 extern std::vector<cl_program> program_math;
 extern std::vector<cl_kernel> kernel_math;
 
-extern cl_program   program_laplacian, 
+extern cl_program   program_gradient, 
+                    program_laplacian,
                     program_setBC;
-extern cl_kernel    kernellaplacian,
+extern cl_kernel    kernelgradient,
+                    kernellaplacian,
                     kernelBC;
 
 extern cl_context   context;

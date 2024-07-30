@@ -328,11 +328,19 @@ namespace Giro{
 
     class Solve{
         private:
-            bool sgm = false;
+            // bool sgm = false;
         public:
             int matchscalartovar(std::string var){
                     for(int v = 0; v < MP.AMR[0].CD.size(); v++){
                         if(var == MP.AMR[0].CD[v].Scalars){
+                            return v;
+                        }
+                    }
+                    return 0;
+                }
+            int matchconstanttovar(std::string var){
+                    for(int v = 0; v < MP.constantslist.size(); v++){
+                        if(var == MP.constantslist[v]){
                             return v;
                         }
                     }
@@ -386,20 +394,63 @@ namespace Giro{
                 return memC;
             }
 
-            std::vector<float> grad_r(std::string var1, std::string var2){
+            CLBuffer grad_r(std::string var1, std::string var2){
                 int ind1 = matchscalartovar(var1);
-                int ind2 = matchscalartovar(var2);
-                MathOperations dM;
-                if(sgm == false){
-                    scagradmatrix = dM.multiplyMatrices(scagradmatrix, dM.generatevectormatrix(MP.AMR[0].CD[ind2].values));
-                    sgm = true;
+                std::vector<float> multiplier(3);
+                
+                // check if ind 2 is scalar or vector
+                try{
+                    multiplier[0] = MP.constantsvalues[matchconstanttovar(var2 + "_x")];
+                    multiplier[1] = MP.constantsvalues[matchconstanttovar(var2 + "_y")];
+                    multiplier[2] = MP.constantsvalues[matchconstanttovar(var2 + "_z")];
                 }
+                catch(const std::exception& e){
+                    std::cout << "Scalar multiplier" << std::endl;
+                    multiplier[0] = MP.constantsvalues[matchconstanttovar(var2)];
+                    multiplier[1] = MP.constantsvalues[matchconstanttovar(var2)];
+                    multiplier[2] = MP.constantsvalues[matchconstanttovar(var2)];
+                }
+                // printVector(MP.constantsvalues);
+                // printVector(multiplier);
+                int N = MP.n[0] * MP.n[1] * MP.n[2];
+                
+                std::vector<float> prop = MP.AMR[0].CD[ind1].values;
+                size_t globalWorkSizegradient[1] = { (size_t)N };
+                // MathOperations dM;
+                //if(sgm == false){
+                //    scagradmatrix = dM.multiplyMatrices(scagradmatrix, dM.generatevectormatrix(MP.AMR[0].CD[ind2].values));
+                //    sgm = true;
+                //}
                 //printMatrix(scagradmatrix);
-                if(MP.AMR[0].CD[ind1].type == 0){
-                    return dM.dotMatrices(scagradmatrix,  MP.AMR[0].CD[ind1].values);
-                }else{
-                    return MP.AMR[0].CD[ind1].values;
-                }
+                
+                CLBuffer memC, multi;
+                // memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                //          sizeof(float) * N, MP.AMR[0].CD[ind].values.data(), &err);
+                memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                        sizeof(float) * N, prop.data(), &err);
+                
+                multi.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                        sizeof(float) * 3, multiplier.data(), &err);
+                
+                err |= clSetKernelArg(kernelgradient, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
+                err |= clSetKernelArg(kernelgradient, 1, sizeof(cl_mem), &memC.buffer);
+                err |= clSetKernelArg(kernelgradient, 2, sizeof(cl_mem), &multi.buffer);
+                err |= clSetKernelArg(kernelgradient, 3, sizeof(cl_float), &SP.delta[0]);
+                err |= clSetKernelArg(kernelgradient, 4, sizeof(cl_float), &SP.delta[1]);
+                err |= clSetKernelArg(kernelgradient, 5, sizeof(cl_float), &SP.delta[2]);
+                err |= clSetKernelArg(kernelgradient, 6, sizeof(cl_uint), &MP.n[0]);
+                err |= clSetKernelArg(kernelgradient, 7, sizeof(cl_uint), &MP.n[1]);
+                err |= clSetKernelArg(kernelgradient, 8, sizeof(cl_float), &SP.timestep);
+                err |= clSetKernelArg(kernelgradient, 9, sizeof(cl_uint), &N);
+
+                err = clEnqueueNDRangeKernel(queue, kernelgradient, 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
+                
+                //err = clEnqueueReadBuffer(queue, memC.buffer, CL_TRUE, 0,
+                //              sizeof(float) * N, prop.data(), 0, NULL, NULL);
+                //std::cout << "laplacian" << std::endl;
+                //printVector(prop);
+
+                return memC;
                 
             }
 

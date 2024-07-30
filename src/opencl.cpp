@@ -42,9 +42,11 @@ std::vector<const char*> kernelNames = {"addVectors", "subtractVectors", "multip
                                         "multiplyVectors_constant",
                                         "divideVectors_constant"};
 
-cl_program  program_laplacian, 
+cl_program  program_gradient, 
+            program_laplacian,
             program_setBC;
-cl_kernel   kernellaplacian,
+cl_kernel   kernelgradient,
+            kernellaplacian,
             kernelBC;
 cl_mem memBx, memCx, memDx, memEx;
 
@@ -145,9 +147,11 @@ int opencl_build(){
         err = opencl_BuildProgram(program_math[i]);
         kernel_math[i] = clCreateKernel(program_math[i], kernelNames[i], &err);
     }
+    program_gradient = opencl_CreateProgram(gradcalc);
     program_laplacian = opencl_CreateProgram(laplaciancalc);
     program_setBC = opencl_CreateProgram(setBC);
     
+    err = opencl_BuildProgram(program_gradient);
     err = opencl_BuildProgram(program_laplacian);
     err = opencl_BuildProgram(program_setBC);
 
@@ -158,6 +162,7 @@ int opencl_build(){
     std::cout << "Creating kernel" << std::endl;
     kernelBC = clCreateKernel(program_setBC, "setBC", &err);
     kernellaplacian = clCreateKernel(program_laplacian, "laplacian", &err);
+    kernelgradient = clCreateKernel(program_gradient, "gradient", &err);
 
     return 0;
 }
@@ -172,12 +177,14 @@ int opencl_cleanup(){
     clReleaseMemObject(memCx);
     clReleaseMemObject(memDx);
     clReleaseMemObject(memEx);
+    clReleaseKernel(kernelgradient);
     clReleaseKernel(kernellaplacian);
     for(size_t i = 0; i < program_math.size(); i++){
         clReleaseKernel(kernel_math[i]);
         clReleaseProgram(program_math[i]);
     }
     clReleaseKernel(kernelBC);
+    clReleaseProgram(program_gradient);
     clReleaseProgram(program_laplacian);
     clReleaseProgram(program_setBC);
     clReleaseCommandQueue(queue);

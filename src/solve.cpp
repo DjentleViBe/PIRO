@@ -17,13 +17,10 @@ int solve(){
     float totaltime = SP.totaltime;
     print_time();
     while(time < totaltime){
+
+        // Giro::scalarMatrix UEqn(solver.ddt_r("T") + (solver.ddc_r("Alpha") * solver.laplacian_r("T")));
         
-        
-        // Giro::scalarMatrix UEqn(solver.ddt_r("T") + solver.ddc_r("Alpha") * solver.laplacian_r("T"));
-        Giro::scalarMatrix UEqn(solver.ddt_r("T") + (solver.ddc_r("Alpha") * solver.laplacian_r("T")));
-        // Giro::scalarMatrix UEqn(solver.ddt_r("T") + solver.laplacian_r("T"));
-        
-        //Giro::scalarMatrix UEqn(solver.ddt_r("Phi") + solver.grad_r("Phi", "U"));        
+        Giro::scalarMatrix UEqn(solver.ddt_r("T") - solver.grad_r("T", "U"));        
         UEqn.Solve(time);
         time += SP.timestep;
         
