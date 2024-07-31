@@ -23,9 +23,7 @@ Giro::MeshParams MP;
 Giro::SolveParams SP;
 Giro::DeviceParams DP;
 Giro::CellDataGPU CDGPU;
-std::vector<std::vector<float>> scagradmatrix, scadivmatrix, vecmatrix;
 int ts = 0;
-float* scalapvectorpointer;
 
 // Function to map 3D indices to 1D
 int idx(int i, int j, int k, int N_x, int N_y) {

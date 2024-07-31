@@ -15,9 +15,7 @@
 extern Giro::MeshParams MP;
 extern Giro::SolveParams SP;
 extern Giro::DeviceParams DP;
-extern std::vector<std::vector<float>> scagradmatrix, scadivmatrix;
 extern int ts;
-extern float* scalapvectorpointer;
 
 extern std::vector<cl_program> program_math;
 extern std::vector<cl_kernel> kernel_math;
