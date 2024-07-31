@@ -17,10 +17,10 @@ int solve(){
     float totaltime = SP.totaltime;
     print_time();
     while(time < totaltime){
-
+        // Heat Equation
         // Giro::scalarMatrix UEqn(solver.ddt_r("T") + (solver.ddc_r("Alpha") * solver.laplacian_r("T")));
-        
-        Giro::scalarMatrix UEqn(solver.ddt_r("T") - solver.grad_r("T", "U"));        
+        // Advection equation 
+        Giro::scalarMatrix UEqn(solver.ddt_r("T") - solver.div_r("T", "U"));        
         UEqn.Solve(time);
         time += SP.timestep;
         

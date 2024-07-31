@@ -10,9 +10,6 @@
 #include <iostream>
 #include <immintrin.h>
 #include <ctime>
-#ifdef __APPLE__
-    #include <Accelerate/Accelerate.h>
-#endif
 #include "gpuinit.hpp"
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
@@ -243,23 +240,6 @@ namespace Giro{
             return C;
         }
 
-        /*std::vector<float> dotMatricesOpenCL(float* A_ptr, std::vector<float>& B) {
-            
-            uint m = MP.n[0] * MP.n[1] * MP.n[2];     // Number of rows in A
-            uint n = m; // Number of columns in A (should be equal to size of B)
-            uint k = 1;
-            // Ensure B's size matches A's column count
-            if (B.size() != m) {
-                throw std::invalid_argument("The size of vector B must match the number of columns in matrix A.");
-            }
-
-            float* B_ptr = B.data();
-            
-            opencl_call(A_ptr, B_ptr, 10, m, n, k);
-            
-            return B;
-        }*/
-
         std::vector<float> laplacianOpenCL(std::vector<float>& B) {
             
             uint m = MP.n[0] * MP.n[1] * MP.n[2];     // Number of rows in A
@@ -394,43 +374,23 @@ namespace Giro{
                 return memC;
             }
 
-            CLBuffer grad_r(std::string var1, std::string var2){
-                int ind1 = matchscalartovar(var1);
-                std::vector<float> multiplier(3);
-                
-                // check if ind 2 is scalar or vector
-                try{
-                    multiplier[0] = MP.constantsvalues[matchconstanttovar(var2 + "_x")];
-                    multiplier[1] = MP.constantsvalues[matchconstanttovar(var2 + "_y")];
-                    multiplier[2] = MP.constantsvalues[matchconstanttovar(var2 + "_z")];
-                }
-                catch(const std::exception& e){
-                    std::cout << "Scalar multiplier" << std::endl;
-                    multiplier[0] = MP.constantsvalues[matchconstanttovar(var2)];
-                    multiplier[1] = MP.constantsvalues[matchconstanttovar(var2)];
-                    multiplier[2] = MP.constantsvalues[matchconstanttovar(var2)];
-                }
-                // printVector(MP.constantsvalues);
-                // printVector(multiplier);
+            CLBuffer div_r(std::string var1, std::string var2){
+                CLBuffer memC, multi;
                 int N = MP.n[0] * MP.n[1] * MP.n[2];
+                int ind1 = matchscalartovar(var1);
+              
+                // vector itself
+                multi.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                        sizeof(float) * 3 * N, MP.AMR[0].CD[matchscalartovar(var2)].values.data(), &err);
                 
                 std::vector<float> prop = MP.AMR[0].CD[ind1].values;
                 size_t globalWorkSizegradient[1] = { (size_t)N };
-                // MathOperations dM;
-                //if(sgm == false){
-                //    scagradmatrix = dM.multiplyMatrices(scagradmatrix, dM.generatevectormatrix(MP.AMR[0].CD[ind2].values));
-                //    sgm = true;
-                //}
-                //printMatrix(scagradmatrix);
                 
-                CLBuffer memC, multi;
+                
                 // memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                 //          sizeof(float) * N, MP.AMR[0].CD[ind].values.data(), &err);
                 memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         sizeof(float) * N, prop.data(), &err);
-                
-                multi.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                        sizeof(float) * 3, multiplier.data(), &err);
                 
                 err |= clSetKernelArg(kernelgradient, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
                 err |= clSetKernelArg(kernelgradient, 1, sizeof(cl_mem), &memC.buffer);
