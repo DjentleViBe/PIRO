@@ -105,7 +105,7 @@ namespace Giro{
                 CLBuffer memC, multi;
                 int N = MP.n[0] * MP.n[1] * MP.n[2];
                 std::vector<float> prop = MP.AMR[0].CD[ind1].values;
-                size_t globalWorkSizegradient[1] = { (size_t)N };
+                
                 if(ind1 == 0 && ind2 == 0){
                     // std::cout << "selection" << std::endl;
                     // var1 = scalar, var2 = scalar
@@ -120,6 +120,7 @@ namespace Giro{
                     // std::cout << "selection" << std::endl;
                     // var1 = scalar, var2 = vector
                     // vector itself
+                    size_t globalWorkSizegradient[1] = { (size_t)N };
                     multi.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         sizeof(float) * 3 * N, MP.AMR[0].CD[ind2].values.data(), &err);
 
@@ -142,6 +143,26 @@ namespace Giro{
                 }
                 else{
                     // var1 = vector, var2 = vector
+                    size_t globalWorkSizegradient[1] = { (size_t)3 * N };
+                    multi.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                        sizeof(float) * 3 * N, MP.AMR[0].CD[ind2].values.data(), &err);
+
+                    memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                        sizeof(float) * 3 * N, prop.data(), &err);
+                
+                    err |= clSetKernelArg(kernelgradient_type4, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
+                    err |= clSetKernelArg(kernelgradient_type4, 1, sizeof(cl_mem), &memC.buffer);
+                    err |= clSetKernelArg(kernelgradient_type4, 2, sizeof(cl_mem), &multi.buffer);
+                    err |= clSetKernelArg(kernelgradient_type4, 3, sizeof(cl_float), &SP.delta[0]);
+                    err |= clSetKernelArg(kernelgradient_type4, 4, sizeof(cl_float), &SP.delta[1]);
+                    err |= clSetKernelArg(kernelgradient_type4, 5, sizeof(cl_float), &SP.delta[2]);
+                    err |= clSetKernelArg(kernelgradient_type4, 6, sizeof(cl_uint), &MP.n[0]);
+                    err |= clSetKernelArg(kernelgradient_type4, 7, sizeof(cl_uint), &MP.n[1]);
+                    err |= clSetKernelArg(kernelgradient_type4, 8, sizeof(cl_float), &SP.timestep);
+                    err |= clSetKernelArg(kernelgradient_type4, 9, sizeof(cl_uint), &N);
+
+                    err = clEnqueueNDRangeKernel(queue, kernelgradient_type4, 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
+                    
                     
                 }
 
