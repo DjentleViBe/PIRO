@@ -20,7 +20,8 @@ int solve(){
         // Heat Equation
         // Giro::scalarMatrix UEqn(solver.ddt_r("T") + (solver.ddc_r("Alpha") * solver.laplacian_r("T")));
         // Advection equation 
-        Giro::scalarMatrix UEqn(solver.ddt_r("T") - solver.div_r("T", "U"));        
+        // Giro::scalarMatrix UEqn(solver.ddt_r("T") - solver.div_r("T", "U"));        
+        Giro::scalarMatrix UEqn(solver.ddt_r("U") + solver.div_r("U", "U") - solver.laplacian_r("U"));        
         UEqn.Solve(time);
         time += SP.timestep;
         

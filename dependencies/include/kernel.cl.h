@@ -39,8 +39,8 @@ __kernel void setBC(__global float *A,
 }
 )CLC";
 
-const char *laplaciancalc = R"CLC(
-__kernel void laplacian(__global float *B,
+const char *laplacianscalar = R"CLC(
+__kernel void laplacianscalar(__global float *B,
                         __global float *C,
                         float delta_x,
                         float delta_y,
@@ -59,6 +59,41 @@ __kernel void laplacian(__global float *B,
                       + (B[id + nx] + B[id - nx] - 2.0f * B[id]) / (delta_y * delta_y)
                       + (B[id + nx * ny] + B[id - nx * ny] - 2.0f * B[id]) / (delta_z * delta_z));
             }
+        }
+}
+)CLC";
+
+const char *laplacianvector = R"CLC(
+__kernel void laplacianvector(__global float *B,
+                        __global float *C,
+                        float delta_x,
+                        float delta_y,
+                        float delta_z,
+                        uint nx, uint ny,
+                        float deltat,
+                        uint size) {
+    uint id = get_global_id(0);
+    uint z = id / (nx * ny);
+    uint y = (id / nx) % ny;
+    uint x = id % nx;
+    if (x > 0 && x < nx - 1 && y > 0 && y < ny - 1 && z > 0 && z < (size / (nx * ny)) - 1) {
+        if (id < size) {
+            C[id] = deltat * ((B[id + 1] + B[id - 1] - 2.0f * B[id]) / (delta_x * delta_x) 
+                      + (B[id + nx] + B[id - nx] - 2.0f * B[id]) / (delta_y * delta_y)
+                      + (B[id + nx * ny] + B[id - nx * ny] - 2.0f * B[id]) / (delta_z * delta_z));
+            }
+        else if (id > size && id < 2 * size) {
+            C[id] = deltat * ((B[id + 1] + B[id - 1] - 2.0f * B[id]) / (delta_x * delta_x) 
+                      + (B[id + nx] + B[id - nx] - 2.0f * B[id]) / (delta_y * delta_y)
+                      + (B[id + nx * ny] + B[id - nx * ny] - 2.0f * B[id]) / (delta_z * delta_z));
+            }
+        
+        else {
+            C[id] = deltat * ((B[id + 1] + B[id - 1] - 2.0f * B[id]) / (delta_x * delta_x) 
+                      + (B[id + nx] + B[id - nx] - 2.0f * B[id]) / (delta_y * delta_y)
+                      + (B[id + nx * ny] + B[id - nx * ny] - 2.0f * B[id]) / (delta_z * delta_z));
+            }
+        
         }
 }
 )CLC";
@@ -159,15 +194,15 @@ __kernel void gradient4(__global float *B,
                                 (D[size * 2 + id + 1] - D[size * 2 + id - 1]) * (B[id + 1] - B[id - 1]) / (2 * delta_z));
         }
         else if(id > size && id < 2 * size){
-            C[id] = deltat *    ((D[id + 1] - D[id - 1]) * (B[size + id + 1] - B[size + id - 1]) / (2 * delta_x) + 
-                                (D[size + id + 1] - D[size + id - 1]) * (B[size + id + 1] - B[size + id - 1]) / (2 * delta_y) + 
-                                (D[size * 2 + id + 1] - D[size * 2 + id - 1]) * (B[size + id + 1] - B[size + id - 1]) / (2 * delta_z));
+            C[id] = deltat *    ((D[id - size + 1] - D[id - size - 1]) * (B[id + 1] - B[id - 1]) / (2 * delta_x) + 
+                                (D[id + 1] - D[id - 1]) * (B[id + 1] - B[id - 1]) / (2 * delta_y) + 
+                                (D[size + id + 1] - D[size + id - 1]) * (B[id + 1] - B[id - 1]) / (2 * delta_z));
         
         }
         else{
-            C[id] = deltat *    ((D[id + 1] - D[id - 1]) * (B[size * 2 + id + 1] - B[size * 2 + id - 1]) / (2 * delta_x) + 
-                                (D[size + id + 1] - D[size + id - 1]) * (B[size * 2 + id + 1] - B[size * 2 + id - 1]) / (2 * delta_y) + 
-                                (D[size * 2 + id + 1] - D[size * 2 + id - 1]) * (B[size * 2 + id + 1] - B[size * 2 + id - 1]) / (2 * delta_z));
+            C[id] = deltat *    ((D[id - 2 * size + 1] - D[id - 2 * size - 1]) * (B[id + 1] - B[id - 1]) / (2 * delta_x) + 
+                                (D[id - size + 1] - D[id - size - 1]) * (B[id + 1] - B[id - 1]) / (2 * delta_y) + 
+                                (D[id + 1] - D[id - 1]) * (B[id + 1] - B[id - 1]) / (2 * delta_z));
         
         }
     }

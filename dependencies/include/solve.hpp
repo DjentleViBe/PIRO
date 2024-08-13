@@ -68,34 +68,47 @@ namespace Giro{
                 cl_int err;
                 int N = MP.n[0] * MP.n[1] * MP.n[2];
                 int ind = matchscalartovar(var);
-                // std::cout << "ind : " << ind << std::endl;
-                std::vector<float> prop = MP.AMR[0].CD[ind].values;
-                size_t globalWorkSizelaplacian[1] = { (size_t)N };
-                // call openkernel for laplacian
-                // CLBuffer memB;
                 CLBuffer memC;
-                // memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                //          sizeof(float) * N, MP.AMR[0].CD[ind].values.data(), &err);
-                memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                if(MP.AMR[0].CD[ind].type == 0){
+                    std::vector<float> prop = MP.AMR[0].CD[ind].values;
+                    size_t globalWorkSizelaplacian[1] = { (size_t)N };
+                    memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, prop.data(), &err);
                 
-                err |= clSetKernelArg(kernellaplacian, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
-                err |= clSetKernelArg(kernellaplacian, 1, sizeof(cl_mem), &memC.buffer);
-                err |= clSetKernelArg(kernellaplacian, 2, sizeof(cl_float), &SP.delta[0]);
-                err |= clSetKernelArg(kernellaplacian, 3, sizeof(cl_float), &SP.delta[1]);
-                err |= clSetKernelArg(kernellaplacian, 4, sizeof(cl_float), &SP.delta[2]);
-                err |= clSetKernelArg(kernellaplacian, 5, sizeof(cl_uint), &MP.n[0]);
-                err |= clSetKernelArg(kernellaplacian, 6, sizeof(cl_uint), &MP.n[1]);
-                err |= clSetKernelArg(kernellaplacian, 7, sizeof(cl_float), &SP.timestep);
-                err |= clSetKernelArg(kernellaplacian, 8, sizeof(cl_uint), &N);
+                    err |= clSetKernelArg(kernellaplacianscalar, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+                    err |= clSetKernelArg(kernellaplacianscalar, 1, sizeof(cl_mem), &memC.buffer);
+                    err |= clSetKernelArg(kernellaplacianscalar, 2, sizeof(cl_float), &SP.delta[0]);
+                    err |= clSetKernelArg(kernellaplacianscalar, 3, sizeof(cl_float), &SP.delta[1]);
+                    err |= clSetKernelArg(kernellaplacianscalar, 4, sizeof(cl_float), &SP.delta[2]);
+                    err |= clSetKernelArg(kernellaplacianscalar, 5, sizeof(cl_uint), &MP.n[0]);
+                    err |= clSetKernelArg(kernellaplacianscalar, 6, sizeof(cl_uint), &MP.n[1]);
+                    err |= clSetKernelArg(kernellaplacianscalar, 7, sizeof(cl_float), &SP.timestep);
+                    err |= clSetKernelArg(kernellaplacianscalar, 8, sizeof(cl_uint), &N);
 
-                err = clEnqueueNDRangeKernel(queue, kernellaplacian, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
+                    err = clEnqueueNDRangeKernel(queue, kernellaplacianscalar, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
                 
-                //err = clEnqueueReadBuffer(queue, memC.buffer, CL_TRUE, 0,
-                //              sizeof(float) * N, prop.data(), 0, NULL, NULL);
-                //std::cout << "laplacian" << std::endl;
-                //printVector(prop);
+                }
+                else{
+                    std::vector<float> prop = MP.AMR[0].CD[ind].values;
+                    size_t globalWorkSizelaplacian[1] = { (size_t)3 * N };
+                    memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * 3 * N, prop.data(), &err);
+                
+                    err |= clSetKernelArg(kernellaplacianvector, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+                    err |= clSetKernelArg(kernellaplacianvector, 1, sizeof(cl_mem), &memC.buffer);
+                    err |= clSetKernelArg(kernellaplacianvector, 2, sizeof(cl_float), &SP.delta[0]);
+                    err |= clSetKernelArg(kernellaplacianvector, 3, sizeof(cl_float), &SP.delta[1]);
+                    err |= clSetKernelArg(kernellaplacianvector, 4, sizeof(cl_float), &SP.delta[2]);
+                    err |= clSetKernelArg(kernellaplacianvector, 5, sizeof(cl_uint), &MP.n[0]);
+                    err |= clSetKernelArg(kernellaplacianvector, 6, sizeof(cl_uint), &MP.n[1]);
+                    err |= clSetKernelArg(kernellaplacianvector, 7, sizeof(cl_float), &SP.timestep);
+                    err |= clSetKernelArg(kernellaplacianvector, 8, sizeof(cl_uint), &N);
 
+                    err = clEnqueueNDRangeKernel(queue, kernellaplacianvector, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
+                
+
+                }
+                
                 return memC;
             }
 
