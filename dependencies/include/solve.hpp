@@ -100,40 +100,50 @@ namespace Giro{
             }
 
             CLBuffer div_r(std::string var1, std::string var2){
+                int ind1 = matchscalartovar(var1);
+                int ind2 = matchscalartovar(var2);
                 CLBuffer memC, multi;
                 int N = MP.n[0] * MP.n[1] * MP.n[2];
-                int ind1 = matchscalartovar(var1);
-              
-                // vector itself
-                multi.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                        sizeof(float) * 3 * N, MP.AMR[0].CD[matchscalartovar(var2)].values.data(), &err);
-                
                 std::vector<float> prop = MP.AMR[0].CD[ind1].values;
                 size_t globalWorkSizegradient[1] = { (size_t)N };
-                
-                
-                // memB.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                //          sizeof(float) * N, MP.AMR[0].CD[ind].values.data(), &err);
-                memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                if(ind1 == 0 && ind2 == 0){
+                    // std::cout << "selection" << std::endl;
+                    // var1 = scalar, var2 = scalar
+
+                }
+                else if(ind1 == 1 && ind2 == 0){
+                    // var1 = vector, var2 = scalar
+                    
+                    
+                }
+                else if(ind1 == 0 && ind2 == 1){
+                    // std::cout << "selection" << std::endl;
+                    // var1 = scalar, var2 = vector
+                    // vector itself
+                    multi.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                        sizeof(float) * 3 * N, MP.AMR[0].CD[ind2].values.data(), &err);
+
+                    memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         sizeof(float) * N, prop.data(), &err);
                 
-                err |= clSetKernelArg(kernelgradient, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
-                err |= clSetKernelArg(kernelgradient, 1, sizeof(cl_mem), &memC.buffer);
-                err |= clSetKernelArg(kernelgradient, 2, sizeof(cl_mem), &multi.buffer);
-                err |= clSetKernelArg(kernelgradient, 3, sizeof(cl_float), &SP.delta[0]);
-                err |= clSetKernelArg(kernelgradient, 4, sizeof(cl_float), &SP.delta[1]);
-                err |= clSetKernelArg(kernelgradient, 5, sizeof(cl_float), &SP.delta[2]);
-                err |= clSetKernelArg(kernelgradient, 6, sizeof(cl_uint), &MP.n[0]);
-                err |= clSetKernelArg(kernelgradient, 7, sizeof(cl_uint), &MP.n[1]);
-                err |= clSetKernelArg(kernelgradient, 8, sizeof(cl_float), &SP.timestep);
-                err |= clSetKernelArg(kernelgradient, 9, sizeof(cl_uint), &N);
+                    err |= clSetKernelArg(kernelgradient_type3, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
+                    err |= clSetKernelArg(kernelgradient_type3, 1, sizeof(cl_mem), &memC.buffer);
+                    err |= clSetKernelArg(kernelgradient_type3, 2, sizeof(cl_mem), &multi.buffer);
+                    err |= clSetKernelArg(kernelgradient_type3, 3, sizeof(cl_float), &SP.delta[0]);
+                    err |= clSetKernelArg(kernelgradient_type3, 4, sizeof(cl_float), &SP.delta[1]);
+                    err |= clSetKernelArg(kernelgradient_type3, 5, sizeof(cl_float), &SP.delta[2]);
+                    err |= clSetKernelArg(kernelgradient_type3, 6, sizeof(cl_uint), &MP.n[0]);
+                    err |= clSetKernelArg(kernelgradient_type3, 7, sizeof(cl_uint), &MP.n[1]);
+                    err |= clSetKernelArg(kernelgradient_type3, 8, sizeof(cl_float), &SP.timestep);
+                    err |= clSetKernelArg(kernelgradient_type3, 9, sizeof(cl_uint), &N);
 
-                err = clEnqueueNDRangeKernel(queue, kernelgradient, 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
-                
-                //err = clEnqueueReadBuffer(queue, memC.buffer, CL_TRUE, 0,
-                //              sizeof(float) * N, prop.data(), 0, NULL, NULL);
-                //std::cout << "laplacian" << std::endl;
-                //printVector(prop);
+                    err = clEnqueueNDRangeKernel(queue, kernelgradient_type3, 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
+                    
+                }
+                else{
+                    // var1 = vector, var2 = vector
+                    
+                }
 
                 return memC;
                 

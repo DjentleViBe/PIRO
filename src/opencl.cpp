@@ -42,10 +42,16 @@ std::vector<const char*> kernelNames = {"addVectors", "subtractVectors", "multip
                                         "multiplyVectors_constant",
                                         "divideVectors_constant"};
 
-cl_program  program_gradient, 
+cl_program  program_gradient_type1,
+            program_gradient_type2, 
+            program_gradient_type3, 
+            program_gradient_type4, 
             program_laplacian,
             program_setBC;
-cl_kernel   kernelgradient,
+cl_kernel   kernelgradient_type1,
+            kernelgradient_type2,
+            kernelgradient_type3,
+            kernelgradient_type4,
             kernellaplacian,
             kernelBC;
 cl_mem memBx, memCx, memDx, memEx;
@@ -147,11 +153,17 @@ int opencl_build(){
         err = opencl_BuildProgram(program_math[i]);
         kernel_math[i] = clCreateKernel(program_math[i], kernelNames[i], &err);
     }
-    program_gradient = opencl_CreateProgram(gradcalc);
+    program_gradient_type1 = opencl_CreateProgram(gradcalc1);
+    program_gradient_type2 = opencl_CreateProgram(gradcalc2);
+    program_gradient_type3 = opencl_CreateProgram(gradcalc3);
+    program_gradient_type4 = opencl_CreateProgram(gradcalc4);
     program_laplacian = opencl_CreateProgram(laplaciancalc);
     program_setBC = opencl_CreateProgram(setBC);
     
-    err = opencl_BuildProgram(program_gradient);
+    err = opencl_BuildProgram(program_gradient_type1);
+    err = opencl_BuildProgram(program_gradient_type2);
+    err = opencl_BuildProgram(program_gradient_type3);
+    err = opencl_BuildProgram(program_gradient_type4);
     err = opencl_BuildProgram(program_laplacian);
     err = opencl_BuildProgram(program_setBC);
 
@@ -162,7 +174,10 @@ int opencl_build(){
     std::cout << "Creating kernel" << std::endl;
     kernelBC = clCreateKernel(program_setBC, "setBC", &err);
     kernellaplacian = clCreateKernel(program_laplacian, "laplacian", &err);
-    kernelgradient = clCreateKernel(program_gradient, "gradient", &err);
+    kernelgradient_type1 = clCreateKernel(program_gradient_type1, "gradient1", &err);
+    kernelgradient_type2 = clCreateKernel(program_gradient_type2, "gradient2", &err);
+    kernelgradient_type3 = clCreateKernel(program_gradient_type3, "gradient3", &err);
+    kernelgradient_type4 = clCreateKernel(program_gradient_type4, "gradient4", &err);
 
     return 0;
 }
@@ -177,14 +192,20 @@ int opencl_cleanup(){
     clReleaseMemObject(memCx);
     clReleaseMemObject(memDx);
     clReleaseMemObject(memEx);
-    clReleaseKernel(kernelgradient);
+    clReleaseKernel(kernelgradient_type1);
+    clReleaseKernel(kernelgradient_type2);
+    clReleaseKernel(kernelgradient_type3);
+    clReleaseKernel(kernelgradient_type4);
     clReleaseKernel(kernellaplacian);
     for(size_t i = 0; i < program_math.size(); i++){
         clReleaseKernel(kernel_math[i]);
         clReleaseProgram(program_math[i]);
     }
     clReleaseKernel(kernelBC);
-    clReleaseProgram(program_gradient);
+    clReleaseProgram(program_gradient_type1);
+    clReleaseProgram(program_gradient_type2);
+    clReleaseProgram(program_gradient_type3);
+    clReleaseProgram(program_gradient_type4);
     clReleaseProgram(program_laplacian);
     clReleaseProgram(program_setBC);
     clReleaseCommandQueue(queue);

@@ -23,7 +23,10 @@ extern std::vector<cl_kernel> kernel_math;
 extern cl_program   program_gradient, 
                     program_laplacian,
                     program_setBC;
-extern cl_kernel    kernelgradient,
+extern cl_kernel    kernelgradient_type1,
+                    kernelgradient_type2,
+                    kernelgradient_type3,
+                    kernelgradient_type4,
                     kernellaplacian,
                     kernelBC;
 
