@@ -223,7 +223,7 @@ __kernel void multiplyVectors(__global float *A,
 
 const char *multiplyVectors_constant = R"CLC(
 __kernel void multiplyVectors_constant(__global float *A,
-                                const float B,
+                                float B,
                                 __global const float *C,
                                 uint size) {
     uint id = get_global_id(0);
@@ -247,7 +247,7 @@ __kernel void addVectors(__global float *A,
 
 const char *addVectors_constant = R"CLC(
 __kernel void addVectors_constant(__global float *A,
-                                const float B,
+                                float B,
                                 __global const float *C,
                                 uint size) {
     uint id = get_global_id(0);
@@ -271,7 +271,7 @@ __kernel void subtractVectors(__global float *A,
 
 const char *subtractVectors_constant = R"CLC(
 __kernel void subtractVectors_constant(__global float *A,
-                                const float B,
+                                float B,
                                 __global const float *C,
                                 uint size) {
     uint id = get_global_id(0);
@@ -295,7 +295,7 @@ __kernel void divideVectors(__global float *A,
 
 const char *divideVectors_constant = R"CLC(
 __kernel void divideVectors_constant(__global float *A,
-                                const float B,
+                                float B,
                                 __global const float *C,
                                 uint size) {
     uint id = get_global_id(0);

@@ -64,6 +64,26 @@ namespace Giro{
                 return MP.constantsvalues[ind];
             }
 
+            CLBuffer r(std::string var){
+                cl_int err;
+                int N = MP.n[0] * MP.n[1] * MP.n[2];
+                int ind = matchscalartovar(var);
+                CLBuffer memC;
+                std::vector<float> prop = MP.AMR[0].CD[ind].values;
+                size_t globalWorkSizemultiplyconst[1] = { (size_t)N };
+                memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * N, prop.data(), &err);
+                
+                err |= clSetKernelArg(kernel_math[6], 2, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+                err |= clSetKernelArg(kernel_math[6], 0, sizeof(cl_mem), &memC.buffer);
+                err |= clSetKernelArg(kernel_math[6], 1, sizeof(cl_float), &SP.timestep);
+                err |= clSetKernelArg(kernel_math[6], 3, sizeof(cl_uint), &N);
+
+                err = clEnqueueNDRangeKernel(queue, kernel_math[6], 1, NULL, globalWorkSizemultiplyconst, NULL, 0, NULL, NULL);
+            
+                return memC;
+            }
+
             CLBuffer laplacian_r(std::string var){
                 cl_int err;
                 int N = MP.n[0] * MP.n[1] * MP.n[2];

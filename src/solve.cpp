@@ -21,7 +21,12 @@ int solve(){
         // Giro::scalarMatrix UEqn(solver.ddt_r("T") + (solver.ddc_r("Alpha") * solver.laplacian_r("T")));
         // Advection equation 
         // Giro::scalarMatrix UEqn(solver.ddt_r("T") - solver.div_r("T", "U"));        
-        Giro::scalarMatrix UEqn(solver.ddt_r("U") + solver.div_r("U", "U") - solver.laplacian_r("U"));        
+        // Giro::scalarMatrix UEqn(solver.ddt_r("U") + solver.div_r("U", "U") - solver.laplacian_r("U"));        
+        // Giro::scalarMatrix UEqn(solver.ddc_r("Hbar") * solver.ddt_r("Psi") + \
+        //                        solver.ddc_r("Hbar2m") * solver.laplacian_r("Psi") - \
+        //                        solver.r("Psi"));    
+        Giro::scalarMatrix UEqn(solver.ddc_r("Hbar") * solver.ddt_r("Psi") + \
+                                solver.ddc_r("Hbar2m") * solver.laplacian_r("Psi")); 
         UEqn.Solve(time);
         time += SP.timestep;
         
