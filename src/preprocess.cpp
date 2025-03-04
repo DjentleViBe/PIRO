@@ -87,16 +87,21 @@ int preprocess(const std::string& name) {
         MP.AMR.push_back(AMR);
         
     }
-
+    // number of scalars defined in the .ini file
     MP.scalarnum = countSpaces(reader.get("Simulation", "Scalars", "default_value")) + 1;
+    // number of vectors defined in the .ini file
     MP.vectornum = countSpaces(reader.get("Simulation", "Vectors", "default_value")) + 1;
+    // Initial condition type.
     MP.ICtype = convertStringVectorToInt(splitString(reader.get("IC", "type", "default_value"), ' '));
+    // File location needed if ICtype == 2
     MP.ICfiles = splitString(reader.get("IC", "filename", "default_value"), ' ');
     std::cout << "Initialising scalars and vectors" << std::endl;
     int j = 0;
     Giro::CellData CD;
     CLBuffer CD_GPU;
+    // total number of cells
     int N = MP.n[0] * MP.n[1] * MP.n[2];
+    std::cout << "Total number of cells : " << N << std::endl;
     for (int i = 0; i < MP.scalarnum; i++){
         
         CD.Scalars = MP.scalarlist[i];
