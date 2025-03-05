@@ -3,6 +3,9 @@
 #include <sstream>
 #include <iostream>
 #include <filesystem>
+#include <algorithm>
+#include <sstream>
+#include <iterator>
 #include "../dependencies/include/extras.hpp"
 #include "../dependencies/include/datatypes.hpp"
 #include "../dependencies/include/init.hpp"
@@ -228,6 +231,11 @@ int countSpaces(const std::string& str) {
     }
 
     return spaceCount;
+}
+
+int countWords(const std::string& str) {
+    std::istringstream iss(str);
+    return std::distance(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>());
 }
 
 void printMatrix(const std::vector<std::vector<float>>& matrix) {

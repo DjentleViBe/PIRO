@@ -25,4 +25,5 @@ void printVector(const std::vector<int>& vec);
 void printArray(float* array, uint size);
 std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector);
 void print_time();
+int countWords(const std::string& str);
 #endif

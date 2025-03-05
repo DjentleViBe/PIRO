@@ -90,7 +90,7 @@ int preprocess(const std::string& name) {
     // number of scalars defined in the .ini file
     MP.scalarnum = countSpaces(reader.get("Simulation", "Scalars", "default_value")) + 1;
     // number of vectors defined in the .ini file
-    MP.vectornum = countSpaces(reader.get("Simulation", "Vectors", "default_value")) + 1;
+    MP.vectornum = countWords(reader.get("Simulation", "Vectors", ""));
     // Initial condition type.
     MP.ICtype = convertStringVectorToInt(splitString(reader.get("IC", "type", "default_value"), ' '));
     // File location needed if ICtype == 2

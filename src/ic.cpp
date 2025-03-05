@@ -25,9 +25,10 @@ std::vector<float> initialcondition(int index, int valuetype){
     std::srand(std::time(0));
     std::vector<float> coordinate(3);
     
-    values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
+    
     IniReader icreader(current_path.string() + "/assets/IC/" + "distribution.ini");
     if(MP.ICfiles[index] == "Gaussian"){
+        values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
         std::cout << "Gaussian initialisation" << std::endl;
         float scalefactor = std::stof(icreader.get("Gaussian", "Scalefactor", "default_value"));
         std::vector<float> sigma = convertStringVectorToFloat(splitString(icreader.get("Gaussian", "Sigma", "default_value"), ' '));
@@ -48,15 +49,17 @@ std::vector<float> initialcondition(int index, int valuetype){
 
     }
     else if (MP.ICfiles[index] == "UniformVector"){
+        values.assign(MP.n[0] * MP.n[1] * MP.n[2] * 3, 0.0);
         std::vector<float> vectordir = convertStringVectorToFloat(splitString(icreader.get("Vector", "Direction", "default_value"), ' '));
+        std::vector<float> vecval = convertStringVectorToFloat(splitString(icreader.get("Vector", "Value", "default_value"), ' '));
         for(int vec = 0; vec < values.size() / 3; vec++){
-            values[vec] = vectordir[0];
+            values[vec] = vectordir[0] * vecval[0];
         }
         for(int vec = values.size() / 3; vec < 2 * values.size() / 3; vec++){
-            values[vec] = vectordir[1];
+            values[vec] = vectordir[1] * vecval[0];
         }
         for(int vec = 2 * values.size() / 3; vec < 3 * values.size() / 3; vec++){
-            values[vec] = vectordir[2];
+            values[vec] = vectordir[2] * vecval[0];
         }
     }
     std::cout << "Initialisation completed" << std::endl;
