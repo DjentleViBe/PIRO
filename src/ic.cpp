@@ -19,58 +19,47 @@ float calculategaussian(std::vector<float> coord, std::vector<float> mean, std::
     return gaussian;
 }
 
-std::vector<float> initialcondition(int index, int valuetype, int ictype){
+std::vector<float> initialcondition(int index, int valuetype){
     std::cout << "Initialisation started" << std::endl;
     std::vector<float> values;
     std::srand(std::time(0));
     std::vector<float> coordinate(3);
-    if(valuetype == 0){
-        // initialise scalar
-        switch(ictype){
-            case 0:
-                values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
-                break;
-            case 1:
-                values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
-                IniReader icreader(current_path.string() + "/assets/IC/" + "distribution.ini");
-                if(MP.ICfiles[index] == "Gaussian"){
-                    std::cout << "Gaussian initialisation" << std::endl;
-                    float scalefactor = std::stof(icreader.get("Gaussian", "Scalefactor", "default_value"));
-                    std::vector<float> sigma = convertStringVectorToFloat(splitString(icreader.get("Gaussian", "Sigma", "default_value"), ' '));
-                    std::vector<float> mean = convertStringVectorToFloat(splitString(icreader.get("Gaussian", "Median", "default_value"), ' '));
-                    for (int x = 0; x < MP.n[0]; ++x) {
-                        for (int y = 0; y < MP.n[1]; ++y) {
-                            for (int z = 0; z < MP.n[2]; ++z) {
-                                int l = idx(x, y, z, MP.n[0], MP.n[1]);
-                                coordinate[0] = x * MP.l[0] / MP.n[0];
-                                coordinate[1] = y * MP.l[1] / MP.n[1];
-                                coordinate[2] = z * MP.l[2] / MP.n[2];
-                                values[l] = scalefactor * calculategaussian(coordinate, mean, sigma);
-                            }
-                        }
-                    }
+    
+    values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
+    IniReader icreader(current_path.string() + "/assets/IC/" + "distribution.ini");
+    if(MP.ICfiles[index] == "Gaussian"){
+        std::cout << "Gaussian initialisation" << std::endl;
+        float scalefactor = std::stof(icreader.get("Gaussian", "Scalefactor", "default_value"));
+        std::vector<float> sigma = convertStringVectorToFloat(splitString(icreader.get("Gaussian", "Sigma", "default_value"), ' '));
+        std::vector<float> mean = convertStringVectorToFloat(splitString(icreader.get("Gaussian", "Median", "default_value"), ' '));
+        for (int x = 0; x < MP.n[0]; ++x) {
+            for (int y = 0; y < MP.n[1]; ++y) {
+                for (int z = 0; z < MP.n[2]; ++z) {
+                    int l = idx(x, y, z, MP.n[0], MP.n[1]);
+                    coordinate[0] = x * MP.l[0] / MP.n[0];
+                    coordinate[1] = y * MP.l[1] / MP.n[1];
+                    coordinate[2] = z * MP.l[2] / MP.n[2];
+                    values[l] = scalefactor * calculategaussian(coordinate, mean, sigma);
                 }
-                else if (MP.ICfiles[index] == "Coulomb"){
-
-                }
-                else if (MP.ICfiles[index] == "UniformVector"){
-                    std::vector<float> vectordir = convertStringVectorToFloat(splitString(icreader.get("Vector", "Direction", "default_value"), ' '));
-                    for(int vec = 0; vec < values.size() / 3; vec++){
-                        values[vec] = vectordir[0];
-                    }
-                    for(int vec = values.size() / 3; vec < 2 * values.size() / 3; vec++){
-                        values[vec] = vectordir[1];
-                    }
-                    for(int vec = 2 * values.size() / 3; vec < 3 * values.size() / 3; vec++){
-                        values[vec] = vectordir[2];
-                    }
-                }
-            break;
-
+            }
         }
-        std::cout << "Initialisation completed" << std::endl;
+    }
+    else if (MP.ICfiles[index] == "Coulomb"){
 
     }
+    else if (MP.ICfiles[index] == "UniformVector"){
+        std::vector<float> vectordir = convertStringVectorToFloat(splitString(icreader.get("Vector", "Direction", "default_value"), ' '));
+        for(int vec = 0; vec < values.size() / 3; vec++){
+            values[vec] = vectordir[0];
+        }
+        for(int vec = values.size() / 3; vec < 2 * values.size() / 3; vec++){
+            values[vec] = vectordir[1];
+        }
+        for(int vec = 2 * values.size() / 3; vec < 3 * values.size() / 3; vec++){
+            values[vec] = vectordir[2];
+        }
+    }
+    std::cout << "Initialisation completed" << std::endl;
     return values;
 
 }

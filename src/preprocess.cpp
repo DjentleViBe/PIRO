@@ -107,7 +107,7 @@ int preprocess(const std::string& name) {
         CD.Scalars = MP.scalarlist[i];
         MP.AMR[0].CD.push_back(CD);
         MP.AMR[0].CD[i].type = 0;
-        MP.AMR[0].CD[i].values = initialcondition(i, MP.AMR[0].CD[i].type, MP.ICtype[i]);
+        MP.AMR[0].CD[i].values = initialcondition(i, MP.AMR[0].CD[i].type);
         // push scalar data to gpu
         CDGPU.values_gpu.push_back(CD_GPU);
         CDGPU.values_gpu[i].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -119,7 +119,7 @@ int preprocess(const std::string& name) {
         CD.Scalars = MP.vectorlist[i - j];
         MP.AMR[0].CD.push_back(CD);
         MP.AMR[0].CD[i].type = 1;
-        MP.AMR[0].CD[i].values = initialcondition(i, MP.AMR[0].CD[i].type, MP.ICtype[i]);
+        MP.AMR[0].CD[i].values = initialcondition(i, MP.AMR[0].CD[i].type);
         // push vector data to gpu
         CDGPU.values_gpu.push_back(CD_GPU);
         CDGPU.values_gpu[i].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
