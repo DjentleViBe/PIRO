@@ -219,16 +219,8 @@ namespace Giro{
                     std::cout << "Timestep : " << ts + 1  << " / " << SP.totaltimesteps << std::endl;
                     // apply Boundary Conditions
                     err = clEnqueueCopyBuffer(queue, smatrix.buffer, CDGPU.values_gpu[0].buffer, 0, 0, sizeof(float) * N, 0, NULL, NULL);
-                    // std::cout << "timestep" << std::endl;
-                    // err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
-                    //          sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
-                    // printVector(MP.AMR[0].CD[0].values);
                     opencl_setBC(0);
                     
-                    // export every timestep
-                    // printVector(MP.AMR[0].CD[0].values);
-                    //std::cout << "after solving" << std::endl;
-                    //printVector(MP.AMR[0].CD[0].values);
                     if((ts + 1) % SP.save == 0){
                         std::cout << "Post processing started" << std::endl;
                         err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
