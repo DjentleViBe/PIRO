@@ -80,7 +80,7 @@ namespace Giro{
                 err |= clSetKernelArg(kernel_math[6], 3, sizeof(cl_uint), &N);
 
                 err = clEnqueueNDRangeKernel(queue, kernel_math[6], 1, NULL, globalWorkSizemultiplyconst, NULL, 0, NULL, NULL);
-            
+                
                 return memC;
             }
 
@@ -139,7 +139,7 @@ namespace Giro{
             int P = 1;
             int ind = matchscalartovar(var);
             std::vector<float> prop = MP.AMR[0].CD[ind].values;
-            size_t globalWorkSizelaplacian[1] = {(size_t)(N * 17)};
+            size_t globalWorkSizelaplacian[1] = {(size_t)(N)};
             memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                 sizeof(float) * N, prop.data(), &err);
             if(LAP_INIT == false){
