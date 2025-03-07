@@ -156,7 +156,7 @@ namespace Giro{
             err |= clSetKernelArg(kernelsparseMatrixMultiplyCSR, 8, sizeof(cl_mem), &memC.buffer);
 
             
-            // err = clEnqueueNDRangeKernel(queue, kernelsparseMatrixMultiplyCSR, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
+            err = clEnqueueNDRangeKernel(queue, kernelsparseMatrixMultiplyCSR, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
             
             return memC;
         }

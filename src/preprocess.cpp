@@ -23,6 +23,7 @@ Giro::MeshParams MP;
 Giro::SolveParams SP;
 Giro::DeviceParams DP;
 Giro::CellDataGPU CDGPU;
+CLBuffer CD_GPU;
 bool LAP_INIT = false;
 int ts = 0;
 
@@ -103,7 +104,7 @@ int preprocess(const std::string& name) {
     std::cout << "Initialising scalars and vectors" << std::endl;
     int j = 0;
     Giro::CellData CD;
-    CLBuffer CD_GPU;
+    //CLBuffer CD_GPU;
     // total number of cells
     int N = MP.n[0] * MP.n[1] * MP.n[2];
     std::cout << "Total number of cells : " << N << std::endl;
@@ -146,23 +147,25 @@ int preprocess(const std::string& name) {
     return 0;
 }
 
+bool isBoundaryPoint(int x, int y, int z) {
+    // Check if the point is on the boundary of any axis
+    if (x == 0 || x == MP.n[0] - 1 || y == 0 || y == MP.n[1] - 1 || z == 0 || z == MP.n[2] - 1) {
+        return true;
+    }
+    return false;
+}
+
 int laplacian_CSR_init(){
     int N = MP.n[0] * MP.n[1] * MP.n[2];
     Giro::CellData CD;
-    CLBuffer CD_GPU;
     MP.AMR[0].CD.push_back(CD);
     CDGPU.laplacian_csr.push_back(CD_GPU);
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 2; // row pointers
-    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.assign(N, 0.0);
-    MP.AMR[0].CD.push_back(CD);
+    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.assign(N + 1, 0.0);
     CDGPU.laplacian_csr.push_back(CD_GPU);
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 3; // columns
-    // MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.assign(N, 0.0);
-    MP.AMR[0].CD.push_back(CD);
     CDGPU.laplacian_csr.push_back(CD_GPU);
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 4; // values
-    // MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.assign(N, 0.0);
-    // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers);
     // Iterate over all grid points
     int count = 0;
     for (int z = 0; z < MP.n[2]; ++z) {
@@ -173,7 +176,7 @@ int laplacian_CSR_init(){
                 // Self connection (central point)
                 MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(i);
                 MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(-6.0);
-
+                
                 // Neighbors in the x-direction (x±1)
                 if (x > 0) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x-1, y, z, MP.n[0], MP.n[1]));
@@ -209,16 +212,23 @@ int laplacian_CSR_init(){
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
                     count++;
                 }
+                if (isBoundaryPoint(x, y, z)) {
+                    // Set the corresponding row in the sparse matrix to enforce the BC
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(i); // for diagonal entry
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0); // large value to enforce the BC
+                
+                    // Set other neighbors to zero or adjust according to the BC
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(i + 1); // for a neighbor
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(0.0); // zero for Dirichlet BC
+                }
 
-                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i] = count; // Starting index in the column/MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2] array
-
+                // MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i] = count; // Starting index in the column/MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2] array
+                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i] = MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.size();
             }
         }
     }
+    
 
-    //for (int i = 1; i <= N; ++i) {
-    //    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i] += MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i - 1];
-    //}
     CDGPU.laplacian_csr[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(int) * MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.size(), MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.data(), &err);
 
