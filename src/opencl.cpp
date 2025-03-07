@@ -69,6 +69,16 @@ static void print_device_info(cl_device_id device){
     std::cout << name << std::endl;
     std::cout << vendor << std::endl;
 
+    cl_uint numComputeUnits;
+    clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(numComputeUnits), &numComputeUnits, NULL);
+
+    cl_uint maxWorkGroupSize;
+    clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(maxWorkGroupSize), &maxWorkGroupSize, NULL);
+
+    std::cout << "Compute Units: " << numComputeUnits << std::endl;
+    std::cout << "Max Work Group Size: " << maxWorkGroupSize << std::endl;
+
+
 }
 
 int opencl_init(){

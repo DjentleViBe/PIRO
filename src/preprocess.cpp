@@ -207,13 +207,13 @@ int laplacian_CSR_init(){
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[N] = MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.size();
     
     CDGPU.laplacian_csr[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(int) * N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.data(), &err);
+        sizeof(int) * (N + 1), MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.data(), &err);
 
     CDGPU.laplacian_csr[1].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(int) * N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 1].columns.data(), &err);
+        sizeof(int) * 7 * N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.data(), &err);
 
     CDGPU.laplacian_csr[2].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(float) * N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].values.data(), &err);
+        sizeof(float) * 7 * N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.data(), &err);
     
     LAP_INIT = true;
     return 0;
