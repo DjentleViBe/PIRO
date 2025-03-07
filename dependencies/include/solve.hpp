@@ -84,7 +84,7 @@ namespace Giro{
                 return memC;
             }
 
-            CLBuffer laplacian_r(std::string var){
+            CLBuffer laplacian_full(std::string var){
                 cl_int err;
                 int N = MP.n[0] * MP.n[1] * MP.n[2];
                 int ind = matchscalartovar(var);
@@ -131,6 +131,29 @@ namespace Giro{
                 
                 return memC;
             }
+
+        CLBuffer laplacian_CSR(std::string var){
+            cl_int err;
+            int N = MP.n[0] * MP.n[1] * MP.n[2];
+            CLBuffer memC;
+            int K = 1;
+            int ind = matchscalartovar(var);
+            memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                sizeof(float) * N, MP.AMR[0].CD[ind].values.data(), &err);
+            if(LAP_INIT == false){
+                laplacian_CSR_init(); // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
+            }
+            err |= clSetKernelArg(kernelsparseMatrixMultiplyCSR, 0, sizeof(cl_mem), &N);
+            err |= clSetKernelArg(kernelsparseMatrixMultiplyCSR, 1, sizeof(cl_mem), &N);
+            err |= clSetKernelArg(kernelsparseMatrixMultiplyCSR, 2, sizeof(cl_mem), &K);
+            err |= clSetKernelArg(kernelsparseMatrixMultiplyCSR, 3, sizeof(cl_mem), &CDGPU.laplacian_csr[2].buffer);
+            err |= clSetKernelArg(kernelsparseMatrixMultiplyCSR, 4, sizeof(cl_mem), &CDGPU.laplacian_csr[1].buffer);
+            err |= clSetKernelArg(kernelsparseMatrixMultiplyCSR, 5, sizeof(cl_mem), &CDGPU.laplacian_csr[0].buffer);
+            err |= clSetKernelArg(kernelsparseMatrixMultiplyCSR, 6, sizeof(cl_mem), &SP.timestep);
+            err |= clSetKernelArg(kernelsparseMatrixMultiplyCSR, 7, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+            err |= clSetKernelArg(kernelsparseMatrixMultiplyCSR, 8, sizeof(cl_mem), &memC.buffer);
+            return memC;
+        }
 
             CLBuffer div_r(std::string var1, std::string var2){
                 int ind1 = matchscalartovar(var1);

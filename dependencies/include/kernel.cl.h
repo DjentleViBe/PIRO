@@ -39,6 +39,37 @@ __kernel void setBC(__global float *A,
 }
 )CLC";
 
+const char *sparseMatrixMultiplyCSR = R"CLC(
+__kernel void sparseMatrixMultiplyCSR(const int M,
+                                    const int K,
+                                    const int N,
+                                    __global const float* values_A,
+                                    __global const int* columns_A,
+                                    __global const int* rowPointers_A,
+                                    float deltat,
+                                    __global float* B,
+                                    __global float* C) {
+    int row = get_global_id(0);
+    int col = get_global_id(1);
+    
+    if (row >= M || col >= N) return;
+
+    float result = 0.0f;
+
+    // Iterate over the non-zero entries in row `row` of matrix A
+    for (int i = rowPointers_A[row]; i < rowPointers_A[row + 1]; ++i) {
+        int col_A = columns_A[i];  // Column index of the non-zero value in A
+        float value_A = values_A[i];  // Value at position (row, col_A) in matrix A
+
+        // Multiply with the corresponding value from matrix B
+        result += value_A * B[col_A * N + col];  // B[col_A, col]
+    }
+
+    // Store the result in the output matrix C
+    C[row * N + col] = deltat * result;
+}
+)CLC";
+
 const char *laplacianscalar = R"CLC(
 __kernel void laplacianscalar(__global float *B,
                         __global float *C,

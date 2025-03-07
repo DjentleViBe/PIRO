@@ -174,6 +174,7 @@ namespace Giro{
     class CellDataGPU{
         public:
             std::vector<CLBuffer> values_gpu;
+            std::vector<CLBuffer> laplacian_csr;
     };
 };
 

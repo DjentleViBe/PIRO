@@ -23,6 +23,7 @@ Giro::MeshParams MP;
 Giro::SolveParams SP;
 Giro::DeviceParams DP;
 Giro::CellDataGPU CDGPU;
+bool LAP_INIT = false;
 int ts = 0;
 
 // Function to map 3D indices to 1D
@@ -140,3 +141,81 @@ int preprocess(const std::string& name) {
 
     return 0;
 }
+
+int laplacian_CSR_init(){
+    int N = MP.n[0] * MP.n[1] * MP.n[2];
+    Giro::CellData CD;
+    CLBuffer CD_GPU;
+    MP.AMR[0].CD.push_back(CD);
+    CDGPU.laplacian_csr.push_back(CD_GPU);
+    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 2; // row pointers
+    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices.assign(N + 1, 0.0);
+    MP.AMR[0].CD.push_back(CD);
+    CDGPU.laplacian_csr.push_back(CD_GPU);
+    MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 1].type = 3; // columns
+    MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 1].indices.assign(7 * N, 0.0);
+    MP.AMR[0].CD.push_back(CD);
+    CDGPU.laplacian_csr.push_back(CD_GPU);
+    MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].type = 4; // values
+    MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].values.assign(7 * N, 0.0);
+
+    // Iterate over all grid points
+    for (int z = 0; z < MP.n[2]; ++z) {
+        for (int y = 0; y < MP.n[1]; ++y) {
+            for (int x = 0; x < MP.n[0]; ++x) {
+                int i = idx(x, y, z, MP.n[0], MP.n[1]); // 1D index of the (x, y, z) point
+                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices[i] = MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].indices.size(); // Starting index in the column/MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2] array
+
+                // Self connection (central point)
+                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices.push_back(i);
+                MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].values.push_back(-6.0);
+
+                // Neighbors in the x-direction (x±1)
+                if (x > 0) {
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices.push_back(idx(x-1, y, z, MP.n[0], MP.n[1]));
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].values.push_back(1.0);
+                }
+                if (x < MP.n[0] - 1) {
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices.push_back(idx(x+1, y, z, MP.n[0], MP.n[1]));
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].values.push_back(1.0);
+                }
+
+                // Neighbors in the y-direction (y±1)
+                if (y > 0) {
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices.push_back(idx(x, y-1, z, MP.n[0], MP.n[1]));
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].values.push_back(1.0);
+                }
+                if (y < MP.n[1] - 1) {
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices.push_back(idx(x, y+1, z, MP.n[0], MP.n[1]));
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].values.push_back(1.0);
+                }
+
+                // Neighbors in the z-direction (z±1)
+                if (z > 0) {
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices.push_back(idx(x, y, z-1, MP.n[0], MP.n[1]));
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].values.push_back(1.0);
+                }
+                if (z < MP.n[2] - 1) {
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices.push_back(idx(x, y, z+1, MP.n[0], MP.n[1]));
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].values.push_back(1.0);
+                }
+            }
+        }
+    }
+
+    // Set the last row pointer to the total number of non-zero entries
+    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices[N] = MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 1].indices.size();
+    
+    CDGPU.laplacian_csr[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        sizeof(int) * N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum].indices.data(), &err);
+
+    CDGPU.laplacian_csr[1].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        sizeof(int) * N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 1].indices.data(), &err);
+
+    CDGPU.laplacian_csr[2].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        sizeof(float) * N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2].values.data(), &err);
+    
+    LAP_INIT = true;
+    return 0;
+}
+

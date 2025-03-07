@@ -25,9 +25,10 @@ namespace Giro{
 
     class CellData{
         public:
-            int type;
+            int type; // 0 : Scalars, 1 : Vectors, 2 : CSR row pointers, 3 : CSR columns, 4 : CSR values
             std::string Scalars;
             std::vector<float> values;
+            std::vector<int> indices;
     };
 
     class AMR{
