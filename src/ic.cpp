@@ -19,6 +19,17 @@ float calculategaussian(std::vector<float> coord, std::vector<float> mean, std::
     return gaussian;
 }
 
+float calc_length_3d(std::vector<float> coord, std::vector<float> center){
+    return pow((pow((coord[0] - center[0]), 2) 
+                + pow((coord[1] - center[1]), 2) 
+                + pow((coord[2] - center[2]), 2)), 0.5);
+}
+
+float calculatecoulomb(std::vector<float> coord, std::vector<float> center, float Z, double e, double epsilon_0){
+    float r = calc_length_3d(coord, center);
+    return -(Z * 1E15 * pow(e, 2)) / (4 * M_PI * epsilon_0 * (r + 1E-10));
+}
+
 std::vector<float> initialcondition(int index, int valuetype){
     std::cout << "Initialisation started" << std::endl;
     std::vector<float> values;
@@ -46,7 +57,24 @@ std::vector<float> initialcondition(int index, int valuetype){
         }
     }
     else if (MP.ICfiles[index] == "Coulomb"){
-
+        values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
+        std::cout << "Coulomb initialisation" << std::endl;
+        std::vector<float> center = convertStringVectorToFloat(splitString(icreader.get("Coulomb", "center", "default_value"), ' '));
+        float Z = std::stof(icreader.get("Coulomb", "Z", "default_value"));
+        double e = std::stof(icreader.get("Coulomb", "e", "default_value"));
+        double epsilon_0 = std::stof(icreader.get("Coulomb", "epsilon_0", "default_value"));
+        for (int x = 0; x < MP.n[0]; ++x) {
+            for (int y = 0; y < MP.n[1]; ++y) {
+                for (int z = 0; z < MP.n[2]; ++z) {
+                    int l = idx(x, y, z, MP.n[0], MP.n[1]);
+                    coordinate[0] = x * MP.l[0] / MP.n[0];
+                    coordinate[1] = y * MP.l[1] / MP.n[1];
+                    coordinate[2] = z * MP.l[2] / MP.n[2];
+                    values[l] = calculatecoulomb(coordinate, center, Z, e, epsilon_0);
+                }
+            }
+        }
+        
     }
     else if (MP.ICfiles[index] == "UniformVector"){
         values.assign(MP.n[0] * MP.n[1] * MP.n[2] * 3, 0.0);
