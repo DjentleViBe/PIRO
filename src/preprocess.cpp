@@ -153,7 +153,7 @@ int laplacian_CSR_init(){
     MP.AMR[0].CD.push_back(CD);
     CDGPU.laplacian_csr.push_back(CD_GPU);
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 2; // row pointers
-    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.assign(N + 1, 0.0);
+    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.assign(N, 0.0);
     MP.AMR[0].CD.push_back(CD);
     CDGPU.laplacian_csr.push_back(CD_GPU);
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 3; // columns
@@ -162,8 +162,9 @@ int laplacian_CSR_init(){
     CDGPU.laplacian_csr.push_back(CD_GPU);
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 4; // values
     // MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.assign(N, 0.0);
-
+    // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers);
     // Iterate over all grid points
+    int count = 0;
     for (int z = 0; z < MP.n[2]; ++z) {
         for (int y = 0; y < MP.n[1]; ++y) {
             for (int x = 0; x < MP.n[0]; ++x) {
@@ -175,56 +176,63 @@ int laplacian_CSR_init(){
 
                 // Neighbors in the x-direction (x±1)
                 if (x > 0) {
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(idx(x-1, y, z, MP.n[0], MP.n[1]));
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x-1, y, z, MP.n[0], MP.n[1]));
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
+                    count++;
                 }
                 if (x < MP.n[0] - 1) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x+1, y, z, MP.n[0], MP.n[1]));
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
+                    count++;
                 }
 
                 // Neighbors in the y-direction (y±1)
                 if (y > 0) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y-1, z, MP.n[0], MP.n[1]));
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
+                    count++;
                 }
                 if (y < MP.n[1] - 1) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y+1, z, MP.n[0], MP.n[1]));
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
+                    count++;
                 }
 
                 // Neighbors in the z-direction (z±1)
                 if (z > 0) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y, z-1, MP.n[0], MP.n[1]));
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
+                    count++;
                 }
                 if (z < MP.n[2] - 1) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y, z+1, MP.n[0], MP.n[1]));
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
+                    count++;
                 }
 
-                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i + 1] = MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size(); // Starting index in the column/MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2] array
+                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i] = count; // Starting index in the column/MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2] array
 
             }
         }
     }
 
-    for (int i = 1; i <= N; ++i) {
-        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i] += MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i - 1];
-    }
+    //for (int i = 1; i <= N; ++i) {
+    //    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i] += MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i - 1];
+    //}
     CDGPU.laplacian_csr[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(int) * N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.data(), &err);
+        sizeof(int) * MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.size(), MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.data(), &err);
 
     CDGPU.laplacian_csr[1].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(int) *  N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.data(), &err);
+        sizeof(int) *  MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.size(), MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.data(), &err);
 
     CDGPU.laplacian_csr[2].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(float) *  N, MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.data(), &err);
+        sizeof(float) *  MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size(), MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.data(), &err);
     
     LAP_INIT = true;
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers);
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns);
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values);
+    // std::cout << MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size() << std::endl;
     return 0;
 }
 
