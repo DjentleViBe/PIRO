@@ -48,6 +48,7 @@ cl_program  program_gradient_type1,
             program_gradient_type4, 
             program_laplacian_scalar,
             program_sparseMatrixMultiply_CSR,
+            program_laplaciansparseMatrixMultiply_CSR,
             program_laplacian_vector,
             program_setBC;
 cl_kernel   kernelgradient_type1,
@@ -56,6 +57,7 @@ cl_kernel   kernelgradient_type1,
             kernelgradient_type4,
             kernellaplacianscalar,
             kernelsparseMatrixMultiplyCSR,
+            kernellaplaciansparseMatrixMultiplyCSR,
             kernellaplacianvector,
             kernelBC;
 cl_mem memBx, memCx, memDx, memEx;
@@ -173,6 +175,7 @@ int opencl_build(){
     program_gradient_type4 = opencl_CreateProgram(gradcalc4);
     program_laplacian_scalar = opencl_CreateProgram(laplacianscalar);
     program_sparseMatrixMultiply_CSR = opencl_CreateProgram(sparseMatrixMultiplyCSR);
+    program_laplaciansparseMatrixMultiply_CSR = opencl_CreateProgram(LaplaciansparseMatrixMultiplyCSR);
     program_laplacian_vector = opencl_CreateProgram(laplacianvector);
     program_setBC = opencl_CreateProgram(setBC);
     
@@ -182,6 +185,7 @@ int opencl_build(){
     err = opencl_BuildProgram(program_gradient_type4);
     err = opencl_BuildProgram(program_laplacian_scalar);
     err = opencl_BuildProgram(program_sparseMatrixMultiply_CSR);
+    err = opencl_BuildProgram(program_laplaciansparseMatrixMultiply_CSR);
     err = opencl_BuildProgram(program_laplacian_vector);
     err = opencl_BuildProgram(program_setBC);
 
@@ -193,6 +197,7 @@ int opencl_build(){
     kernelBC = clCreateKernel(program_setBC, "setBC", &err);
     kernellaplacianscalar = clCreateKernel(program_laplacian_scalar, "laplacianscalar", &err);
     kernelsparseMatrixMultiplyCSR = clCreateKernel(program_sparseMatrixMultiply_CSR, "sparseMatrixMultiplyCSR", &err);
+    kernellaplaciansparseMatrixMultiplyCSR = clCreateKernel(program_laplaciansparseMatrixMultiply_CSR, "LaplaciansparseMatrixMultiplyCSR", &err);
     kernellaplacianvector = clCreateKernel(program_laplacian_vector, "laplacianvector", &err);
     kernelgradient_type1 = clCreateKernel(program_gradient_type1, "gradient1", &err);
     kernelgradient_type2 = clCreateKernel(program_gradient_type2, "gradient2", &err);
@@ -218,6 +223,8 @@ int opencl_cleanup(){
     clReleaseKernel(kernelgradient_type4);
     clReleaseKernel(kernellaplacianscalar);
     clReleaseKernel(kernellaplacianvector);
+    clReleaseKernel(kernelsparseMatrixMultiplyCSR);
+    clReleaseKernel(kernellaplaciansparseMatrixMultiplyCSR);
     for(size_t i = 0; i < program_math.size(); i++){
         clReleaseKernel(kernel_math[i]);
         clReleaseProgram(program_math[i]);
@@ -229,6 +236,7 @@ int opencl_cleanup(){
     clReleaseProgram(program_gradient_type4);
     clReleaseProgram(program_laplacian_scalar);
     clReleaseProgram(program_sparseMatrixMultiply_CSR);
+    clReleaseProgram(program_laplaciansparseMatrixMultiply_CSR);
     clReleaseProgram(program_laplacian_vector);
     clReleaseProgram(program_setBC);
     clReleaseCommandQueue(queue);

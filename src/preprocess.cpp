@@ -33,7 +33,7 @@ int idx(int i, int j, int k, int N_x, int N_y) {
 }
 
 int index(int i, int j, int k, int Nx, int Ny) {
-    return i + Nx * (j + Ny * k);
+    return i + j * Nx + k * Nx * Ny;
 }
 
 int preprocess(const std::string& name) {
@@ -166,8 +166,8 @@ int laplacian_CSR_init(){
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 3; // columns
     CDGPU.laplacian_csr.push_back(CD_GPU);
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 4; // values
+    float norm = pow((MP.l[0] / float(MP.n[0] - 2)), 2);
     // Iterate over all grid points
-    int count = 0;
     for (int z = 0; z < MP.n[2]; ++z) {
         for (int y = 0; y < MP.n[1]; ++y) {
             for (int x = 0; x < MP.n[0]; ++x) {
@@ -175,43 +175,44 @@ int laplacian_CSR_init(){
                 
                 // Self connection (central point)
                 MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(i);
-                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(-6.0);
+                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(-6.0/norm);
                 
                 // Neighbors in the x-direction (x±1)
                 if (x > 0) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x-1, y, z, MP.n[0], MP.n[1]));
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
-                    count++;
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
+                    
                 }
                 if (x < MP.n[0] - 1) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x+1, y, z, MP.n[0], MP.n[1]));
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
-                    count++;
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
+                   
                 }
 
                 // Neighbors in the y-direction (y±1)
                 if (y > 0) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y-1, z, MP.n[0], MP.n[1]));
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
-                    count++;
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
+                    
                 }
                 if (y < MP.n[1] - 1) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y+1, z, MP.n[0], MP.n[1]));
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
-                    count++;
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
+                    
                 }
 
                 // Neighbors in the z-direction (z±1)
                 if (z > 0) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y, z-1, MP.n[0], MP.n[1]));
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
-                    count++;
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
+                    
                 }
                 if (z < MP.n[2] - 1) {
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y, z+1, MP.n[0], MP.n[1]));
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0);
-                    count++;
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
+                    
                 }
+                
                 if (isBoundaryPoint(x, y, z)) {
                     // Set the corresponding row in the sparse matrix to enforce the BC
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(i); // for diagonal entry
@@ -222,8 +223,7 @@ int laplacian_CSR_init(){
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(0.0); // zero for Dirichlet BC
                 }
 
-                // MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i] = count; // Starting index in the column/MP.AMR[0].CD[MP.vectornum + MP.scalarnum + 2] array
-                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i] = MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.size();
+                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i + 1] = MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.size();
             }
         }
     }

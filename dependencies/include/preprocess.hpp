@@ -33,6 +33,7 @@ extern cl_kernel    kernelgradient_type1,
                     kernelgradient_type4,
                     kernellaplacianscalar,
                     kernelsparseMatrixMultiplyCSR,
+                    kernellaplaciansparseMatrixMultiplyCSR,
                     kernellaplacianvector,
                     kernelBC;
 
