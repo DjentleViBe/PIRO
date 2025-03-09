@@ -275,14 +275,19 @@ namespace Giro{
             private:
                 CLBuffer smatrix;
             public:
+                /*
                 scalarMatrix(CLBuffer SM){
                     smatrix = SM;
+                }*/
+
+                scalarMatrix(CLBuffer SM) : smatrix(SM) {
+                    // No assignment operator is used here
                 }
 
                 void Solve(float currenttime){
                     int N = MP.n[0] * MP.n[1] * MP.n[2];
                     ts = int(currenttime / SP.timestep);
-                    std::cout << "Timestep : " << ts + 1  << " / " << SP.totaltimesteps << std::endl;
+                    std::cout << "\nTimestep : " << ts + 1  << " / " << SP.totaltimesteps << std::endl;
                     // apply Boundary Conditions
                     err = clEnqueueCopyBuffer(queue, smatrix.buffer, CDGPU.values_gpu[0].buffer, 0, 0, sizeof(float) * N, 0, NULL, NULL);
                     opencl_setBC(0);

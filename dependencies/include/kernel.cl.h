@@ -68,7 +68,7 @@ __kernel void sparseMatrixMultiplyCSR(const int M,
 
         // Store the result in the output matrix C
         C[row * R + col] = deltat * result;
-        printf("C[%u] = %f\n", row * R + col, C[row * R + col]);
+        // printf("C[%u] = %f\n", row * R + col, C[row * R + col]);
     }
 }
 )CLC";
@@ -135,15 +135,6 @@ __kernel void laplacianscalar(__global float *B,
                 C[id] = deltat * ((B[id + 1] + B[id - 1] - 2.0f * B[id]) / (delta_x * delta_x) 
                       + (B[id + nx] + B[id - nx] - 2.0f * B[id]) / (delta_y * delta_y)
                       + (B[id + nx * ny] + B[id - nx * ny] - 2.0f * B[id]) / (delta_z * delta_z));
-                printf("C[%u] = %f\n", id, C[id]);
-                printf("B[%u] = %f\n", id, B[id]);
-                printf("B[%u] = %f\n", id + 1, B[id + 1]);
-                printf("B[%u] = %f\n", id - 1, B[id - 1]);
-
-                printf("B[%u] = %f\n", id + nx, B[id + nx]);
-                printf("B[%u] = %f\n", id - nx, B[id - nx]);
-                printf("B[%u] = %f\n",id + nx * ny, B[id + nx * ny]);
-                printf("B[%u] = %f\n",id - nx * ny, B[id - nx * ny]);
             }
         }
 }
@@ -353,6 +344,17 @@ __kernel void subtractVectors(__global float *A,
         A[id] = B[id] - C[id];
     }
 }
+)CLC";
+
+const char *subtractVectors_self = R"CLC(
+    __kernel void subtractVectors_self(__global float *A,
+                            __global const float *B,
+                            uint size) {
+        uint id = get_global_id(0);
+        if (id < size) {
+            A[id] = A[id] - B[id];
+        }
+    }
 )CLC";
 
 const char *subtractVectors_constant = R"CLC(

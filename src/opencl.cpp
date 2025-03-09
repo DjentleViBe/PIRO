@@ -29,18 +29,20 @@ cl_command_queue queue;
 // 1: subtract
 // 2: multiply
 // 3: divide
-std::vector<cl_program> program_math(8);
-std::vector<cl_kernel> kernel_math(8);
+std::vector<cl_program> program_math(9);
+std::vector<cl_kernel> kernel_math(9);
 std::vector<const char*> kernelSources = {addVectors, subtractVectors, multiplyVectors, divideVectors, 
                                         addVectors_constant, 
                                         subtractVectors_constant, 
                                         multiplyVectors_constant,
-                                        divideVectors_constant};
+                                        divideVectors_constant,
+                                        subtractVectors_self};
 std::vector<const char*> kernelNames = {"addVectors", "subtractVectors", "multiplyVectors", "divideVectors",
                                         "addVectors_constant", 
                                         "subtractVectors_constant", 
                                         "multiplyVectors_constant",
-                                        "divideVectors_constant"};
+                                        "divideVectors_constant",
+                                        "subtractVectors_self"};
 
 cl_program  program_gradient_type1,
             program_gradient_type2, 

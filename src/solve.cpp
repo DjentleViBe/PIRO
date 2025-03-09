@@ -25,7 +25,7 @@ int solve(){
         // Giro::scalarMatrix UEqn(solver.ddc_r("Hbar") * solver.ddt_r("Psi") + \
         //                        solver.ddc_r("Hbar2m") * solver.laplacian_r("Psi") - \
         //                        solver.r("Psi"));    
-        Giro::scalarMatrix UEqn(solver.ddt_r("U") + (solver.ddc_r("Alpha") * solver.laplacian_CSR("U"))); 
+        Giro::scalarMatrix UEqn(solver.ddt_r("U") = (solver.ddc_r("Alpha") * solver.laplacian_CSR("U"))); 
         UEqn.Solve(time);
         time += SP.timestep;
         
