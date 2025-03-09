@@ -40,3 +40,4 @@ bin_archive
 logs
 *.png
 *.pdf
+*.DS_Store
