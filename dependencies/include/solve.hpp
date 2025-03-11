@@ -149,54 +149,38 @@ namespace Giro{
                 return memC;
                 }
 
-        CLBuffer laplacian_CSR(std::string var){
-            cl_int err;
-            int N = MP.n[0] * MP.n[1] * MP.n[2];
-            // int N_scaled = N * 20;
-            CLBuffer memC;
-            
-            int P = 1;
-            int ind = matchscalartovar(var);
-            std::vector<float> prop = MP.AMR[0].CD[ind].values;
-            size_t globalWorkSizelaplacian[1] = {(size_t)(N)};
-            memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                sizeof(float) * N, prop.data(), &err);
+        std::vector<CLBuffer> laplacian_CSR(std::string var1, std::string var2){
+            int ind = matchscalartovar(var2);
             if(LAP_INIT == false){
                 laplacian_CSR_init(); // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
+                if (MP.AMR[0].CD[ind].type == 0){
+                    // scale the values
+                    cl_int err;
+                    int N = MP.n[0] * MP.n[1] * MP.n[2];
+                    std::vector<float>A(N, 0.0);
+                    CLBuffer partC;
+                    partC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                sizeof(float) * N, A.data(), &err);
+    
+                    
+                    size_t globalWorkSize[1] = { (size_t)N };
+                    err |= clSetKernelArg(kernel_math[2], 0, sizeof(cl_mem), &partC.buffer);
+                    err |= clSetKernelArg(kernel_math[2], 1, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+                    err |= clSetKernelArg(kernel_math[2], 2, sizeof(cl_mem), &CDGPU.laplacian_csr[2].buffer);
+                    err |= clSetKernelArg(kernel_math[2], 3, sizeof(cl_uint), &N);
+                    err = clEnqueueNDRangeKernel(queue, kernel_math[2], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+                    return {CDGPU.laplacian_csr[0], CDGPU.laplacian_csr[1], partC};
+                }
+                else{
+                    return {CDGPU.laplacian_csr[0], CDGPU.laplacian_csr[1], CDGPU.laplacian_csr[2]};
+                }
             }
-            /*std::vector<float> hostValues(MP.AMR[0].CD[ind].values.size());
-            err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
-                                    sizeof(float) * N, hostValues.data(),
-                                    0, NULL, NULL);
-            for (size_t i = 0; i < hostValues.size(); ++i) {
-                std::cout << hostValues[i] << " ";
-            }*/
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 0, sizeof(cl_int), &N);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 1, sizeof(cl_int), &N);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 2, sizeof(cl_int), &P);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 3, sizeof(cl_mem), &CDGPU.laplacian_csr[2].buffer);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 4, sizeof(cl_mem), &CDGPU.laplacian_csr[1].buffer);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 5, sizeof(cl_mem), &CDGPU.laplacian_csr[0].buffer);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 6, sizeof(cl_float), &SP.timestep);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 7, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 8, sizeof(cl_mem), &memC.buffer);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 9, sizeof(cl_int), &MP.n[0]);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 10, sizeof(cl_int), &MP.n[1]);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 11, sizeof(cl_int), &N);
-            
-            err = clEnqueueNDRangeKernel(queue, kernellaplaciansparseMatrixMultiplyCSR, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
-            /*
-            err = clEnqueueReadBuffer(queue, memC.buffer, CL_TRUE, 0,
-                                    sizeof(float) * N, hostValues.data(),
-                                    0, NULL, NULL);
-            for (size_t i = 0; i < hostValues.size(); ++i) {
-                std::cout << hostValues[i] << " ";
+            else{
+
+                    return {CDGPU.laplacian_csr[0], CDGPU.laplacian_csr[1], CDGPU.laplacian_csr[2]};
             }
-            std::cout << std::endl;
-            std::cout << hostValues.size() << std::endl;
-            std::cout << "lapCSR" << std::endl;*/
-            return memC;
         }
+
 
             CLBuffer div_r(std::string var1, std::string var2){
                 int ind1 = matchscalartovar(var1);
