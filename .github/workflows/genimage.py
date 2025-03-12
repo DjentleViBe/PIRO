@@ -10,6 +10,7 @@ def genimage(text, filename, textcolor, bgcolor):
     # Set up font (ensure font path and font size are correct)
     try:
         # Load a TrueType font (you can replace this with the path to any font file on your system)
+        print("font setup")
         font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", font_size)  # For Linux
         # On Windows, you could use: font = ImageFont.truetype("C:\\Windows\\Fonts\\arial.ttf", font_size)
     except IOError:
