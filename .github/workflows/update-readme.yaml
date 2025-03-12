@@ -31,7 +31,7 @@ jobs:
             if [ "$(echo $PR_RESPONSE | jq length)" -gt 0 ]; then
             PR_NUMBER=$(echo $PR_RESPONSE | jq '.[0].number')
             echo "::set-output name=pr_number::$PR_NUMBER"
-            sed -i '17s/.*/'"$PR_NUMBER"'/' README.md
+            sed -i '18s/.*/'"$PR_NUMBER"'/' README.md
             else
             echo "No open pull requests found."
             echo "::set-output name=pr_number::none"
