@@ -44,17 +44,25 @@ jobs:
       echo "::set-output name=pr_number::$PR_NUMBER"
 
       python .github/workflows/genimage.py "$PR_NUMBER Open"
-      
-      git add pics/Issue_num.png
-      git add pics/Issues.png
-      git add   pics/PR.png
-      git add   pics/PR_num.png
-      git add   pics/Readme_status.png
-      git add   pics/Version.png
-      git add   pics/Version_num.png
-      git commit -m "Update README status with latest PR number"
-      git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
+      git diff --exit-code pics/*.png
+        if [ $? -eq 0 ]; then
+        echo "No changes in the image files, skipping commit."
+        else
+        # Stage the changed image files
+        git add pics/Issue_num.png
+        git add pics/Issues.png
+        git add pics/PR.png
+        git add pics/PR_num.png
+        git add pics/Readme_status.png
+        git add pics/Version.png
+        git add pics/Version_num.png
 
+        # Commit the changes
+        git commit -m "Update README status with latest PR number"
+        
+        # Push the changes to the remote repository
+        git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
+        fi
       else
       echo "No open pull requests found."
       echo "::set-output name=pr_number::none"
