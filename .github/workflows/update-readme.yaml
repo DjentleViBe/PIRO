@@ -42,4 +42,4 @@ jobs:
           echo "Latest Open Pull Request: #$PR_NUMBER" > README.md  # You can modify this to add content to the right part of your README
           git add README.md
           git commit -m "Update README with latest PR number"
-          git push
+          git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
