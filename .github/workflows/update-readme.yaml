@@ -23,7 +23,7 @@ jobs:
       - name: Get the latest Pull Request Number
         id: pr_number
         run: |
-            PR_RESPONSE=$(curl -H "Authorization: token ${{ secrets.GITHUB_PAT }}"" \
+            PR_RESPONSE=$(curl -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}"" \
             "https://api.github.com/repos/${{ github.repository }}/pulls?state=open")
             echo "PR Response: $PR_RESPONSE"  # Debugging line
 
