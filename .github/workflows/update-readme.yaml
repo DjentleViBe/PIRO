@@ -20,7 +20,7 @@ jobs:
             git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
             git config --global user.name "${GITHUB_ACTOR}"
 
-      - name: Get the latest Pull Request Number
+      - name: Get the latest Pull Request Number and update PR
         id: pr_number
         run: |
             PR_RESPONSE=$(curl -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}" \
@@ -32,13 +32,11 @@ jobs:
             PR_NUMBER=$(echo $PR_RESPONSE | jq '.[0].number')
             echo "::set-output name=pr_number::$PR_NUMBER"
             sed -i '18s/.*/'"$PR_NUMBER"'/' README.md
+            git commit -m "Update README with latest PR number"
+            git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
+
             else
             echo "No open pull requests found."
             echo "::set-output name=pr_number::none"
             fi
-      
-      - name: Update README with PR Number
-        run: |
-          PR_NUMBER=${{ steps.pr_number.outputs.pr_number }}
-          git commit -m "Update README with latest PR number"
-          git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
+          
