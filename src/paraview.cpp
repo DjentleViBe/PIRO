@@ -61,6 +61,8 @@ std::string writevti(Giro::AMR AMR){
                     AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
                     }
                 }
+            
+            if(MP.vectornum > 0){
             for(int vec = 0; vec < 3; vec++){
                 switch(vec){
                     case 0: 
@@ -87,6 +89,7 @@ std::string writevti(Giro::AMR AMR){
                 }
 
             }
+        }
 
         }
         

@@ -3,6 +3,6 @@
 
 #include <vector>
 
-std::vector<float> initialcondition(int index, int valuetype, int ictype);
+std::vector<float> initialcondition(int index, int valuetype);
 
 #endif

@@ -24,10 +24,8 @@
 *.lai
 *.la
 *.a
-*.lib
 
 # Executables
-*.exe
 *.out
 *.app
 
@@ -36,3 +34,10 @@ _exec*
 *.vti
 *.vth
 *.avi
+bin_archive
+*.odp*
+*.ods*
+logs
+*.png
+*.pdf
+*.DS_Store

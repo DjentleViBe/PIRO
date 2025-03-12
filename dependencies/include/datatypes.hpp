@@ -1,6 +1,9 @@
 #ifndef datatypes_hpp
 #define datatypes_hpp
 #include <vector>
+#include <string>
+
+typedef unsigned int uint;
 
 namespace Giro{
     class fvMatrix{
@@ -22,9 +25,11 @@ namespace Giro{
 
     class CellData{
         public:
-            int type;
+            int type; // 0 : Scalars, 1 : Vectors, 2 : CSR row pointers, 3 : CSR columns, 4 : CSR values
             std::string Scalars;
             std::vector<float> values;
+            std::vector<int> columns;
+            std::vector<int> rowpointers;
     };
 
     class AMR{
@@ -46,7 +51,7 @@ namespace Giro{
             std::vector<int> ICtype;
             std::vector<std::string> ICfiles;
             std::string ICfile;
-            std::vector<int> n;
+            std::vector<uint> n;
             std::vector<float> o;
             std::vector<float> s;
             std::vector<float> l;
@@ -69,8 +74,15 @@ namespace Giro{
             float delta[3];
             float deltaT;
             int totaltimesteps;
+            int save;
     };
-        
+    
+    class DeviceParams{
+        public:
+            int id;
+            int platformid;
+            int type;
+    };
 };
 
 #endif

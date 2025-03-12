@@ -7,6 +7,13 @@
 #include "../dependencies/include/bc.hpp"
 #include "../dependencies/include/solve.hpp"
 #include <algorithm>
+#ifdef __APPLE__
+    #include <OpenCL/opencl.h>
+#elif _WIN32
+    #include "../dependencies/include/CL/opencl.h"
+#else
+    #include "../dependencies/include/CL/opencl.h"
+#endif
 
 std::vector<std::vector<int>> indices(6, std::vector<int>());
 std::vector<int> indices_toprint;
@@ -14,10 +21,51 @@ std::vector<int> indices_toprint_vec;
 std::vector<std::string> BC_property;
 std::vector<float> BC_value;
 Giro::Solve GS;
+uint Q;
+cl_mem memD, memE;
+
+void opencl_initBC(){
+    int N = MP.n[0] * MP.n[1] * MP.n[2];
+    Q = flattenvector(indices).size();
+    memE = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(uint) * Q, flattenvector(indices).data(), &err);
+    memD = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                          sizeof(float) * N, MP.AMR[0].CD[0].values.data(), &err);
+    if (err != CL_SUCCESS){
+        std::cout << "BC error" << std::endl;
+        }
+}
+
+void opencl_setBC(int ind){
+    // int N = MP.n[0] * MP.n[1] * MP.n[2];
+    size_t globalWorkSizeBC[1] = { (size_t)Q };
+    // std::vector<float> prop = MP.AMR[0].CD[ind].values;
+
+    // err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
+    //          sizeof(float) * N, prop.data(), 0, NULL, NULL);
+    // std::cout << "before setting BC" << std::endl;
+    // printVector(prop);
+
+    err |= clSetKernelArg(kernelBC, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+    err |= clSetKernelArg(kernelBC, 1, sizeof(cl_mem), &memD);
+    err |= clSetKernelArg(kernelBC, 2, sizeof(cl_mem), &memE);
+    err |= clSetKernelArg(kernelBC, 3, sizeof(cl_uint), &Q);
+
+    err = clEnqueueNDRangeKernel(queue, kernelBC, 1, NULL, globalWorkSizeBC, NULL, 0, NULL, NULL);
+    if (err != CL_SUCCESS){
+        std::cout << "BC error" << std::endl;
+        }
+    
+    // err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
+    //           sizeof(float) * N, prop.data(), 0, NULL, NULL);
+    // std::cout << "after setting BC" << std::endl;
+    // printVector(prop);
+    
+}
 
 void setbc(){
     for (int ind = 0; ind < 6; ind++){
-        for(int faces = 0; faces < indices[ind].size(); faces++){
+        for(uint faces = 0; faces < indices[ind].size(); faces++){
             int msv = GS.matchscalartovar(BC_property[ind]);
             MP.AMR[0].CD[msv].values[indices[ind][faces]] = BC_value[ind];
         }
@@ -26,10 +74,10 @@ void setbc(){
 
 void prepbc(){
     std::cout << "Preparing cells to print" << std::endl;
-    for(int ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
-        int kd = ind / (MP.n[1] * MP.n[0]);
-        int jd = (ind / MP.n[0]) % MP.n[1];
-        int id = ind % MP.n[0];
+    for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
+        uint kd = ind / (MP.n[1] * MP.n[0]);
+        uint jd = (ind / MP.n[0]) % MP.n[1];
+        uint id = ind % MP.n[0];
         if (id == 0 || id == MP.n[0] - 1 || jd == 0 || jd == MP.n[1] - 1 || kd == 0 || kd == MP.n[2] - 1){
             indices_toprint.push_back(ind);
             indices_toprint_vec.push_back(ind);
@@ -46,10 +94,10 @@ void initbc(){
     std::cout << "Initialising boundary conditions" << std::endl;
     std::vector<int> BC_type;
     
-    for(int ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
-        int kd = ind / (MP.n[1] * MP.n[0]);
-        int jd = (ind % (MP.n[1] * MP.n[0])) / MP.n[0];
-        int id = ind % MP.n[0];
+    for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
+        uint kd = ind / (MP.n[1] * MP.n[0]);
+        uint jd = (ind % (MP.n[1] * MP.n[0])) / MP.n[0];
+        uint id = ind % MP.n[0];
         
         if(jd == 0 && (id != 0 && id != MP.n[0] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
             // 3 : XZ plane
@@ -85,6 +133,8 @@ void initbc(){
     BC_value = convertStringVectorToFloat(splitString(reader.get("BC", "values", "default_value"), ' '));
     setbc();
     prepbc();
+
+    opencl_initBC();
     std::cout << "Boundary conditions initialised" << std::endl;
 }
 

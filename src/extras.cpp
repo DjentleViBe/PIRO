@@ -3,15 +3,28 @@
 #include <sstream>
 #include <iostream>
 #include <filesystem>
+#include <algorithm>
+#include <sstream>
+#include <iterator>
 #include "../dependencies/include/extras.hpp"
+#include "../dependencies/include/datatypes.hpp"
 #include "../dependencies/include/init.hpp"
-#include <mach-o/dyld.h>
+#ifdef __APPLE__
+    #include <mach-o/dyld.h>
+#elif _WIN32
+    #include "windows.h"
+#else 
+    #include "windows.h"
+#endif
 #include <numeric>
 #include <vector>
+#include <chrono>
+#include <string>
+#include <algorithm>
 
 int writefile(std::string file_path, std::string line_to_write){
     // Create an output file stream (ofstream) object
-    //std::ofstream outfile(file_path, std::ios::app);  // Open the file in append mode
+    // std::ofstream outfile(file_path, std::ios::app);  // Open the file in append mode
     std::ofstream outfile(file_path);
     // Check if the file is open
     if (outfile.is_open()) {
@@ -30,7 +43,7 @@ int writefile(std::string file_path, std::string line_to_write){
 
 int create_directory(std::string directoryname){
     std::filesystem::path dir(directoryname);
-
+    std::cout << "Creating directory" << std::endl;
     try {
         if (std::filesystem::exists(dir)) {
             std::cout << "Directory already exists: " << dir << std::endl;
@@ -63,15 +76,38 @@ int delete_directory(std::string folderPath){
 }
 
 int get_exec_directory(){
-    char path[1024];
-    uint32_t size = sizeof(path);
-    if (_NSGetExecutablePath(path, &size) == 0) {
-        std::filesystem::path exe_path = path;
-        current_path = exe_path.parent_path();
-        //std::cout << "Executable directory: " current_path.string() << std::endl;
+    
+    #ifdef __APPLE__
+        char path[1024];
+        uint32_t size = sizeof(path);
+        if (_NSGetExecutablePath(path, &size) == 0) {
+            std::filesystem::path exe_path = path;
+            current_path = exe_path.parent_path();
+            //std::cout << "Executable directory: " current_path.string() << std::endl;
+        } else {
+            std::cerr << "Buffer size is too small; need size " << size << std::endl;
+        }
+    #else
+        char path[1024];
+        // Get the executable path
+        DWORD size = GetModuleFileName(NULL, path, 1024);
+        if (size > 0 && size < MAX_PATH) {
+        std::filesystem::path exe_path(path);
+
+        std::string exe_path_string = exe_path.string();
+        std::replace(exe_path_string.begin(), exe_path_string.end(), '\\', '/');
+
+        // Convert the modified string back to a filesystem path
+        std::filesystem::path modified_exe_path = exe_path_string;
+        current_path = modified_exe_path.parent_path();
+
+        std::cout << "Original executable path: " << exe_path.string() << std::endl;
+        std::cout << "Executable directory : " << current_path.string() << std::endl;
     } else {
-        std::cerr << "Buffer size is too small; need size " << size << std::endl;
+        std::cerr << "Failed to retrieve executable path. Error code: " << GetLastError() << std::endl;
     }
+
+    #endif
     return 0;
 }
 
@@ -94,6 +130,24 @@ std::vector<int> convertStringVectorToInt(const std::vector<std::string>& string
     for (const std::string& str : stringVector) {
         std::istringstream iss(str);
         int num;
+        if (iss >> num) {
+            intVector.push_back(num);
+        } else {
+            // Handle error if conversion fails
+            std::cerr << "Error: Conversion failed for string '" << str << "'" << std::endl;
+            // You may choose to throw an exception or handle the error in another way
+        }
+    }
+    
+    return intVector;
+}
+
+std::vector<uint> convertStringVectorToUInt(const std::vector<std::string>& stringVector) {
+    std::vector<uint> intVector;
+    
+    for (const std::string& str : stringVector) {
+        std::istringstream iss(str);
+        uint num;
         if (iss >> num) {
             intVector.push_back(num);
         } else {
@@ -179,6 +233,11 @@ int countSpaces(const std::string& str) {
     return spaceCount;
 }
 
+int countWords(const std::string& str) {
+    std::istringstream iss(str);
+    return std::distance(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>());
+}
+
 void printMatrix(const std::vector<std::vector<float>>& matrix) {
     int rows = matrix.size();
     int cols = matrix[0].size();
@@ -217,4 +276,40 @@ void printVector(const std::vector<int>& vec){
         std::cout << vec[i] << " ";
     }
     std::cout << std::endl;
+}
+
+void print_time(){
+    // Get current time as a time_point
+    auto now = std::chrono::system_clock::now();
+
+    // Convert to std::time_t to get the calendar time
+    std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+
+    // Get milliseconds
+    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+    auto ms = now_ms.time_since_epoch().count() % 1000;
+
+    // Convert to local time
+    std::tm now_tm = *std::localtime(&now_time_t);
+
+    // Print the time with milliseconds
+    std::cout << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0') << std::setw(3) << ms << std::endl;
+    
+}
+
+void printArray(float* array, uint size){
+    std::cout << "Printing array" << std::endl;
+    for (uint i = 0; i < size; i++) {
+        std::cout << array[i] << " ";
+    }
+}
+
+std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector){
+    std::vector<int> flatVector;
+    for (const auto& row : twoDVector) {
+        for (int elem : row) {
+            flatVector.push_back(elem);
+        }
+    }
+    return flatVector;
 }
