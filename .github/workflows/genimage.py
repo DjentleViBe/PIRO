@@ -13,6 +13,7 @@ def genimage(text, filename, textcolor, bgcolor):
         font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", font_size)  # For Linux
         # On Windows, you could use: font = ImageFont.truetype("C:\\Windows\\Fonts\\arial.ttf", font_size)
     except IOError:
+        print("font not found")
         font = ImageFont.load_default()  # Default font if custom one is not found
 
     # Create a dummy image to calculate the text size
