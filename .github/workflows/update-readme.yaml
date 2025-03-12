@@ -44,7 +44,14 @@ jobs:
       echo "::set-output name=pr_number::$PR_NUMBER"
 
       python .github/workflows/genimage.py "$PR_NUMBER Open"
-
+      
+      git add pics/Issue_num.png
+      git add pics/Issues.png
+      git add   pics/PR.png
+      git add   pics/PR_num.png
+      git add   pics/Readme_status.png
+      git add   pics/Version.png
+      git add   pics/Version_num.png
       git commit -m "Update README status with latest PR number"
       git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
 
