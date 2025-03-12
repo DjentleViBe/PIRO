@@ -1,0 +1,30 @@
+name: Update README with PR info
+
+on:
+  push:
+    branches:
+      - main   # Trigger when there's a push to the main branch
+  schedule:
+    - cron: "0 0 * * *" # Optional: Run the workflow daily at midnight
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get the latest Pull Request Number
+        id: pr_number
+        run: |
+          PR_NUMBER=$(curl -s "https://api.github.com/repos/${{ github.repository }}/pulls?state=open" | jq '.[0].number')
+          echo "::set-output name=pr_number::$PR_NUMBER"
+      
+      - name: Update README with PR Number
+        run: |
+          PR_NUMBER=${{ steps.pr_number.outputs.pr_number }}
+          echo "Latest Open Pull Request: #$PR_NUMBER" > README.md  # You can modify this to add content to the right part of your README
+          git add README.md
+          git commit -m "Update README with latest PR number"
+          git push
