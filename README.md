@@ -6,31 +6,12 @@
 
 <p align="center">
     <a href="https://www.khronos.org/opencl/">
-        <img width="110px" src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenCL_logo.svg" alt="OpenCL" style="background-color: white;" />
+        <img width="110px" src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenCL_logo.svg" alt="OpenCL"/>
     </a>
 </p>
 
 <p align="center">
-<span style="background-color: black; color: white; padding: 2px; border-radius: 0px;">
-Pull Requests
-</span>
-<span style="color: rgb(0,0,0); background-color: rgb(164, 193, 162); padding: 2px; border-radius: 0px;">
-0 
-Open
-</span>
-<span style="background-color: black; color: white; padding: 2px; border-radius: 0px;">
-Version
-</span>
-<span style="color: rgb(0,0,0); background-color: rgb(197, 226, 162); padding: 2px; border-radius: 0px;">
-0.0
-</span>
-<span style="background-color: black; color: white; padding: 2px; border-radius: 0px;">
-Issues
-</span>
-<span style="color: rgb(255,255,255); background-color: rgb(56, 66, 132); padding: 2px; border-radius: 0px;">
-0 
-Open
-</span>
+ <img width="350px" src="./pics/Readme_status.png" align="center" alt="PIRO Readme" />
 </p>
 <h2> </h2>
 
