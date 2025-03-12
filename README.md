@@ -9,28 +9,29 @@
         <img width="110px" src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenCL_logo.svg" alt="OpenCL" style="background-color: white;" />
     </a>
 </p>
-<div style="text-align: center;">
-<div style="border: 0px solid #4c1; padding: 2px; background-color:rgb(0, 0, 0); border-radius: 0px; text-align: center; display: inline-block;">
+
+<p align="center">
+<span style="background-color: black; color: white; padding: 2px; border-radius: 0px;">
 Pull Requests
-</div>
-<div style="color: rgb(0,0,0); border: 0px solid #4c1; padding: 2px; background-color:rgb(164, 193, 162); border-radius: 0px; text-align: center; display: inline-block;">
+</span>
+<span style="color: rgb(0,0,0); background-color: rgb(164, 193, 162); padding: 2px; border-radius: 0px;">
 0 
 Open
-</div>
-<div style="border: 0px solid #4c1; padding: 2px; background-color:rgb(0, 0, 0); border-radius: 0px; text-align: center; display: inline-block;">
+</span>
+<span style="background-color: black; color: white; padding: 2px; border-radius: 0px;">
 Version
-</div>
-<div style="color: rgb(0,0,0); border: 0px solid #4c1; padding: 2px; background-color:rgb(197, 226, 162); border-radius: 0px; text-align: center; display: inline-block;">
-7.0
-</div>
-<div style="border: 0px solid #4c1; padding: 2px; background-color:rgb(0, 0, 0); border-radius: 0px; text-align: center; display: inline-block;">
+</span>
+<span style="color: rgb(0,0,0); background-color: rgb(197, 226, 162); padding: 2px; border-radius: 0px;">
+0.0
+</span>
+<span style="background-color: black; color: white; padding: 2px; border-radius: 0px;">
 Issues
-</div>
-<div style="color: rgb(255,255,255); border: 0px solid #4c1; padding: 2px; background-color:rgb(56, 66, 132); border-radius: 0px; text-align: center; display: inline-block;">
+</span>
+<span style="color: rgb(255,255,255); background-color: rgb(56, 66, 132); padding: 2px; border-radius: 0px;">
 0 
 Open
-</div>
-</div>
+</span>
+</p>
 <h2> </h2>
 
 ## Table of Contents
