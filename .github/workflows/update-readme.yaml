@@ -18,8 +18,16 @@ jobs:
       - name: Get the latest Pull Request Number
         id: pr_number
         run: |
-          PR_NUMBER=$(curl -s "https://api.github.com/repos/${{ github.repository }}/pulls?state=open" | jq '.[0].number')
-          echo "::set-output name=pr_number::$PR_NUMBER"
+            PR_RESPONSE=$(curl -s "https://api.github.com/repos/${{ github.repository }}/pulls?state=open")
+
+            # Check if there are any open PRs
+            if [ "$(echo $PR_RESPONSE | jq length)" -gt 0 ]; then
+            PR_NUMBER=$(echo $PR_RESPONSE | jq '.[0].number')
+            echo "::set-output name=pr_number::$PR_NUMBER"
+            else
+            echo "No open pull requests found."
+            echo "::set-output name=pr_number::none"
+            fi
       
       - name: Update README with PR Number
         run: |
