@@ -18,7 +18,8 @@ jobs:
       - name: Get the latest Pull Request Number
         id: pr_number
         run: |
-            PR_RESPONSE=$(curl -s "https://api.github.com/repos/${{ github.repository }}/pulls?state=open")
+            PR_RESPONSE=$(curl -H "Authorization: token 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" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls?state=open")
 
             # Check if there are any open PRs
             if [ "$(echo $PR_RESPONSE | jq length)" -gt 0 ]; then
