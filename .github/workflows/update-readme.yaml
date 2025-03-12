@@ -31,6 +31,7 @@ jobs:
             if [ "$(echo $PR_RESPONSE | jq length)" -gt 0 ]; then
             PR_NUMBER=$(echo $PR_RESPONSE | jq '.[0].number')
             echo "::set-output name=pr_number::$PR_NUMBER"
+            sed -i '17s/.*/'"$PR_NUMBER"'/' README.md
             else
             echo "No open pull requests found."
             echo "::set-output name=pr_number::none"
@@ -39,6 +40,5 @@ jobs:
       - name: Update README with PR Number
         run: |
           PR_NUMBER=${{ steps.pr_number.outputs.pr_number }}
-          sed -i '17s/.*/'"$PR_NUMBER"'/' README.md
           git commit -m "Update README with latest PR number"
           git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
