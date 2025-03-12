@@ -8,35 +8,48 @@ on:
     - cron: "0 0 * * *" # Optional: Run the workflow daily at midnight
 
 jobs:
-  update-readme:
-    runs-on: ubuntu-latest
+ update-readme:
+  runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+  steps:
+  - name: Checkout repository
+    uses: actions/checkout@v2
+  - name: Install LibreSans font
+    run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-freefont-ttf
+  - name: Set up Python
+    uses: actions/setup-python@v2
+    with:
+        python-version: '3.8'
+  - name: Install dependencies
+    run: |
+          python -m pip install --upgrade pip
+          pip install -r .github/workflows/requirements.txt
+  - name: Set Git user identity
+    run: |
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git config --global user.name "${GITHUB_ACTOR}"
 
-      - name: Set Git user identity
-        run: |
-            git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-            git config --global user.name "${GITHUB_ACTOR}"
+  - name: Get the latest Pull Request Number and update PR
+    id: pr_number
+    run: |
+      PR_RESPONSE=$(curl -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}" \
+      "https://api.github.com/repos/${{ github.repository }}/pulls?state=open")
+      echo "PR Response: $PR_RESPONSE"  # Debugging line
 
-      - name: Get the latest Pull Request Number and update PR
-        id: pr_number
-        run: |
-            PR_RESPONSE=$(curl -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls?state=open")
-            echo "PR Response: $PR_RESPONSE"  # Debugging line
+      # Check if there are any open PRs
+      if [ "$(echo $PR_RESPONSE | jq length)" -gt 0 ]; then
+      PR_NUMBER=$(echo $PR_RESPONSE | jq '.[0].number')
+      echo "::set-output name=pr_number::$PR_NUMBER"
 
-            # Check if there are any open PRs
-            if [ "$(echo $PR_RESPONSE | jq length)" -gt 0 ]; then
-            PR_NUMBER=$(echo $PR_RESPONSE | jq '.[0].number')
-            echo "::set-output name=pr_number::$PR_NUMBER"
-            sed -i '18s/.*/'"$PR_NUMBER"'/' README.md
-            git commit -m "Update README with latest PR number"
-            git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
+      python .github/workflows/genimage.py "$PR_NUMBER Open"
 
-            else
-            echo "No open pull requests found."
-            echo "::set-output name=pr_number::none"
-            fi
+      git commit -m "Update README status with latest PR number"
+      git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
+
+      else
+      echo "No open pull requests found."
+      echo "::set-output name=pr_number::none"
+      fi
           
