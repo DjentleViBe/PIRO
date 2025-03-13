@@ -25,17 +25,23 @@ extern cl_program   program_gradient_scalar,
                     program_gradient_vector, 
                     program_laplacian_scalar,
                     program_sparseMatrixMultiplyCSR,
+                    program_lu_decomposition,
                     program_laplacian_vector,
-                    program_setBC;
+                    program_setBC,
+                    program_forward_substitution_csr,
+                    program_backward_substitution_csr;
 extern cl_kernel    kernelgradient_type1,
                     kernelgradient_type2,
                     kernelgradient_type3,
                     kernelgradient_type4,
                     kernellaplacianscalar,
+                    kernellu_decomposition,
                     kernelsparseMatrixMultiplyCSR,
                     kernellaplaciansparseMatrixMultiplyCSR,
                     kernellaplacianvector,
-                    kernelBC;
+                    kernelBC,
+                    kernelforward_substitution_csr,
+                    kernelbackward_substitution_csr;
 
 extern cl_context   context;
 extern cl_command_queue queue;

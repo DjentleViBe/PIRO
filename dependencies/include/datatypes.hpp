@@ -65,6 +65,7 @@ namespace Giro{
 
     class SolveParams{
         public:
+            int solverscheme;
             int timescheme;
             int spacescheme;
             std::string casename;

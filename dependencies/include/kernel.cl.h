@@ -393,5 +393,94 @@ __kernel void divideVectors_constant(__global float *A,
 }
 )CLC";
 
+const char *lu_decomposition = R"CLC(
+__kernel void lu_decomposition(
+    __global const int* row_ptr,     // CSR values of A
+    __global const int* col_idx,      // CSR row pointers
+    __global const float* values,      // CSR column indices
+    __global int* L_row_ptr,          // CSR row pointers for L
+     __global int* L_col_idx,          // CSR column indices for L
+    __global float* L_values,         // CSR values of L
+    __global int* U_row_ptr,          // CSR row pointers for U
+    __global int* U_col_idx,          // CSR column indices for U
+    __global float* U_values,         // CSR values of U
+    int N                              // Matrix size
+) {
+    int i = get_global_id(0); // Process row `i`
 
+    if (i < N) {
+        for (int j = row_ptr[i]; j < row_ptr[i + 1]; j++) {
+            int col = col_idx[j];
+            float val = values[j];
+
+            if (col < i) {  // Lower triangular part
+                L_values[j] = val;
+                for (int k = row_ptr[col]; k < row_ptr[col + 1]; k++) {
+                    if (col_idx[k] == col) {
+                        L_values[j] /= U_values[k]; // L(i, j) /= U(j, j)
+                        break;
+                    }
+                }
+            } else {  // Upper triangular part
+                U_values[j] = val;
+                for (int k = row_ptr[i]; k < j; k++) {
+                    int k_col = col_idx[k];
+                    U_values[j] -= L_values[k] * U_values[row_ptr[k_col] + (col - k_col)];
+                }
+            }
+        }
+    }
+}
+)CLC";
+
+const char *forward_substitution_csr = R"CLC(
+__kernel void forward_substitution_csr(
+    __global const int* L_row_ptr,
+    __global const int* L_col_idx,
+    __global const float* L_values,
+    __global float* y,
+    __global const float* b,
+    int N
+) {
+    int i = get_global_id(0);
+
+    if (i < N) {
+        float sum = b[i];
+        for (int j = L_row_ptr[i]; j < L_row_ptr[i + 1]; j++) {
+            int col = L_col_idx[j];
+            if (col < i) {
+                sum -= L_values[j] * y[col];
+            }
+        }
+        y[i] = sum;  // L is lower triangular, diagonal assumed to be 1
+    }
+}
+)CLC";
+
+const char *backward_substitution_csr = R"CLC(
+__kernel void backward_substitution_csr(
+    __global const int* U_row_ptr,
+    __global const int* U_col_idx,
+    __global const float* U_values,
+    __global float* x,
+    __global const float* y,
+    int N
+) {
+    int i = get_global_id(0);
+
+    if (i < N) {
+        int row = N - 1 - i; // Process from last row to first
+        float sum = y[row];
+
+        for (int j = U_row_ptr[row]; j < U_row_ptr[row + 1]; j++) {
+            int col = U_col_idx[j];
+            if (col > row) {
+                sum -= U_values[j] * x[col];
+            } else if (col == row) {
+                x[row] = sum / U_values[j];
+            }
+        }
+    }
+}
+)CLC";
 #endif // KERNEL_CL_H

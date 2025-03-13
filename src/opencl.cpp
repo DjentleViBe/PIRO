@@ -49,19 +49,25 @@ cl_program  program_gradient_type1,
             program_gradient_type3, 
             program_gradient_type4, 
             program_laplacian_scalar,
+            program_lu_decomposition,
             program_sparseMatrixMultiply_CSR,
             program_laplaciansparseMatrixMultiply_CSR,
             program_laplacian_vector,
-            program_setBC;
+            program_setBC,
+            program_forward_substitution_csr,
+            program_backward_substitution_csr;
 cl_kernel   kernelgradient_type1,
             kernelgradient_type2,
             kernelgradient_type3,
             kernelgradient_type4,
             kernellaplacianscalar,
+            kernellu_decomposition,
             kernelsparseMatrixMultiplyCSR,
             kernellaplaciansparseMatrixMultiplyCSR,
             kernellaplacianvector,
-            kernelBC;
+            kernelBC,
+            kernelforward_substitution_csr,
+            kernelbackward_substitution_csr;
 cl_mem memBx, memCx, memDx, memEx;
 
 static void print_device_info(cl_device_id device){
@@ -179,6 +185,9 @@ int opencl_build(){
     program_sparseMatrixMultiply_CSR = opencl_CreateProgram(sparseMatrixMultiplyCSR);
     program_laplaciansparseMatrixMultiply_CSR = opencl_CreateProgram(LaplaciansparseMatrixMultiplyCSR);
     program_laplacian_vector = opencl_CreateProgram(laplacianvector);
+    program_lu_decomposition = opencl_CreateProgram(lu_decomposition);
+    program_forward_substitution_csr = opencl_CreateProgram(forward_substitution_csr);
+    program_backward_substitution_csr = opencl_CreateProgram(backward_substitution_csr);
     program_setBC = opencl_CreateProgram(setBC);
     
     err = opencl_BuildProgram(program_gradient_type1);
@@ -189,6 +198,9 @@ int opencl_build(){
     err = opencl_BuildProgram(program_sparseMatrixMultiply_CSR);
     err = opencl_BuildProgram(program_laplaciansparseMatrixMultiply_CSR);
     err = opencl_BuildProgram(program_laplacian_vector);
+    err = opencl_BuildProgram(program_lu_decomposition);
+    err = opencl_BuildProgram(program_forward_substitution_csr);
+    err = opencl_BuildProgram(program_backward_substitution_csr);
     err = opencl_BuildProgram(program_setBC);
 
     if (err != CL_SUCCESS){
@@ -197,6 +209,7 @@ int opencl_build(){
     
     std::cout << "Creating kernel" << std::endl;
     kernelBC = clCreateKernel(program_setBC, "setBC", &err);
+    kernellu_decomposition = clCreateKernel(program_lu_decomposition, "lu_decomposition", &err);
     kernellaplacianscalar = clCreateKernel(program_laplacian_scalar, "laplacianscalar", &err);
     kernelsparseMatrixMultiplyCSR = clCreateKernel(program_sparseMatrixMultiply_CSR, "sparseMatrixMultiplyCSR", &err);
     kernellaplaciansparseMatrixMultiplyCSR = clCreateKernel(program_laplaciansparseMatrixMultiply_CSR, "LaplaciansparseMatrixMultiplyCSR", &err);
@@ -205,7 +218,8 @@ int opencl_build(){
     kernelgradient_type2 = clCreateKernel(program_gradient_type2, "gradient2", &err);
     kernelgradient_type3 = clCreateKernel(program_gradient_type3, "gradient3", &err);
     kernelgradient_type4 = clCreateKernel(program_gradient_type4, "gradient4", &err);
-
+    kernelforward_substitution_csr = clCreateKernel(program_forward_substitution_csr, "forward_substitution_csr", &err);
+    kernelbackward_substitution_csr = clCreateKernel(program_forward_substitution_csr, "backward_substitution_csr", &err);
     return 0;
 }
 
@@ -225,8 +239,11 @@ int opencl_cleanup(){
     clReleaseKernel(kernelgradient_type4);
     clReleaseKernel(kernellaplacianscalar);
     clReleaseKernel(kernellaplacianvector);
+    clReleaseKernel(kernellu_decomposition);
     clReleaseKernel(kernelsparseMatrixMultiplyCSR);
     clReleaseKernel(kernellaplaciansparseMatrixMultiplyCSR);
+    clReleaseKernel(kernelforward_substitution_csr);
+    clReleaseKernel(kernelbackward_substitution_csr);
     for(size_t i = 0; i < program_math.size(); i++){
         clReleaseKernel(kernel_math[i]);
         clReleaseProgram(program_math[i]);
@@ -238,9 +255,12 @@ int opencl_cleanup(){
     clReleaseProgram(program_gradient_type4);
     clReleaseProgram(program_laplacian_scalar);
     clReleaseProgram(program_sparseMatrixMultiply_CSR);
+    clReleaseProgram(program_lu_decomposition);
     clReleaseProgram(program_laplaciansparseMatrixMultiply_CSR);
     clReleaseProgram(program_laplacian_vector);
     clReleaseProgram(program_setBC);
+    clReleaseProgram(program_forward_substitution_csr);
+    clReleaseProgram(program_backward_substitution_csr);
     clReleaseCommandQueue(queue);
     clReleaseContext(context);
 

@@ -51,6 +51,7 @@ int preprocess(const std::string& name) {
     SP.restart = std::stoi(reader.get("File", "restart", "default_value"));
     SP.timescheme = std::stoi(reader.get("Schemes", "Time", "default_value"));
     SP.spacescheme = std::stoi(reader.get("Schemes", "Space", "default_value"));
+    SP.solverscheme = std::stoi(reader.get("Schemes", "Solver", "default_value"));
 
     MP.o = convertStringVectorToFloat(splitString(reader.get("Mesh", "o", "default_value"), ' '));
     MP.s = convertStringVectorToFloat(splitString(reader.get("Mesh", "s", "default_value"), ' '));

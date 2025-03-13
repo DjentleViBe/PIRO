@@ -55,7 +55,74 @@ class CLBuffer{
                 err |= clSetKernelArg(kernel_math[0], 3, sizeof(cl_uint), &N);
                 err = clEnqueueNDRangeKernel(queue, kernel_math[0], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
             }
+
+            else if(SP.timescheme == 12){
+                std::cout << "Backward Euler" << std::endl;
+                    if(SP.solverscheme == 17){
+                        std::cout << "LU Decomposition" << std::endl;
+                        int nnz = MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size();
+                        std::vector<float>A(nnz, 0.0);
+                        std::vector<int>A_int(nnz, 0);
+
+                        std::vector<CLBuffer> L;
+                        L[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(int) * (N + 1), A_int.data(), &err);
+                        L[1].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(int) * nnz, A_int.data(), &err);
+                        L[2].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(float) * nnz, A.data(), &err);
+                        
+                        std::vector<CLBuffer> U;
+                        U[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(int) * (N + 1), A_int.data(), &err);
+                        U[1].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(int) * nnz, A_int.data(), &err);
+                        U[2].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(float) * nnz, A_int.data(), &err);
+
+                        // CLBuffer b, y, x;
+                        // b.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                        //    sizeof(float) * N, A.data(), &err);
+                        
+                        // take the inverse of the RHS
+                        err |= clSetKernelArg(kernellu_decomposition, 0, sizeof(cl_mem), &other[0].buffer);
+                        err |= clSetKernelArg(kernellu_decomposition, 1, sizeof(cl_mem), &other[1].buffer);
+                        err |= clSetKernelArg(kernellu_decomposition, 2, sizeof(cl_mem), &other[2].buffer);
+
+                        err |= clSetKernelArg(kernellu_decomposition, 3, sizeof(cl_mem), &L[0].buffer);
+                        err |= clSetKernelArg(kernellu_decomposition, 4, sizeof(cl_mem), &L[1].buffer);
+                        err |= clSetKernelArg(kernellu_decomposition, 5, sizeof(cl_mem), &L[2].buffer);
+
+                        err |= clSetKernelArg(kernellu_decomposition, 6, sizeof(cl_mem), &U[0].buffer);
+                        err |= clSetKernelArg(kernellu_decomposition, 7, sizeof(cl_mem), &U[1].buffer);
+                        err |= clSetKernelArg(kernellu_decomposition, 8, sizeof(cl_mem), &U[2].buffer);
+                        err |= clSetKernelArg(kernellu_decomposition, 9, sizeof(cl_int), &N);
+                        err = clEnqueueNDRangeKernel(queue, kernellu_decomposition, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+                        clFinish(queue);
+
+                        err |= clSetKernelArg(kernelforward_substitution_csr, 0, sizeof(cl_mem), &L[0].buffer);
+                        err |= clSetKernelArg(kernelforward_substitution_csr, 1, sizeof(cl_mem), &L[1].buffer);
+                        err |= clSetKernelArg(kernelforward_substitution_csr, 2, sizeof(cl_mem), &L[2].buffer);
+                        err |= clSetKernelArg(kernelforward_substitution_csr, 3, sizeof(cl_mem), &partC.buffer);
+                        err |= clSetKernelArg(kernelforward_substitution_csr, 4, sizeof(cl_mem), &this->buffer);
+                        err |= clSetKernelArg(kernelforward_substitution_csr, 5, sizeof(cl_int), &N);
+                        err = clEnqueueNDRangeKernel(queue, kernelforward_substitution_csr, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+                        clFinish(queue);
+
+                        err |= clSetKernelArg(kernelbackward_substitution_csr, 0, sizeof(cl_mem), &U[0].buffer);
+                        err |= clSetKernelArg(kernelbackward_substitution_csr, 1, sizeof(cl_mem), &U[1].buffer);
+                        err |= clSetKernelArg(kernelbackward_substitution_csr, 2, sizeof(cl_mem), &U[2].buffer);
+                        err |= clSetKernelArg(kernelbackward_substitution_csr, 3, sizeof(cl_mem), &partD.buffer);
+                        err |= clSetKernelArg(kernelbackward_substitution_csr, 4, sizeof(cl_mem), &partC.buffer);
+                        err |= clSetKernelArg(kernelbackward_substitution_csr, 5, sizeof(cl_int), &N);
+                        err = clEnqueueNDRangeKernel(queue, kernelbackward_substitution_csr, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+                        clFinish(queue);
+                    }
+
+            }
+
             return partD;
+
             
         }
 
