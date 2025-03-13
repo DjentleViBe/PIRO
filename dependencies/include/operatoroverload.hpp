@@ -26,7 +26,8 @@ class CLBuffer{
             CLBuffer partC, partD;
             partC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, A.data(), &err);
-            
+            partD.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+            sizeof(float) * N, A.data(), &err);
             size_t globalWorkSize[1] = { (size_t)N };
             if(SP.timescheme == 11){
                 // Forward Euler
@@ -47,8 +48,6 @@ class CLBuffer{
                 
                 err = clEnqueueNDRangeKernel(queue, kernellaplaciansparseMatrixMultiplyCSR, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                 clFinish(queue);
-                partD.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                    sizeof(float) * N, A.data(), &err);
                 err |= clSetKernelArg(kernel_math[0], 0, sizeof(cl_mem), &partD.buffer);
                 err |= clSetKernelArg(kernel_math[0], 2, sizeof(cl_mem), &partC.buffer);
                 err |= clSetKernelArg(kernel_math[0], 1, sizeof(cl_mem), &this->buffer);
@@ -64,7 +63,9 @@ class CLBuffer{
                         std::vector<float>A(nnz, 0.0);
                         std::vector<int>A_int(nnz, 0);
 
-                        std::vector<CLBuffer> L;
+                        
+                        std::vector<CLBuffer> L(3);
+                        
                         L[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                             sizeof(int) * (N + 1), A_int.data(), &err);
                         L[1].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -72,7 +73,7 @@ class CLBuffer{
                         L[2].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                             sizeof(float) * nnz, A.data(), &err);
                         
-                        std::vector<CLBuffer> U;
+                        std::vector<CLBuffer> U(3);
                         U[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                             sizeof(int) * (N + 1), A_int.data(), &err);
                         U[1].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -85,6 +86,7 @@ class CLBuffer{
                         //    sizeof(float) * N, A.data(), &err);
                         
                         // take the inverse of the RHS
+                        std::cout << "LU Decomposition kernel" << std::endl;
                         err |= clSetKernelArg(kernellu_decomposition, 0, sizeof(cl_mem), &other[0].buffer);
                         err |= clSetKernelArg(kernellu_decomposition, 1, sizeof(cl_mem), &other[1].buffer);
                         err |= clSetKernelArg(kernellu_decomposition, 2, sizeof(cl_mem), &other[2].buffer);
@@ -117,6 +119,7 @@ class CLBuffer{
                         err |= clSetKernelArg(kernelbackward_substitution_csr, 5, sizeof(cl_int), &N);
                         err = clEnqueueNDRangeKernel(queue, kernelbackward_substitution_csr, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                         clFinish(queue);
+                        std::cout << "LU Decomposition finish" << std::endl;
                     }
 
             }
