@@ -9,12 +9,16 @@
 #include "../dependencies/include/extras.hpp"
 #include "../dependencies/include/datatypes.hpp"
 #include "../dependencies/include/init.hpp"
+#include "operatoroverload.hpp"
 #ifdef __APPLE__
     #include <mach-o/dyld.h>
+    #include <OpenCL/opencl.h>
 #elif _WIN32
     #include "windows.h"
+    #include "./CL/opencl.h"
 #else 
     #include "windows.h"
+    #include "./CL/opencl.h"
 #endif
 #include <numeric>
 #include <vector>
@@ -312,4 +316,24 @@ std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector){
         }
     }
     return flatVector;
+}
+
+void printCL(cl_mem memC, int N, int type){
+    if (type == 0){
+        std::vector<int> hostValues(N);
+        clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
+                                    sizeof(int) * N, hostValues.data(), 0, NULL, NULL);
+        for (size_t i = 0; i < hostValues.size(); ++i) {
+            std::cout << hostValues[i] << " ";
+            }
+    }
+    else if(type ==1){
+        std::vector<float> hostValues(N);
+        clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
+                                    sizeof(float) * N, hostValues.data(), 0, NULL, NULL);
+        for (size_t i = 0; i < hostValues.size(); ++i) {
+            std::cout << hostValues[i] << " ";
+            }
+    }
+    std::cout << std::endl;
 }
