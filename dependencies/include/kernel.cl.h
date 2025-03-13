@@ -394,44 +394,44 @@ __kernel void divideVectors_constant(__global float *A,
 )CLC";
 
 const char *lu_decomposition = R"CLC(
-__kernel void lu_decomposition(
-    __global const int* row_ptr,     // CSR values of A
-    __global const int* col_idx,      // CSR row pointers
-    __global const float* values,      // CSR column indices
-    __global int* L_row_ptr,          // CSR row pointers for L
-     __global int* L_col_idx,          // CSR column indices for L
-    __global float* L_values,         // CSR values of L
-    __global int* U_row_ptr,          // CSR row pointers for U
-    __global int* U_col_idx,          // CSR column indices for U
-    __global float* U_values,         // CSR values of U
-    int N                              // Matrix size
-) {
-    int i = get_global_id(0); // Process row `i`
+    __kernel void lu_decomposition(
+        __global const int* row_ptr,     // CSR values of A
+        __global const int* col_idx,      // CSR row pointers
+        __global const float* values,      // CSR column indices
+        __global int* L_row_ptr,          // CSR row pointers for L
+        __global int* L_col_idx,          // CSR column indices for L
+        __global float* L_values,         // CSR values of L
+        __global int* U_row_ptr,          // CSR row pointers for U
+        __global int* U_col_idx,          // CSR column indices for U
+        __global float* U_values,         // CSR values of U
+        int N                              // Matrix size
+    ) {
+    
+    int row = get_global_id(0);
+    if (row >= N) return; // Out of bounds check
 
-    if (i < N) {
-        for (int j = row_ptr[i]; j < row_ptr[i + 1]; j++) {
-            int col = col_idx[j];
-            float val = values[j];
+    // Perform the decomposition: L = lower triangular, U = upper triangular
+    // Initialize L and U as identity matrix (this is a simplification)
 
-            if (col < i) {  // Lower triangular part
-                L_values[j] = val;
-                for (int k = row_ptr[col]; k < row_ptr[col + 1]; k++) {
-                    if (col_idx[k] == col) {
-                        L_values[j] /= U_values[k]; // L(i, j) /= U(j, j)
-                        break;
-                    }
-                }
-            } else {  // Upper triangular part
-                U_values[j] = val;
-                for (int k = row_ptr[i]; k < j; k++) {
-                    int k_col = col_idx[k];
-                    U_values[j] -= L_values[k] * U_values[row_ptr[k_col] + (col - k_col)];
-                }
-            }
+    for (int k = row_ptr[row]; k < row_ptr[row + 1]; k++) {
+        int col = col_idx[k];
+        if (row == col) {
+            // Diagonal element for U
+            U_values[k] = values[k];
+            L_values[k] = 1.0f;
+        } else if (row < col) {
+            // Upper triangular part (U)
+            U_values[k] = values[k];
+            L_values[k] = 0.0f;
+        } else {
+            // Lower triangular part (L)
+            L_values[k] = values[k];
+            U_values[k] = 0.0f;
         }
     }
-}
-)CLC";
+    }
+    )CLC";
+    
 
 const char *forward_substitution_csr = R"CLC(
 __kernel void forward_substitution_csr(
