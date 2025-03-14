@@ -59,6 +59,7 @@ class CLBuffer{
                 std::cout << "Backward Euler" << std::endl;
                     if(SP.solverscheme == 17){
                         std::cout << "LU Decomposition" << std::endl;
+                        /*
                         int nnz = MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size();
                         std::vector<float>A(nnz, 0.0);
                         std::vector<int>A_int(nnz, 0);
@@ -118,7 +119,34 @@ class CLBuffer{
                         err |= clSetKernelArg(kernelbackward_substitution_csr, 4, sizeof(cl_mem), &partC.buffer);
                         err |= clSetKernelArg(kernelbackward_substitution_csr, 5, sizeof(cl_int), &N);
                         err = clEnqueueNDRangeKernel(queue, kernelbackward_substitution_csr, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-                        clFinish(queue);
+                        clFinish(queue);*/
+                        std::vector<float> Lap_full = {-6.0,1.0,1.0,0.0,1.0,0.0,0.0,0.0,
+                                                        1.0,-6.0,0.0,1.0,0.0,1.0,0.0,0.0,
+                                                        1.0,0.0,-6.0,1.0,0.0,0.0,1.0,0.0,
+                                                        0.0,1.0,1.0,-6.0,-0.0,-0.0,0.0,1.0,
+                                                        1.0,0.0,-0.0,-0.0,-6.0,1.0,1.0,0.0,
+                                                        0.0,1.0,-0.0,-0.0,1.0,-6.0,-0.0,1.0,
+                                                        0.0,0.0,1.0,0.0,1.0,-0.0,-6.0,1.0,
+                                                        0.0,0.0,0.0,1.0,0.0,1.0,1.0,-6.0,};
+                        int N = 8;
+                        CLBuffer LF, AL, U;
+                        LF.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                sizeof(float) * N * N, Lap_full.data(), &err);
+                        AL.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                sizeof(float) * N * N, Lap_full.data(), &err);
+                        U.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                    sizeof(float) * N * N, Lap_full.data(), &err);
+                        err |= clSetKernelArg(kernellu_decompose_dense, 0, sizeof(cl_mem), &LF.buffer);
+                        err |= clSetKernelArg(kernellu_decompose_dense, 1, sizeof(cl_mem), &AL.buffer);
+                        err |= clSetKernelArg(kernellu_decompose_dense, 2, sizeof(cl_mem), &U.buffer);
+                        err |= clSetKernelArg(kernellu_decompose_dense, 3, sizeof(cl_int), &N);
+                        err = clEnqueueNDRangeKernel(queue, kernellu_decompose_dense, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+                        
+                        std::cout << "LU Decomposition print" << std::endl;
+                        printCLArray(LF.buffer, N, 1);
+                        // printCLArray(AL.buffer, N, 1);
+                        // printCLArray(U.buffer, N, 1);
+                        
                         std::cout << "LU Decomposition finish" << std::endl;
                     }
 

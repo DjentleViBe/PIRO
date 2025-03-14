@@ -242,7 +242,7 @@ int laplacian_CSR_init(){
     LAP_INIT = true;
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers);
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns);
-    // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values);
+    printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values);
     // std::cout << MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size() << std::endl;
     return 0;
 }

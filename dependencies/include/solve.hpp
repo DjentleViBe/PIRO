@@ -150,9 +150,10 @@ namespace Giro{
                 }
 
         std::vector<CLBuffer> laplacian_CSR(std::string var1, std::string var2){
-            int ind = matchscalartovar(var2);
+            // int ind = matchscalartovar(var2);
             if(LAP_INIT == false){
                 laplacian_CSR_init(); // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
+                /*
                 if (MP.AMR[0].CD[ind].type == 0){
                     // scale the values
                     cl_int err;
@@ -169,15 +170,11 @@ namespace Giro{
                     err |= clSetKernelArg(kernel_math[2], 2, sizeof(cl_mem), &CDGPU.laplacian_csr[2].buffer);
                     err |= clSetKernelArg(kernel_math[2], 3, sizeof(cl_uint), &N);
                     err = clEnqueueNDRangeKernel(queue, kernel_math[2], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-                    return {CDGPU.laplacian_csr[0], CDGPU.laplacian_csr[1], partC};
-                }
-                else{
-                    return {CDGPU.laplacian_csr[0], CDGPU.laplacian_csr[1], CDGPU.laplacian_csr[2]};
-                }
+                    */
+                return {CDGPU.laplacian_csr[0], CDGPU.laplacian_csr[1], CDGPU.laplacian_csr[2]};
             }
             else{
-
-                    return {CDGPU.laplacian_csr[0], CDGPU.laplacian_csr[1], CDGPU.laplacian_csr[2]};
+                return {CDGPU.laplacian_csr[0], CDGPU.laplacian_csr[1], CDGPU.laplacian_csr[2]};
             }
         }
 

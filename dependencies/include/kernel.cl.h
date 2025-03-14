@@ -393,94 +393,99 @@ __kernel void divideVectors_constant(__global float *A,
 }
 )CLC";
 
-const char *lu_decomposition = R"CLC(
-    __kernel void lu_decomposition(
-        __global const int* row_ptr,     // CSR values of A
-        __global const int* col_idx,      // CSR row pointers
-        __global const float* values,      // CSR column indices
-        __global int* L_row_ptr,          // CSR row pointers for L
-        __global int* L_col_idx,          // CSR column indices for L
-        __global float* L_values,         // CSR values of L
-        __global int* U_row_ptr,          // CSR row pointers for U
-        __global int* U_col_idx,          // CSR column indices for U
-        __global float* U_values,         // CSR values of U
-        int N                              // Matrix size
-    ) {
-    
-    int row = get_global_id(0);
-    if (row >= N) return; // Out of bounds check
+const char *lu_decompose_dense = R"CLC(
+__kernel void lu_decompose_dense(__global float* A, 
+                        __global float* L, 
+                        __global float* U, 
+                        int N) {
+    // Get the global row index
+    unsigned int row = get_global_id(0);
 
-    // Perform the decomposition: L = lower triangular, U = upper triangular
-    // Initialize L and U as identity matrix (this is a simplification)
-
-    for (int k = row_ptr[row]; k < row_ptr[row + 1]; k++) {
-        int col = col_idx[k];
-        if (row == col) {
-            // Diagonal element for U
-            U_values[k] = values[k];
-            L_values[k] = 1.0f;
-        } else if (row < col) {
-            // Upper triangular part (U)
-            U_values[k] = values[k];
-            L_values[k] = 0.0f;
-        } else {
-            // Lower triangular part (L)
-            L_values[k] = values[k];
-            U_values[k] = 0.0f;
+    // Iterate through each row (starting from row 1)
+    if (row > 0) {
+        for (int j = 0; j < N; ++j) {
+            L[row * N + j] = A[row * N + j];
         }
-    }
-    }
-    )CLC";
-    
-
-const char *forward_substitution_csr = R"CLC(
-__kernel void forward_substitution_csr(
-    __global const int* L_row_ptr,
-    __global const int* L_col_idx,
-    __global const float* L_values,
-    __global float* y,
-    __global const float* b,
-    int N
-) {
-    int i = get_global_id(0);
-
-    if (i < N) {
-        float sum = b[i];
-        for (int j = L_row_ptr[i]; j < L_row_ptr[i + 1]; j++) {
-            int col = L_col_idx[j];
-            if (col < i) {
-                sum -= L_values[j] * y[col];
+        // Subtract all previous rows
+        for (unsigned int i = 0; i < row; ++i) {
+            float pivot = A[i * N + i]; 
+            float factor = A[row * N + i] / pivot;
+            for (unsigned int j = 0; j < N; ++j) {
+                A[row * N + j] -= factor * A[i * N + j];
+            
             }
+            // A[row * N + row] = L[i * N + row];
         }
-        y[i] = sum;  // L is lower triangular, diagonal assumed to be 1
+    } else {
+        // For the first row, simply copy it to B
+        for (unsigned int j = 0; j < N; ++j) {
+            L[row * N + j] = A[row * N + j];
+        }
     }
+
 }
+)CLC";
+    
+const char *forward_substitution_csr = R"CLC(
+    __kernel void forward_substitution_csr(
+        __global const int* L_row_ptr,
+        __global const int* L_col_idx,
+        __global const float* L_values,
+        __global float* y,
+        __global const float* b,
+        int N
+    ) {
+        int i = get_global_id(0);
+    
+        if (i < N) {
+            float sum = b[i];
+            for (int j = L_row_ptr[i]; j < L_row_ptr[i + 1]; j++) {
+                int col = L_col_idx[j];
+                if (col < i) {
+                    sum -= L_values[j] * y[col];
+                }
+            }
+            y[i] = sum;  // L is lower triangular, diagonal assumed to be 1
+            
+            // Ensure all threads complete before the next iteration
+            barrier(CLK_GLOBAL_MEM_FENCE);
+        }
+    }
 )CLC";
 
 const char *backward_substitution_csr = R"CLC(
-__kernel void backward_substitution_csr(
-    __global const int* U_row_ptr,
-    __global const int* U_col_idx,
-    __global const float* U_values,
-    __global float* x,
-    __global const float* y,
-    int N
-) {
-    int i = get_global_id(0);
-
-    if (i < N) {
-        int row = N - 1 - i; // Process from last row to first
-        float sum = y[row];
-
-        for (int j = U_row_ptr[row]; j < U_row_ptr[row + 1]; j++) {
-            int col = U_col_idx[j];
-            if (col > row) {
-                sum -= U_values[j] * x[col];
-            } else if (col == row) {
-                x[row] = sum / U_values[j];
+    __kernel void backward_substitution_csr(
+        __global const int* U_row_ptr,
+        __global const int* U_col_idx,
+        __global const float* U_values,
+        __global float* x,
+        __global const float* y,
+        int N
+    ) {
+        int i = get_global_id(0);
+    
+        if (i < N) {
+            int row = N - 1 - i; // Process from last row to first
+            if (y[row] != 0.0f) { // Only compute if y[row] is non-zero
+                float sum = y[row];
+                // printf("y[%u] = %f\n", row, y[row]);
+                // Compute summation term for backward substitution
+                for (int j = U_row_ptr[row]; j < U_row_ptr[row + 1]; j++) {
+                    
+                    int col = U_col_idx[j];
+                    if (col > row) {
+                        sum -= U_values[j] * x[col];
+                        // printf("x[%u] = %f\n", col, x[col]);
+                    } else if (col == row) {
+                        x[row] = sum / U_values[j]; // Store result when we reach the diagonal element
+                        break;
+                    }
+                }
+                
+                // Debug output to check the sum and x values
+                // printf("Row: %d, sum: %f, x[%d]: %f\n", row, sum, row, x[row]);
             }
         }
     }
-}
-)CLC";
+    )CLC";
 #endif // KERNEL_CL_H

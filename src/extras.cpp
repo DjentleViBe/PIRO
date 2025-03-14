@@ -337,3 +337,31 @@ void printCL(cl_mem memC, int N, int type){
     }
     std::cout << std::endl;
 }
+
+void printCLArray(cl_mem memC, int N, int type){
+    if (type == 0){
+        std::vector<int> hostValues(N * N);
+        clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
+                                    sizeof(int) * N * N, hostValues.data(), 0, NULL, NULL);
+        for (size_t i = 0; i < hostValues.size(); ++i) {
+            std::cout << hostValues[i] << " ";
+            if(i % (N - 1) == 0){
+                std::cout << std::endl;
+            }
+            }
+    }
+    else if(type ==1){
+        std::vector<float> hostValues(N * N);
+        clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
+                                    sizeof(float) * N * N, hostValues.data(), 0, NULL, NULL);
+        for (size_t i = 0; i < hostValues.size(); ++i) {
+                
+            std::cout << std::round(hostValues[i] * 10000.0) / 10000.0 << "\t\t";
+            if((i + 1) % (N) == 0){
+                std::cout << std::endl;
+            }
+        }
+    }
+    std::cout << std::endl;
+}
+
