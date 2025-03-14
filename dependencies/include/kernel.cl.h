@@ -395,31 +395,28 @@ __kernel void divideVectors_constant(__global float *A,
 
 const char *lu_decompose_dense = R"CLC(
 __kernel void lu_decompose_dense(__global float* A, 
-                        __global float* L, 
-                        __global float* U, 
+                        __global float* L,
                         int N) {
     // Get the global row index
     unsigned int row = get_global_id(0);
 
     // Iterate through each row (starting from row 1)
     if (row > 0) {
-        for (int j = 0; j < N; ++j) {
-            L[row * N + j] = A[row * N + j];
-        }
+        L[row * N + row] = 1.0f;
         // Subtract all previous rows
         for (unsigned int i = 0; i < row; ++i) {
             float pivot = A[i * N + i]; 
             float factor = A[row * N + i] / pivot;
+            L[row * N + i] = factor;
             for (unsigned int j = 0; j < N; ++j) {
                 A[row * N + j] -= factor * A[i * N + j];
-            
             }
-            // A[row * N + row] = L[i * N + row];
         }
     } else {
+        L[row * N + row] = 1.0f;
         // For the first row, simply copy it to B
         for (unsigned int j = 0; j < N; ++j) {
-            L[row * N + j] = A[row * N + j];
+            A[row * N + j] = A[row * N + j];
         }
     }
 

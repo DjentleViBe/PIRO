@@ -129,24 +129,20 @@ class CLBuffer{
                                                         0.0,0.0,1.0,0.0,1.0,-0.0,-6.0,1.0,
                                                         0.0,0.0,0.0,1.0,0.0,1.0,1.0,-6.0,};
                         int N = 8;
-                        CLBuffer LF, AL, U;
+                        CLBuffer LF, LTM;
+                        std::vector<float>LT_matrix(N * N, 0.0);
                         LF.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                 sizeof(float) * N * N, Lap_full.data(), &err);
-                        AL.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                sizeof(float) * N * N, Lap_full.data(), &err);
-                        U.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                    sizeof(float) * N * N, Lap_full.data(), &err);
+                        LTM.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                sizeof(float) * N * N, LT_matrix.data(), &err);
                         err |= clSetKernelArg(kernellu_decompose_dense, 0, sizeof(cl_mem), &LF.buffer);
-                        err |= clSetKernelArg(kernellu_decompose_dense, 1, sizeof(cl_mem), &AL.buffer);
-                        err |= clSetKernelArg(kernellu_decompose_dense, 2, sizeof(cl_mem), &U.buffer);
-                        err |= clSetKernelArg(kernellu_decompose_dense, 3, sizeof(cl_int), &N);
+                        err |= clSetKernelArg(kernellu_decompose_dense, 1, sizeof(cl_mem), &LTM.buffer);
+                        err |= clSetKernelArg(kernellu_decompose_dense, 2, sizeof(cl_int), &N);
                         err = clEnqueueNDRangeKernel(queue, kernellu_decompose_dense, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                         
                         std::cout << "LU Decomposition print" << std::endl;
                         printCLArray(LF.buffer, N, 1);
-                        // printCLArray(AL.buffer, N, 1);
-                        // printCLArray(U.buffer, N, 1);
-                        
+                        printCLArray(LTM.buffer, N, 1);
                         std::cout << "LU Decomposition finish" << std::endl;
                     }
 
