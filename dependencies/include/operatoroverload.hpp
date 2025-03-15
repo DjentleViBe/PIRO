@@ -120,26 +120,39 @@ class CLBuffer{
                         err |= clSetKernelArg(kernelbackward_substitution_csr, 5, sizeof(cl_int), &N);
                         err = clEnqueueNDRangeKernel(queue, kernelbackward_substitution_csr, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                         clFinish(queue);*/
+                        size_t globalWorkSize_square[2] = { (size_t)N, (size_t)N };
                         std::vector<float> Lap_full = {-6.0,1.0,1.0,0.0,1.0,0.0,0.0,0.0,
                                                         1.0,-6.0,0.0,1.0,0.0,1.0,0.0,0.0,
                                                         1.0,0.0,-6.0,1.0,0.0,0.0,1.0,0.0,
-                                                        0.0,1.0,1.0,-6.0,-0.0,-0.0,0.0,1.0,
-                                                        1.0,0.0,-0.0,-0.0,-6.0,1.0,1.0,0.0,
-                                                        0.0,1.0,-0.0,-0.0,1.0,-6.0,-0.0,1.0,
-                                                        0.0,0.0,1.0,0.0,1.0,-0.0,-6.0,1.0,
+                                                        0.0,1.0,1.0,-6.0,0.0,0.0,0.0,1.0,
+                                                        1.0,0.0,0.0,0.0,-6.0,1.0,1.0,0.0,
+                                                        0.0,1.0,0.0,0.0,1.0,-6.0,0.0,1.0,
+                                                        0.0,0.0,1.0,0.0,1.0,0.0,-6.0,1.0,
                                                         0.0,0.0,0.0,1.0,0.0,1.0,1.0,-6.0,};
                         int N = 8;
-                        CLBuffer LF, LTM;
+                        std::vector<float> Lap_val = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
+                        std::vector<int> Lap_ind = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
+                        std::vector<int> Lap_rowptr = {0,  4,  8, 12, 16, 20, 24, 28, 32};
+                        CLBuffer LF, LFvalues, LFind, LFrowptr, LTM;
                         std::vector<float>LT_matrix(N * N, 0.0);
                         LF.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                 sizeof(float) * N * N, Lap_full.data(), &err);
+                        LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                    sizeof(float) * N * N, Lap_val.data(), &err);
+                        LFind.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(int) * N * N, Lap_ind.data(), &err);
+                        LFrowptr.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(int) * N * N, Lap_rowptr.data(), &err);
                         LTM.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                 sizeof(float) * N * N, LT_matrix.data(), &err);
                         err |= clSetKernelArg(kernellu_decompose_dense, 0, sizeof(cl_mem), &LF.buffer);
                         err |= clSetKernelArg(kernellu_decompose_dense, 1, sizeof(cl_mem), &LTM.buffer);
                         err |= clSetKernelArg(kernellu_decompose_dense, 2, sizeof(cl_int), &N);
-                        err = clEnqueueNDRangeKernel(queue, kernellu_decompose_dense, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-                        
+                        err |= clSetKernelArg(kernellu_decompose_dense, 3, sizeof(cl_mem), &LFvalues.buffer);
+                        err |= clSetKernelArg(kernellu_decompose_dense, 4, sizeof(cl_mem), &LFind.buffer);
+                        err |= clSetKernelArg(kernellu_decompose_dense, 5, sizeof(cl_mem), &LFrowptr.buffer);
+                        err = clEnqueueNDRangeKernel(queue, kernellu_decompose_dense, 2, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                        clFinish(queue);
                         std::cout << "LU Decomposition print" << std::endl;
                         printCLArray(LF.buffer, N, 1);
                         printCLArray(LTM.buffer, N, 1);

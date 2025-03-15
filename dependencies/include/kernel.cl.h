@@ -394,32 +394,47 @@ __kernel void divideVectors_constant(__global float *A,
 )CLC";
 
 const char *lu_decompose_dense = R"CLC(
+static inline float get_element(__global int* Arowptr,
+                                __global int* Aind,
+                                __global float* Avalues,
+                                int i, int j) {
+    int start_idx = Arowptr[i];
+    int end_idx = Arowptr[i + 1] - 1;
+    // Binary search for j in Aind[start_idx:end_idx]
+    while (start_idx <= end_idx) {
+        int mid = start_idx + (end_idx - start_idx) / 2;
+        if (Aind[mid] == j) return Avalues[mid];
+        if (Aind[mid] < j) start_idx = mid + 1;
+        else end_idx = mid - 1;
+    }
+    return 0;
+}
+    
 __kernel void lu_decompose_dense(__global float* A, 
                         __global float* L,
-                        int N) {
+                        int N,
+                        __global float* Avalues,
+                        __global float* Aind,
+                        __global float* Arowptr) {
     // Get the global row index
-    unsigned int row = get_global_id(0);
+    unsigned int i = get_global_id(0);
+    unsigned int j = get_global_id(1);
 
-    // Iterate through each row (starting from row 1)
-    if (row > 0) {
-        L[row * N + row] = 1.0f;
-        // Subtract all previous rows
-        for (unsigned int i = 0; i < row; ++i) {
-            float pivot = A[i * N + i]; 
-            float factor = A[row * N + i] / pivot;
-            L[row * N + i] = factor;
-            for (unsigned int j = 0; j < N; ++j) {
-                A[row * N + j] -= factor * A[i * N + j];
+   if (i < N && j < N) {
+        // Forward elimination
+        for (int k = 0; k < N - 1; k++) {
+            float pivot = A[k * N + k];                             // Pivot element at A[k, k]
+            float factor = A[i * N + k] / pivot;                    // Calculate factor to eliminate
+            if (factor != 0){
+                if (i > k && j < N) {                               // Only update rows below the diagonal
+                    if (i > k) {                                    // Process rows below the diagonal
+                        A[i * N + j] -= factor * A[k * N + j];      // Subtract row k from row i
+                    }
+                }
             }
         }
-    } else {
-        L[row * N + row] = 1.0f;
-        // For the first row, simply copy it to B
-        for (unsigned int j = 0; j < N; ++j) {
-            A[row * N + j] = A[row * N + j];
-        }
+        barrier(CLK_GLOBAL_MEM_FENCE);                              // Ensure all threads are synchronized for the next iteration
     }
-
 }
 )CLC";
     
