@@ -37,4 +37,8 @@ void print_time();
 int countWords(const std::string& str);
 void printCL(cl_mem memC, int N, int type);
 void printCLArray(cl_mem memC, int N, int type);
+void csr_to_dense_and_print(const std::vector<int>& row_pointer,
+    const std::vector<int>& columns,
+    const std::vector<float>& values,
+    int N);
 #endif

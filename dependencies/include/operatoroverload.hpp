@@ -148,14 +148,21 @@ class CLBuffer{
                         err |= clSetKernelArg(kernellu_decompose_dense, 0, sizeof(cl_mem), &LF.buffer);
                         err |= clSetKernelArg(kernellu_decompose_dense, 1, sizeof(cl_mem), &LTM.buffer);
                         err |= clSetKernelArg(kernellu_decompose_dense, 2, sizeof(cl_int), &N);
-                        err |= clSetKernelArg(kernellu_decompose_dense, 3, sizeof(cl_mem), &LFvalues.buffer);
-                        err |= clSetKernelArg(kernellu_decompose_dense, 4, sizeof(cl_mem), &LFind.buffer);
-                        err |= clSetKernelArg(kernellu_decompose_dense, 5, sizeof(cl_mem), &LFrowptr.buffer);
                         err = clEnqueueNDRangeKernel(queue, kernellu_decompose_dense, 2, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                         clFinish(queue);
+                        
+                        
+                        //err |= clSetKernelArg(kernellu_decompose_dense, 3, sizeof(cl_mem), &LFvalues.buffer);
+                        //err |= clSetKernelArg(kernellu_decompose_dense, 4, sizeof(cl_mem), &LFind.buffer);
+                        //err |= clSetKernelArg(kernellu_decompose_dense, 5, sizeof(cl_mem), &LFrowptr.buffer);
+                       
                         std::cout << "LU Decomposition print" << std::endl;
+
+                        
+                        // printCL(LFvalues.buffer, N*N, 1);
+                        // printCL(LFind.buffer, N*N, 0);
+                        // printCL(LFrowptr.buffer, N*N, 0);
                         printCLArray(LF.buffer, N, 1);
-                        printCLArray(LTM.buffer, N, 1);
                         std::cout << "LU Decomposition finish" << std::endl;
                     }
 
