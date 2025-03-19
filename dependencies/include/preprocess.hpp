@@ -28,6 +28,7 @@ extern cl_program   program_gradient_scalar,
                     program_lu_decompose_dense,
                     program_laplacian_vector,
                     program_setBC,
+                    program_filter_array,
                     program_forward_substitution_csr,
                     program_backward_substitution_csr;
 extern cl_kernel    kernelgradient_type1,
@@ -40,6 +41,7 @@ extern cl_kernel    kernelgradient_type1,
                     kernellaplaciansparseMatrixMultiplyCSR,
                     kernellaplacianvector,
                     kernelBC,
+                    kernelfilterarray,
                     kernelforward_substitution_csr,
                     kernelbackward_substitution_csr;
 

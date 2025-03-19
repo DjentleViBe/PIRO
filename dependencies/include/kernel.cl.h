@@ -448,7 +448,27 @@ const char *lu_decompose_sparse = R"CLC(
     }
     )CLC";
         
+const char *filter_array = R"CLC(
+    __kernel void filter_array(
+        __global const int* inputArrayrow,
+        __global const int* inputArraycol,
+        __global const float* ValueArray,
+        __global float* outputArray,
+        const int threshold_row,
+        const int n
+    ) {
+        int gid = get_global_id(0);
     
+        if (gid < n) {
+            for(int i = inputArrayrow[threshold_row]; i < inputArrayrow[threshold_row + 1]; i++){
+                if(gid == inputArraycol[i]){
+                   outputArray[gid] = ValueArray[i];
+                }
+            }
+        }
+    }
+)CLC";
+
 const char *forward_substitution_csr = R"CLC(
     __kernel void forward_substitution_csr(
         __global const int* L_row_ptr,

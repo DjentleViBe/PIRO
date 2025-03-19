@@ -120,7 +120,7 @@ class CLBuffer{
                         err |= clSetKernelArg(kernelbackward_substitution_csr, 5, sizeof(cl_int), &N);
                         err = clEnqueueNDRangeKernel(queue, kernelbackward_substitution_csr, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                         clFinish(queue);*/
-                        size_t globalWorkSize_square[2] = { (size_t)N, (size_t)N };
+                        size_t globalWorkSize_square[1] = { (size_t)N};
                         std::vector<float> Lap_full = {-6.0,1.0,1.0,0.0,1.0,0.0,0.0,0.0,
                                                         1.0,-6.0,0.0,1.0,0.0,1.0,0.0,0.0,
                                                         1.0,0.0,-6.0,1.0,0.0,0.0,1.0,0.0,
@@ -130,39 +130,56 @@ class CLBuffer{
                                                         0.0,0.0,1.0,0.0,1.0,0.0,-6.0,1.0,
                                                         0.0,0.0,0.0,1.0,0.0,1.0,1.0,-6.0,};
                         int N = 8;
-                        std::vector<float> Lap_val = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
-                        std::vector<int> Lap_ind = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
-                        std::vector<int> Lap_rowptr = {0,  4,  8, 12, 16, 20, 24, 28, 32};
-                        CLBuffer LF, LFvalues, LFind, LFrowptr, LTM;
+                        
+                        std::vector<float> Lap_val_V = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
+                        std::vector<int> Lap_ind_V = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
+                        std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
+                        int nnz = Lap_val_V.size();
+                        std::vector<float> Value_filtered_V = {0, 0, 0, 0, 0, 0, 0, 0};
+                        CLBuffer LF, LFvalues, Lap_ind, Value_filtered, Lap_rowptr, LTM;
                         std::vector<float>LT_matrix(N * N, 0.0);
                         LF.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                 sizeof(float) * N * N, Lap_full.data(), &err);
                         LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                    sizeof(float) * N * N, Lap_val.data(), &err);
-                        LFind.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(int) * N * N, Lap_ind.data(), &err);
-                        LFrowptr.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(int) * N * N, Lap_rowptr.data(), &err);
+                                    sizeof(float) * nnz, Lap_val_V.data(), &err);
+                        Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(int) * N * N, Lap_ind_V.data(), &err);
+                        Lap_rowptr.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(int) * N * N, Lap_rowptr_V.data(), &err);
                         LTM.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                 sizeof(float) * N * N, LT_matrix.data(), &err);
-                        err |= clSetKernelArg(kernellu_decompose_dense, 0, sizeof(cl_mem), &LF.buffer);
-                        err |= clSetKernelArg(kernellu_decompose_dense, 1, sizeof(cl_mem), &LTM.buffer);
-                        err |= clSetKernelArg(kernellu_decompose_dense, 2, sizeof(cl_int), &N);
-                        err = clEnqueueNDRangeKernel(queue, kernellu_decompose_dense, 2, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                        //err |= clSetKernelArg(kernellu_decompose_dense, 0, sizeof(cl_mem), &LF.buffer);
+                        //err |= clSetKernelArg(kernellu_decompose_dense, 1, sizeof(cl_mem), &LTM.buffer);
+                        //err |= clSetKernelArg(kernellu_decompose_dense, 2, sizeof(cl_int), &N);
+                        //err = clEnqueueNDRangeKernel(queue, kernellu_decompose_dense, 2, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                        //clFinish(queue);
+                        
+                        int row = 1;
+                        LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                sizeof(float) * nnz, Lap_val_V.data(), &err);
+                        Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(int) * nnz, Lap_ind_V.data(), &err);
+
+                        Lap_rowptr.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(int) * N, Lap_rowptr_V.data(), &err);
+                        Value_filtered.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(float) * N, Value_filtered_V.data(), &err);
+                        
+                        err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &Lap_rowptr.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &Lap_ind.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &LFvalues.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &row);
+                        err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &N);
+                        err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                         clFinish(queue);
-                        
-                        
-                        //err |= clSetKernelArg(kernellu_decompose_dense, 3, sizeof(cl_mem), &LFvalues.buffer);
-                        //err |= clSetKernelArg(kernellu_decompose_dense, 4, sizeof(cl_mem), &LFind.buffer);
-                        //err |= clSetKernelArg(kernellu_decompose_dense, 5, sizeof(cl_mem), &LFrowptr.buffer);
-                       
                         std::cout << "LU Decomposition print" << std::endl;
 
                         
-                        // printCL(LFvalues.buffer, N*N, 1);
+                        printCL(Value_filtered.buffer, N, 1);
                         // printCL(LFind.buffer, N*N, 0);
                         // printCL(LFrowptr.buffer, N*N, 0);
-                        printCLArray(LF.buffer, N, 1);
+                        // printCLArray(LF.buffer, N, 1);
                         std::cout << "LU Decomposition finish" << std::endl;
                     }
 
