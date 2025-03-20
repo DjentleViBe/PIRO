@@ -458,13 +458,14 @@ const char *filter_array = R"CLC(
         const int n
     ) {
         int gid = get_global_id(0);
-    
-        if (gid < n) {
-            for(int i = inputArrayrow[threshold_row]; i < inputArrayrow[threshold_row + 1]; i++){
-                if(gid == inputArraycol[i]){
-                   outputArray[gid] = ValueArray[i];
-                }
-            }
+        int start = inputArrayrow[threshold_row];
+        int end = inputArrayrow[threshold_row + 1];
+        int idx = start + gid;
+
+        if (start + gid < end) {
+            int col_index = inputArraycol[idx];
+            // printf("%d ", col_index);
+            outputArray[col_index] = ValueArray[idx];
         }
     }
 )CLC";

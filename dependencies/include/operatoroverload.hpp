@@ -136,25 +136,16 @@ class CLBuffer{
                         std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
                         int nnz = Lap_val_V.size();
                         std::vector<float> Value_filtered_V = {0, 0, 0, 0, 0, 0, 0, 0};
-                        CLBuffer LF, LFvalues, Lap_ind, Value_filtered, Lap_rowptr, LTM;
-                        std::vector<float>LT_matrix(N * N, 0.0);
-                        LF.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                sizeof(float) * N * N, Lap_full.data(), &err);
+                        CLBuffer LFvalues, Lap_ind, Value_filtered, Lap_rowptr;
+
                         LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                     sizeof(float) * nnz, Lap_val_V.data(), &err);
                         Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                             sizeof(int) * N * N, Lap_ind_V.data(), &err);
                         Lap_rowptr.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                             sizeof(int) * N * N, Lap_rowptr_V.data(), &err);
-                        LTM.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                sizeof(float) * N * N, LT_matrix.data(), &err);
-                        //err |= clSetKernelArg(kernellu_decompose_dense, 0, sizeof(cl_mem), &LF.buffer);
-                        //err |= clSetKernelArg(kernellu_decompose_dense, 1, sizeof(cl_mem), &LTM.buffer);
-                        //err |= clSetKernelArg(kernellu_decompose_dense, 2, sizeof(cl_int), &N);
-                        //err = clEnqueueNDRangeKernel(queue, kernellu_decompose_dense, 2, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
-                        //clFinish(queue);
                         
-                        int row = 1;
+                        int row = 0;
                         LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                 sizeof(float) * nnz, Lap_val_V.data(), &err);
                         Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
