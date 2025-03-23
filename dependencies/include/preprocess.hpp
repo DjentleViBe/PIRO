@@ -29,6 +29,7 @@ extern cl_program   program_gradient_scalar,
                     program_laplacian_vector,
                     program_setBC,
                     program_filter_array,
+                    program_filter_row,
                     program_forward_substitution_csr,
                     program_backward_substitution_csr;
 extern cl_kernel    kernelgradient_type1,
@@ -42,6 +43,7 @@ extern cl_kernel    kernelgradient_type1,
                     kernellaplacianvector,
                     kernelBC,
                     kernelfilterarray,
+                    kernelfilterrow,
                     kernelforward_substitution_csr,
                     kernelbackward_substitution_csr;
 

@@ -475,6 +475,22 @@ const char *filter_array = R"CLC(
     }
 )CLC";
 
+const char *filter_row = R"CLC(
+    __kernel void filter_row(
+        __global const float* zeroArray,
+        __global float* outputArray,
+        __global float* rowArray,
+        const int n,
+        __global float* pivot
+    ) {
+        int gid = get_global_id(0);
+        if(gid < n){
+            outputArray[gid] = (zeroArray[gid] * rowArray[0]) / pivot[0];
+        }
+        
+    }
+)CLC";
+
 const char *forward_substitution_csr = R"CLC(
     __kernel void forward_substitution_csr(
         __global const int* L_row_ptr,
