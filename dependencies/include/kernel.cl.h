@@ -455,12 +455,18 @@ const char *filter_array = R"CLC(
         __global const float* ValueArray,
         __global float* outputArray,
         const int threshold_row,
-        const int n
+        const int n,
+        __global float* pivot
     ) {
         int gid = get_global_id(0);
         int start = inputArrayrow[threshold_row];
         int end = inputArrayrow[threshold_row + 1];
         int idx = start + gid;
+
+        if (start == 0){
+            pivot[start] = ValueArray[start];
+            // printf("%f ",pivot[start]);
+        }
 
         if (start + gid < end) {
             int col_index = inputArraycol[idx];

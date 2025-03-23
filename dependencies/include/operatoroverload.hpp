@@ -75,7 +75,7 @@ class CLBuffer{
                         std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
                         int nnz = Lap_val_V.size();
                         std::vector<float> Value_filtered_V = {0, 0, 0, 0, 0, 0, 0, 0};
-                        CLBuffer LFvalues, Lap_ind, Value_filtered, Lap_rowptr;
+                        CLBuffer LFvalues, Lap_ind, Value_filtered, Value_filtered_0, Lap_rowptr, pivot;
                         
                         // int row = 0;
                         LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -87,20 +87,48 @@ class CLBuffer{
                             sizeof(int) * (N + 1), Lap_rowptr_V.data(), &err);
                         Value_filtered.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                             sizeof(float) * N, Value_filtered_V.data(), &err);
+
+                        Value_filtered_0.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            sizeof(float) * N, Value_filtered_V.data(), &err);
+                        pivot.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float), NULL, &err);
                         
                         err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &Lap_rowptr.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &Lap_ind.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &LFvalues.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &N);
+                        err |= clSetKernelArg(kernelfilterarray, 6, sizeof(cl_mem), &pivot.buffer);
+                        err |= clSetKernelArg(kernel_math[1], 0, sizeof(cl_mem), &Value_filtered.buffer);
+                        err |= clSetKernelArg(kernel_math[1], 1, sizeof(cl_mem), &Value_filtered.buffer);
+                        err |= clSetKernelArg(kernel_math[1], 2, sizeof(cl_mem), &Value_filtered_0.buffer);
+                        err |= clSetKernelArg(kernel_math[1], 3, sizeof(cl_int), &N);
+                        
                         float fillValue = 0.0f;
                         for (int row = 0; row < N; row ++){
                             err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &row);
-                            clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                            // step 1 : Extract the row
+                            if(row == 0){
+                                err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered_0.buffer);
+                                err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                printCL(pivot.buffer, 1, 1);
+                            }
+                            else{
+                                err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
+                                clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                                err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                // step 2 : Multiply with pivot / factor
+                                
+                                // step 2 : subtract the row from 0th
+                                err = clEnqueueNDRangeKernel(queue, kernel_math[1], 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                
+
+                            }
                             printCL(Value_filtered.buffer, N, 1);
                             clFinish(queue);
                             
                         }
+                        
+                        
                         std::cout << "LU Decomposition print" << std::endl;
                         std::cout << "LU Decomposition finish" << std::endl;
                     }
