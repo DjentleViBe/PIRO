@@ -464,7 +464,6 @@ const char *filter_array = R"CLC(
 
         if (start + gid < end) {
             int col_index = inputArraycol[idx];
-            // printf("%d ", col_index);
             outputArray[col_index] = ValueArray[idx];
         }
     }

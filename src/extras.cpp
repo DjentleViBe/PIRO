@@ -297,7 +297,7 @@ void print_time(){
     std::tm now_tm = *std::localtime(&now_time_t);
 
     // Print the time with milliseconds
-    std::cout << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0') << std::setw(3) << ms << std::endl;
+    std::cout << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0') << std::setw(3) << ms << "\t";
     
 }
 
@@ -332,7 +332,7 @@ void printCL(cl_mem memC, int N, int type){
         clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                                     sizeof(float) * N, hostValues.data(), 0, NULL, NULL);
         for (size_t i = 0; i < hostValues.size(); ++i) {
-            std::cout << hostValues[i] << " ";
+            std::cout << round(hostValues[i] * 10) / 10.0 << " ";
             }
     }
     std::cout << std::endl;
