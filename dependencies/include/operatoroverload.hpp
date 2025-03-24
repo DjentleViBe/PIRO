@@ -80,20 +80,20 @@ class CLBuffer{
                         
                         // int row = 0;
                         // float sizefactor = 2 / 3 ;
-                        LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                sizeof(float) * N * N * 3 / 4, Lap_val_V.data(), &err);
-                        Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(int) * N * N * 3 / 4, Lap_ind_V.data(), &err);
-                        Lap_rowptr.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(int) * (N + 1), Lap_rowptr_V.data(), &err);
+                        LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                sizeof(float) * N * N * 3 / 4, nullptr, &err);
+                        Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                            sizeof(int) * N * N * 3 / 4, nullptr, &err);
+                        Lap_rowptr.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                            sizeof(int) * (N + 1), nullptr, &err);
                         
-                        Value_filtered.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(float) * N, Value_filtered_V.data(), &err);
-
-                        Value_filtered_0.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(float) * N, Value_filtered_V.data(), &err);
-                        Value_filtered_row.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                sizeof(float) * N, Value_filtered_V.data(), &err);
+                        Value_filtered.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                            sizeof(float) * N, nullptr, &err);
+                        Value_filtered_0.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                            sizeof(float) * N, nullptr, &err);
+                        Value_filtered_row.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                sizeof(float) * N, nullptr, &err);
+                        
                         pivot.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float), NULL, &err);
                         
                         err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &Lap_rowptr.buffer);
@@ -116,9 +116,21 @@ class CLBuffer{
                         
                         float fillValue = 0.0f;
                         int fillValue_int = 0;
-                        for (int rowouter = 0; rowouter < N - 1; rowouter++){
+                        for (int rowouter = 0; rowouter < N; rowouter++){
                             std::cout << "Values size : " << Lap_val_V.size() << std::endl;
                             for (int row = rowouter; row < N; row ++){
+                                clEnqueueFillBuffer(queue, LFvalues.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N * N * 3 / 4, 0, nullptr, nullptr);
+                                clEnqueueFillBuffer(queue, Lap_ind.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N * 3 / 4, 0, nullptr, nullptr);
+                                clEnqueueFillBuffer(queue, Lap_rowptr.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
+                                clFinish(queue);
+                                
+                                err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_TRUE, 0, sizeof(float) * Lap_val_V.size(), Lap_val_V.data(), 0, NULL, NULL);
+                                if (err != CL_SUCCESS) {
+                                    std::cerr << "Error creating LFvalues buffer: " << err << std::endl;
+                                }
+                                err = clEnqueueWriteBuffer(queue, Lap_ind.buffer, CL_TRUE, 0, sizeof(int) * Lap_ind_V.size(), Lap_ind_V.data(), 0, NULL, NULL);
+                                err = clEnqueueWriteBuffer(queue, Lap_rowptr.buffer, CL_TRUE, 0, sizeof(int) * (N + 1), Lap_rowptr_V.data(), 0, NULL, NULL);
+                                clFinish(queue);
                                 // std::cout << "iteration: " << row << std::endl;
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &row);
                                 // step 1 : Extract the row
@@ -129,6 +141,7 @@ class CLBuffer{
                                     err |= clSetKernelArg(kernelfilterarray, 7, sizeof(cl_int), &rowouter);
                                     err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                     clFinish(queue);
+                                    printCL(pivot.buffer, 1, 1);
                                 }
                                 else{
                                     err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
@@ -199,19 +212,6 @@ class CLBuffer{
                                             }
                                         }
                                     }
-
-                                    clEnqueueFillBuffer(queue, LFvalues.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N * N * 3 / 4, 0, nullptr, nullptr);
-                                    clEnqueueFillBuffer(queue, Lap_ind.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N * 3 / 4, 0, nullptr, nullptr);
-                                    clEnqueueFillBuffer(queue, Lap_rowptr.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
-                                    clFinish(queue);
-                                    
-                                    err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_TRUE, 0, sizeof(float) * Lap_val_V.size(), Lap_val_V.data(), 0, NULL, NULL);
-                                    if (err != CL_SUCCESS) {
-                                        std::cerr << "Error creating LFvalues buffer: " << err << std::endl;
-                                    }
-                                    err = clEnqueueWriteBuffer(queue, Lap_ind.buffer, CL_TRUE, 0, sizeof(int) * Lap_ind_V.size(), Lap_ind_V.data(), 0, NULL, NULL);
-                                    err = clEnqueueWriteBuffer(queue, Lap_rowptr.buffer, CL_TRUE, 0, sizeof(int) * (N + 1), Lap_rowptr_V.data(), 0, NULL, NULL);
-                                    clFinish(queue);
                                 }
                                 
                                 clFinish(queue);
