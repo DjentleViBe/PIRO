@@ -117,7 +117,7 @@ class CLBuffer{
                         float fillValue = 0.0f;
                         int fillValue_int = 0;
                         for (int rowouter = 0; rowouter < N; rowouter++){
-                            std::cout << "Values size : " << Lap_val_V.size() << std::endl;
+                            // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
                             for (int row = rowouter; row < N; row ++){
                                 clEnqueueFillBuffer(queue, LFvalues.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N * N * 3 / 4, 0, nullptr, nullptr);
                                 clEnqueueFillBuffer(queue, Lap_ind.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N * 3 / 4, 0, nullptr, nullptr);
@@ -141,7 +141,7 @@ class CLBuffer{
                                     err |= clSetKernelArg(kernelfilterarray, 7, sizeof(cl_int), &rowouter);
                                     err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                     clFinish(queue);
-                                    printCL(pivot.buffer, 1, 1);
+                                    // printCL(pivot.buffer, 1, 1);
                                 }
                                 else{
                                     err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
@@ -217,7 +217,7 @@ class CLBuffer{
                                 clFinish(queue);
                                 
                             }
-                            std::cout << "\n";
+                            // std::cout << "\n";
                         }
                         clReleaseMemObject(LFvalues.buffer);
                         clReleaseMemObject(Lap_ind.buffer);
