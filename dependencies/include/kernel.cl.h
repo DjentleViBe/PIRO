@@ -456,14 +456,15 @@ const char *filter_array = R"CLC(
         __global float* outputArray,
         const int threshold_row,
         const int n,
-        __global float* pivot
+        __global float* pivot,
+        const int rowouter
     ) {
         int gid = get_global_id(0);
         int start = inputArrayrow[threshold_row];
         int end = inputArrayrow[threshold_row + 1];
         int idx = start + gid;
 
-        if (start == 0){
+        if (start == rowouter){
             pivot[start] = ValueArray[start];
             // printf("%f ",pivot[start]);
         }
@@ -481,11 +482,12 @@ const char *filter_row = R"CLC(
         __global float* outputArray,
         __global float* rowArray,
         const int n,
-        __global float* pivot
+        __global float* pivot,
+        const int row
     ) {
         int gid = get_global_id(0);
         if(gid < n){
-            outputArray[gid] = (zeroArray[gid] * rowArray[0]) / pivot[0];
+            outputArray[gid] = (zeroArray[gid] * rowArray[row]) / pivot[row];
         }
         
     }
