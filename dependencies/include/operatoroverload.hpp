@@ -116,22 +116,25 @@ class CLBuffer{
                         
                         float fillValue = 0.0f;
                         int fillValue_int = 0;
-                        for (int rowouter = 0; rowouter < 1; rowouter++){
+                        for (int rowouter = 0; rowouter < 2; rowouter++){
                             for (int row = rowouter; row < N; row ++){
                                 // std::cout << "iteration: " << row << std::endl;
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &row);
                                 // step 1 : Extract the row
                                 if(row == rowouter){
                                     clEnqueueFillBuffer(queue, Value_filtered_0.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                                    clFinish(queue);
                                     err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered_0.buffer);
                                     err |= clSetKernelArg(kernelfilterarray, 7, sizeof(cl_int), &rowouter);
                                     err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                    clFinish(queue);
                                     printCL(pivot.buffer, 1, 1);
                                     printCL(Value_filtered_0.buffer, N, 1);
                                 }
                                 else{
                                     err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
                                     clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                                    clFinish(queue);
                                     err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                     clFinish(queue);
                                     Value_filtered_V = copyCL(Value_filtered.buffer, N, 1);
@@ -161,7 +164,7 @@ class CLBuffer{
                                             Lap_val_V.insert(Lap_val_V.begin() + end, Value_filtered_E[vf]);
                                             
                                             for(int rowptr = row; rowptr < N + 1; rowptr++){
-                                                Lap_rowptr_V[rowptr] += 1;
+                                                Lap_rowptr_V[rowptr + 1] += 1;
                                             }
                                             
                                         }
@@ -180,7 +183,7 @@ class CLBuffer{
                                             }
                                             
                                             for(int rowptr = row; rowptr < N + 1; rowptr++){
-                                                Lap_rowptr_V[rowptr] -= 1;
+                                                Lap_rowptr_V[rowptr + 1] -= 1;
                                                 
                                             }
                                         }

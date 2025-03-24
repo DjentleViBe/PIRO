@@ -464,10 +464,7 @@ const char *filter_array = R"CLC(
         int end = inputArrayrow[threshold_row + 1];
         int idx = start + gid;
 
-        if (start == rowouter){
-            pivot[start] = ValueArray[start];
-            // printf("%f ",pivot[start]);
-        }
+        pivot[0] = ValueArray[start]; 
 
         if (start + gid < end) {
             int col_index = inputArraycol[idx];
