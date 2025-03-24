@@ -77,6 +77,8 @@ class CLBuffer{
                         std::vector<float> Value_filtered_V = {0, 0, 0, 0, 0, 0, 0, 0};
                         std::vector<float> Value_filtered_E = {0, 0, 0, 0, 0, 0, 0, 0};
                         CLBuffer LFvalues, Lap_ind, Value_filtered, Value_filtered_0, Value_filtered_row, Lap_rowptr, pivot;
+                        print_time();
+                        std::cout << "Buffer creation begin" << std::endl;
                         
                         // int row = 0;
                         // float sizefactor = 2 / 3 ;
@@ -95,7 +97,9 @@ class CLBuffer{
                                 sizeof(float) * N, nullptr, &err);
                         
                         pivot.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float), NULL, &err);
-                        
+                        print_time();
+                        std::cout << "Buffer creation end" << std::endl;
+                    
                         err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &Lap_rowptr.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &Lap_ind.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &LFvalues.buffer);
@@ -116,6 +120,9 @@ class CLBuffer{
                         
                         float fillValue = 0.0f;
                         int fillValue_int = 0;
+                        
+                        print_time();
+                        std::cout << "Loop begin" << std::endl;
                         for (int rowouter = 0; rowouter < N; rowouter++){
                             // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
                             for (int row = rowouter; row < N; row ++){
@@ -219,6 +226,8 @@ class CLBuffer{
                             }
                             // std::cout << "\n";
                         }
+                        print_time();
+                        std::cout << "loop end" << std::endl;
                         clReleaseMemObject(LFvalues.buffer);
                         clReleaseMemObject(Lap_ind.buffer);
                         clReleaseMemObject(Lap_rowptr.buffer);
