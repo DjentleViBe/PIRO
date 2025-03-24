@@ -489,7 +489,6 @@ const char *filter_row = R"CLC(
         if(gid < n){
             outputArray[gid] = (zeroArray[gid] * rowArray[row]) / pivot[row];
         }
-        
     }
 )CLC";
 

@@ -118,6 +118,7 @@ class CLBuffer{
                         int fillValue_int = 0;
                         for (int rowouter = 0; rowouter < 1; rowouter++){
                             for (int row = rowouter; row < N; row ++){
+                                // std::cout << "iteration: " << row << std::endl;
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &row);
                                 // step 1 : Extract the row
                                 if(row == rowouter){
@@ -147,28 +148,40 @@ class CLBuffer{
                                     // printVector(Value_filtered_V);
                                     // printVector(Value_filtered_E);
                                     // printVector(Value_filtered);
-                                    printCL(Value_filtered.buffer, N, 1);
+                                    // printCL(Value_filtered.buffer, N, 1);
                                     
                                     for (int vf = 0; vf < N; vf++){
                                         if(Value_filtered_V[vf] == 0 && Value_filtered_E[vf] != 0)
                                         {
                                             // if 0 -> value, add this element
-                                            int start = Lap_rowptr_V[row];
-                                            Lap_val_V.insert(Lap_val_V.begin() + start + vf, Value_filtered_E[vf]);
-                                            Lap_ind_V.insert(Lap_ind_V.begin() + start + vf, vf);
-                                            for(int rowptr = vf + 1; rowptr < N + 1; rowptr++){
+                                            // int start = Lap_rowptr_V[row];
+                                            int end = Lap_rowptr_V[row + 1];
+                                            
+                                            Lap_ind_V.insert(Lap_ind_V.begin() + end, vf);
+                                            Lap_val_V.insert(Lap_val_V.begin() + end, Value_filtered_E[vf]);
+                                            
+                                            for(int rowptr = row; rowptr < N + 1; rowptr++){
                                                 Lap_rowptr_V[rowptr] += 1;
                                             }
+                                            
                                         }
                                         // i value to value, change this element
                                         else if(Value_filtered_V[vf] != 0 && Value_filtered_E[vf] == 0)
                                         {
                                             // if value -> 0, remove this element
                                             int start = Lap_rowptr_V[row];
-                                            Lap_val_V.erase(Lap_val_V.begin() + start + vf);
-                                            Lap_ind_V.erase(Lap_ind_V.begin() + start + vf);
-                                            for(int rowptr = vf + 1; rowptr < N + 1; rowptr++){
+                                            int end = Lap_rowptr_V[row + 1];
+                                            for(int col = start; col < end; col ++){
+                                                if(Lap_ind_V[col] == vf){
+                                                    Lap_val_V.erase(Lap_val_V.begin() + col);
+                                                    Lap_ind_V.erase(Lap_ind_V.begin() + col);
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            for(int rowptr = row; rowptr < N + 1; rowptr++){
                                                 Lap_rowptr_V[rowptr] -= 1;
+                                                
                                             }
                                         }
                                         else if (Value_filtered_V[vf] == 0 && Value_filtered_E[vf] == 0){
@@ -178,10 +191,16 @@ class CLBuffer{
                                             // if value changes, edit this element
                                             // row_ptr range
                                             int start = Lap_rowptr_V[row];
-                                            Lap_val_V[start + vf] = Value_filtered_E[vf];
+                                            int end = Lap_rowptr_V[row + 1];
+                                            for(int col = start; col < end; col ++){
+                                                if(Lap_ind_V[col] == vf){
+                                                    Lap_val_V[col] = Value_filtered_E[vf];
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
-                                    // std::cout << "iteration: " << row << std::endl;
+                                    printCL(Value_filtered.buffer, N, 1);
                                     // printVector(Lap_rowptr_V);
                                     // printVector(Lap_val_V);
                                     // printVector(Lap_ind_V);
