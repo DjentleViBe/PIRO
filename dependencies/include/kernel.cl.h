@@ -484,7 +484,7 @@ const char *filter_row = R"CLC(
     ) {
         int gid = get_global_id(0);
         if(gid < n){
-            outputArray[gid] = (zeroArray[gid] * rowArray[row]) / pivot[row];
+            outputArray[gid] = (zeroArray[gid] * rowArray[row]) / pivot[0];
         }
     }
 )CLC";
