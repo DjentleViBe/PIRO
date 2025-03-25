@@ -151,9 +151,10 @@ class CLBuffer{
                                     // printCL(pivot.buffer, 1, 1);
                                 }
                                 else{
+                                    print_time();
+                                    std::cout << "GPU start" << std::endl;
                                     err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
                                     clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
-                                    clFinish(queue);
                                     clEnqueueFillBuffer(queue, Value_filtered_row.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
                                     clFinish(queue);
                                     err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
@@ -168,7 +169,8 @@ class CLBuffer{
                                     err = clEnqueueNDRangeKernel(queue, kernel_math[1], 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                     clFinish(queue);
                                     Value_filtered_E = copyCL(Value_filtered.buffer, N, 1);
-                                    
+                                    print_time();
+                                    std::cout << "GPU finish" << std::endl;
                                     // Update CSR array
                                     for (int vf = 0; vf < N; vf++){
                                         if(Value_filtered_V[vf] == 0 && Value_filtered_E[vf] != 0)
