@@ -59,6 +59,7 @@ class CLBuffer{
                 std::cout << "Backward Euler" << std::endl;
                     if(SP.solverscheme == 17){
                         std::cout << "LU Decomposition" << std::endl;
+                        int N = 8;
                         size_t globalWorkSize_square[1] = { (size_t)N};
                         std::vector<float> Lap_full = {-6.0,1.0,1.0,0.0,1.0,0.0,0.0,0.0,
                                                         1.0,-6.0,0.0,1.0,0.0,1.0,0.0,0.0,
@@ -68,7 +69,7 @@ class CLBuffer{
                                                         0.0,1.0,0.0,0.0,1.0,-6.0,0.0,1.0,
                                                         0.0,0.0,1.0,0.0,1.0,0.0,-6.0,1.0,
                                                         0.0,0.0,0.0,1.0,0.0,1.0,1.0,-6.0};
-                        int N = 8;
+                        
                         
                         std::vector<float> Lap_val_V = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
                         std::vector<int> Lap_ind_V = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
