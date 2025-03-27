@@ -10,6 +10,7 @@
 #include "../dependencies/include/solve.hpp"
 #include "../dependencies/include/ic.hpp"
 #include "../dependencies/include/bc.hpp"
+#include "../dependencies/include/operatoroverload.hpp"
 
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>

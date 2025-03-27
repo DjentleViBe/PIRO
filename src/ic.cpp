@@ -90,6 +90,13 @@ std::vector<float> initialcondition(int index, int valuetype){
             values[vec] = vectordir[2] * vecval[0];
         }
     }
+    else if (MP.ICfiles[index] == "UniformScalar"){
+        values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
+        std::vector<float> scaval = convertStringVectorToFloat(splitString(icreader.get("Scalar", "Value", "default_value"), ' '));
+        for(int vec = 0; vec < values.size(); vec++){
+            values[vec] = scaval[0];
+        }
+    }
     std::cout << "Initialisation completed" << std::endl;
     return values;
 
