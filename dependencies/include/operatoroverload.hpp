@@ -160,15 +160,21 @@ class CLBuffer{
                                     clFinish(queue);
                                     err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                     clFinish(queue);
+                                    print_time();
+                                    std::cout << "GPU filter" << std::endl;
                                     Value_filtered_V = copyCL(Value_filtered.buffer, N, 1);
                                     // printCL(pivot.buffer, 1, 1);
                                     // step 2 : Multiply with factor = ele / pivot
                                     err |= clSetKernelArg(kernelfilterrow, 5, sizeof(cl_mem), &rowouter);
                                     err = clEnqueueNDRangeKernel(queue, kernelfilterrow, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                     clFinish(queue);
+                                    print_time();
+                                    std::cout << "GPU row" << std::endl;
                                     // step 2 : subtract the row from 0th
                                     err = clEnqueueNDRangeKernel(queue, kernel_math[1], 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                     clFinish(queue);
+                                    print_time();
+                                    std::cout << "GPU subtract" << std::endl;
                                     Value_filtered_E = copyCL(Value_filtered.buffer, N, 1);
                                     print_time();
                                     std::cout << "GPU finish" << std::endl;
