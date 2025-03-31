@@ -466,26 +466,33 @@ const char *filter_array = R"CLC(
         int start_0 = inputArrayrow[threshold_row];
         int end_0 = inputArrayrow[threshold_row + 1];
 
-        if(threshold_row == rowouter && gid == 0){
-            pivot[0] = ValueArray[start]; 
-        }
-        
-        int idx = start + gid;
-        if (idx >= end) return;
-        int match_found = 0;
-        for(int j = start_0; j < end_0; j++){
-            int col_ind = inputArraycol[idx];
-            int col_ind_0 = inputArraycol[j];
-            if(col_ind == col_ind_0){
-                outputArray[col_ind_0] = -ValueArray[col_ind] + ValueArray[idx];
-                match_found = 1;
+        int found_gid = 0;
+        int found_ind = 0;
+        for (int j = start; j < end; j++){
+            if(gid == inputArraycol[j]){
+                for(int k = start_0; k < end_0; k++){
+                    if(gid == inputArraycol[k]){
+                        outputArray[gid] = ValueArray[j] - ValueArray[k];
+                        found_gid = 1;
+                        break;
+                    }
+                }
+                if(!found_gid){
+                    outputArray[gid] =  ValueArray[j];
+                }
+                found_ind = 1;
                 break;
             }
         }
-        if(!match_found){
-            outputArray[inputArraycol[idx]] = ValueArray[idx];
+    if(!found_ind){
+        for(int k = start_0; k < end_0; k++){
+            if(gid == inputArraycol[k]){
+                outputArray[gid] = -ValueArray[k];
+                break;
+                }
+            }
         }
-    }
+}
 )CLC";
 
 const char *filter_row = R"CLC(

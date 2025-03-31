@@ -129,7 +129,9 @@ class CLBuffer{
                         for (int rowouter = 0; rowouter < 1; rowouter++){
                             // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
                             for (int row = rowouter; row < 1; row ++){
-                                size_t globalWorkSize_square[2] = { (size_t)N, (size_t)N};
+                                // size_t globalWorkSize_square[2] = { (size_t)N, (size_t)N};
+                                size_t globalWorkSize_square[1] = { (size_t)N};
+                                
                                 clEnqueueFillBuffer(queue, LFvalues.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N * N * 3 / 4, 0, nullptr, nullptr);
                                 clEnqueueFillBuffer(queue, Lap_ind.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N * 3 / 4, 0, nullptr, nullptr);
                                 clEnqueueFillBuffer(queue, Lap_rowptr.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
@@ -150,7 +152,7 @@ class CLBuffer{
                                     clFinish(queue);
                                     err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered_0.buffer);
                                     err |= clSetKernelArg(kernelfilterarray, 7, sizeof(cl_int), &rowouter);
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 2, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                     clFinish(queue);
                                     std::cout << "\n" << std::endl;
                                     printCL(pivot.buffer, 1, 1);
