@@ -460,18 +460,30 @@ const char *filter_array = R"CLC(
         const int rowouter
     ) {
         int gid = get_global_id(0);
-        int start = inputArrayrow[threshold_row];
-        int end = inputArrayrow[threshold_row + 1];
-        int idx = start + gid;
+        int start = inputArrayrow[threshold_row + 1];
+        int end = inputArrayrow[threshold_row + 2];
+
+        int start_0 = inputArrayrow[threshold_row];
+        int end_0 = inputArrayrow[threshold_row + 1];
 
         if(threshold_row == rowouter && gid == 0){
             pivot[0] = ValueArray[start]; 
         }
         
-
-        if (start + gid < end) {
-            int col_index = inputArraycol[idx];
-            outputArray[col_index] = ValueArray[idx];
+        int idx = start + gid;
+        if (idx >= end) return;
+        int match_found = 0;
+        for(int j = start_0; j < end_0; j++){
+            int col_ind = inputArraycol[idx];
+            int col_ind_0 = inputArraycol[j];
+            if(col_ind == col_ind_0){
+                outputArray[col_ind_0] = -ValueArray[col_ind] + ValueArray[idx];
+                match_found = 1;
+                break;
+            }
+        }
+        if(!match_found){
+            outputArray[inputArraycol[idx]] = ValueArray[idx];
         }
     }
 )CLC";

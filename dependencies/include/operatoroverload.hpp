@@ -60,9 +60,10 @@ class CLBuffer{
                     if(SP.solverscheme == 17){
                         std::cout << "LU Decomposition" << std::endl;
                         int N = 8;
-                        size_t globalWorkSize_square[1] = { (size_t)N};
-                        std::vector<float> Lap_full = {-6.0,1.0,1.0,0.0,1.0,0.0,0.0,0.0,
-                                                        1.0,-6.0,0.0,1.0,0.0,1.0,0.0,0.0,
+                        
+                        // size_t globalWorkSize[1] = { (size_t)N};
+                        std::vector<float> Lap_full = {-6.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+                                                        1.0,-6.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0,
                                                         1.0,0.0,-6.0,1.0,0.0,0.0,1.0,0.0,
                                                         0.0,1.0,1.0,-6.0,0.0,0.0,0.0,1.0,
                                                         1.0,0.0,0.0,0.0,-6.0,1.0,1.0,0.0,
@@ -74,6 +75,7 @@ class CLBuffer{
                         std::vector<float> Lap_val_V = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
                         std::vector<int> Lap_ind_V = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
                         std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
+                        // look_up = 0, 1, 2, 4 ; 1, 0, 3, 5 = 
                         // int nnz = Lap_val_V.size();
                         std::vector<float> Value_filtered_V = {0, 0, 0, 0, 0, 0, 0, 0};
                         std::vector<float> Value_filtered_E = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -124,9 +126,10 @@ class CLBuffer{
                         
                         print_time();
                         std::cout << "Loop begin" << std::endl;
-                        for (int rowouter = 0; rowouter < N; rowouter++){
+                        for (int rowouter = 0; rowouter < 1; rowouter++){
                             // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
-                            for (int row = rowouter; row < N; row ++){
+                            for (int row = rowouter; row < 1; row ++){
+                                size_t globalWorkSize_square[2] = { (size_t)N, (size_t)N};
                                 clEnqueueFillBuffer(queue, LFvalues.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N * N * 3 / 4, 0, nullptr, nullptr);
                                 clEnqueueFillBuffer(queue, Lap_ind.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N * 3 / 4, 0, nullptr, nullptr);
                                 clEnqueueFillBuffer(queue, Lap_rowptr.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
@@ -147,31 +150,34 @@ class CLBuffer{
                                     clFinish(queue);
                                     err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered_0.buffer);
                                     err |= clSetKernelArg(kernelfilterarray, 7, sizeof(cl_int), &rowouter);
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 2, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                     clFinish(queue);
-                                    // printCL(pivot.buffer, 1, 1);
+                                    std::cout << "\n" << std::endl;
+                                    printCL(pivot.buffer, 1, 1);
+                                    printCL(Value_filtered_0.buffer, N, 1);
                                 }
                                 else{
-                                    print_time();
-                                    std::cout << "GPU start" << std::endl;
+                                    /*
+                                    // print_time();
+                                    // std::cout << "GPU start" << std::endl;
                                     err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
                                     clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
                                     clEnqueueFillBuffer(queue, Value_filtered_row.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
                                     clFinish(queue);
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                                     clFinish(queue);
                                     Value_filtered_V = copyCL(Value_filtered.buffer, N, 1);
                                     // printCL(pivot.buffer, 1, 1);
                                     // step 2 : Multiply with factor = ele / pivot
                                     err |= clSetKernelArg(kernelfilterrow, 5, sizeof(cl_mem), &rowouter);
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterrow, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                    err = clEnqueueNDRangeKernel(queue, kernelfilterrow, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                                     clFinish(queue);
                                     // step 2 : subtract the row from 0th
-                                    err = clEnqueueNDRangeKernel(queue, kernel_math[1], 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                    err = clEnqueueNDRangeKernel(queue, kernel_math[1], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                                     clFinish(queue);
                                     Value_filtered_E = copyCL(Value_filtered.buffer, N, 1);
-                                    print_time();
-                                    std::cout << "GPU finish" << std::endl;
+                                    // print_time();
+                                    // std::cout << "GPU finish" << std::endl;
                                     // Update CSR array
                                     for (int vf = 0; vf < N; vf++){
                                         if(Value_filtered_V[vf] == 0 && Value_filtered_E[vf] != 0)
@@ -221,7 +227,7 @@ class CLBuffer{
                                                 }
                                             }
                                         }
-                                    }
+                                    }*/
                                 }
                                 
                                 clFinish(queue);
@@ -237,7 +243,7 @@ class CLBuffer{
                         clReleaseMemObject(Value_filtered.buffer);
                         clReleaseMemObject(Value_filtered_0.buffer);
                         clReleaseMemObject(Value_filtered_row.buffer);
-                        printVector(Lap_val_V);
+                        // printVector(Lap_val_V);
 
                     }
 
