@@ -148,13 +148,16 @@ class CLBuffer{
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &row);
                                 // step 1 : Extract the row
                                 if(row == rowouter){
+                                    print_time();
+                                    std::cout << "start" << std::endl;
                                     clEnqueueFillBuffer(queue, Value_filtered_0.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
                                     clFinish(queue);
                                     err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered_0.buffer);
                                     err |= clSetKernelArg(kernelfilterarray, 7, sizeof(cl_int), &rowouter);
                                     err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                     clFinish(queue);
-                                    std::cout << "\n" << std::endl;
+                                    print_time();
+                                    std::cout << "end" << std::endl;
                                     printCL(pivot.buffer, 1, 1);
                                     printCL(Value_filtered_0.buffer, N, 1);
                                 }

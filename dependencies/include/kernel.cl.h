@@ -460,39 +460,52 @@ const char *filter_array = R"CLC(
         const int rowouter
     ) {
         int gid = get_global_id(0);
-        int start = inputArrayrow[threshold_row + 1];
-        int end = inputArrayrow[threshold_row + 2];
-
+    
+        // Pre-compute ranges only once
         int start_0 = inputArrayrow[threshold_row];
         int end_0 = inputArrayrow[threshold_row + 1];
-
-        int found_gid = 0;
-        int found_ind = 0;
-        for (int j = start; j < end; j++){
-            if(gid == inputArraycol[j]){
-                for(int k = start_0; k < end_0; k++){
-                    if(gid == inputArraycol[k]){
-                        outputArray[gid] = ValueArray[j] - ValueArray[k];
-                        found_gid = 1;
-                        break;
-                    }
-                }
-                if(!found_gid){
-                    outputArray[gid] =  ValueArray[j];
-                }
-                found_ind = 1;
-                break;
+        int start = end_0;  // Same as inputArrayrow[threshold_row + 1]
+        int end = inputArrayrow[threshold_row + 2];
+        
+        // Initialize output to zero by default (assuming no match)
+        float result = 0.0f;
+        bool found_in_second_range = false;
+        bool found_in_first_range = false;
+        int first_range_idx = -1;
+        
+        // First pass: Check if gid exists in first range and save index
+        for (int k = start_0; k < end_0; k++) {
+            if (gid == inputArraycol[k]) {
+                found_in_first_range = true;
+                first_range_idx = k;
+                break;  // Early termination
             }
         }
-    if(!found_ind){
-        for(int k = start_0; k < end_0; k++){
-            if(gid == inputArraycol[k]){
-                outputArray[gid] = -ValueArray[k];
-                break;
+        
+        // Second pass: Check if gid exists in second range
+        for (int j = start; j < end; j++) {
+            if (gid == inputArraycol[j]) {
+                found_in_second_range = true;
+                
+                // If found in both ranges, compute difference
+                if (found_in_first_range) {
+                    result = ValueArray[j] - ValueArray[first_range_idx];
+                } else {
+                    // If only in second range, use value directly
+                    result = ValueArray[j];
                 }
+                break;  // Early termination
             }
         }
-}
+        
+        // If only in first range, use negative value
+        if (!found_in_second_range && found_in_first_range) {
+            result = -ValueArray[first_range_idx];
+        }
+        
+        // Write result to output array
+        outputArray[gid] = result;
+    }
 )CLC";
 
 const char *filter_row = R"CLC(
