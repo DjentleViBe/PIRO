@@ -450,134 +450,44 @@ const char *lu_decompose_sparse = R"CLC(
         
 const char *filter_array = R"CLC(
     __kernel void filter_array(
-        __global const int* inputArrayrow,
-        __global const int* inputArraycol,
-        __global const float* ValueArray,
+        __global const int* hashkey_0,
+        __global const int* hashvalue_0,
+        __global const int* hashkey_r,
+        __global const int* hashvalue_r,
         __global float* outputArray,
-        const int threshold_row,
-        const int n,
-        __global float* pivot,
-        const int rowouter
+        const int n
     ) {
-        // Get the global ID for this work item
-    const int gid = get_global_id(0);
-    const int local_id = get_local_id(0);
-    const int group_size = get_local_size(0);
-    const int group_id = get_group_id(0);
-    
-    // Pre-compute ranges only once
-    const int start_0 = inputArrayrow[threshold_row];
-    const int end_0 = inputArrayrow[threshold_row + 1];
-    const int start = end_0;  // Same as inputArrayrow[threshold_row + 1]
-    const int end = inputArrayrow[threshold_row + 2];
-    
-    // Calculate sizes of ranges
-    const int range1_size = end_0 - start_0;
-    const int range2_size = end - start;
-    
-    // Use local memory for caching frequently accessed data
-    __local int local_col_cache[256]; // Adjust size based on work-group size
-    __local float local_val_cache[256]; // Adjust size based on work-group size
-    
-    float result = 0.0f;
-    int first_range_val_idx = -1;
-    int second_range_val_idx = -1;
-    
-    // Collaborative loading of first range data into local memory for the work-group
-    // Each work item loads one or more elements
-    for (int i = local_id; i < range1_size && i < 256; i += group_size) {
-        if (start_0 + i < end_0) {
-            local_col_cache[i] = inputArraycol[start_0 + i];
-            local_val_cache[i] = ValueArray[start_0 + i];
+        int gid = get_global_id(0);
+        int hashindex = gid % n;
+        float zerocol = 0.0f;
+        float rcol = 0.0f;
+        float pivot = 0.0f;
+        float factor = 0.0f;
+
+        if(hashkey_0[0] == 0){
+            pivot = hashvalue_0[0];
         }
-    }
-    
-    // Ensure all work items have completed loading local memory
-    barrier(CLK_LOCAL_MEM_FENCE);
-    
-    // Binary search in first range (if data is sorted)
-    // For unsorted data, we'll use a linear scan but with local memory
-    for (int i = 0; i < range1_size && i < 256; i++) {
-        if (local_col_cache[i] == gid) {
-            first_range_val_idx = i;
-            break;
+
+        if(hashkey_r[0] == 0){
+            factor = hashvalue_r[0];
         }
-    }
     
-    // Reset local memory for second range
-    barrier(CLK_LOCAL_MEM_FENCE);
-    
-    // Collaborative loading of second range data
-    for (int i = local_id; i < range2_size && i < 256; i += group_size) {
-        if (start + i < end) {
-            local_col_cache[i] = inputArraycol[start + i];
-            local_val_cache[i] = ValueArray[start + i];
+        if(hashkey_0[hashindex] == gid){
+            zerocol = hashvalue_0[hashindex];
         }
-    }
-    
-    // Ensure all work items have completed loading local memory
-    barrier(CLK_LOCAL_MEM_FENCE);
-    
-    // Search in second range using local memory
-    for (int i = 0; i < range2_size && i < 256; i++) {
-        if (local_col_cache[i] == gid) {
-            second_range_val_idx = i;
-            break;
+        if(hashkey_r[hashindex] == gid){
+            rcol = hashvalue_r[hashindex];
         }
-    }
-    
-    // Compute the result based on found indices
-    if (second_range_val_idx != -1) {
-        if (first_range_val_idx != -1) {
-            // Found in both ranges
-            result = local_val_cache[second_range_val_idx] - local_val_cache[first_range_val_idx];
-        } else {
-            // Found only in second range
-            result = local_val_cache[second_range_val_idx];
+
+        if(zerocol != 0.0f && rcol != 0.0f){
+            outputArray[gid] = rcol - (factor / pivot) * zerocol;
         }
-    } else if (first_range_val_idx != -1) {
-        // Found only in first range
-        result = -local_val_cache[first_range_val_idx];
-    }
-    
-    // For very large ranges that don't fit in local memory, fall back to global memory
-    if ((range1_size > 256 || range2_size > 256) && 
-        (first_range_val_idx == -1 || second_range_val_idx == -1)) {
-        
-        // Fall back for first range if not found in local cache
-        if (first_range_val_idx == -1) {
-            for (int k = start_0 + 256; k < end_0; k++) {
-                if (gid == inputArraycol[k]) {
-                    first_range_val_idx = k - start_0;
-                    break;
-                }
-            }
+        else if(zerocol != 0.0f){
+            outputArray[gid] = - (factor / pivot) * zerocol;
         }
-        
-        // Fall back for second range if not found in local cache
-        if (second_range_val_idx == -1) {
-            for (int j = start + 256; j < end; j++) {
-                if (gid == inputArraycol[j]) {
-                    second_range_val_idx = j - start;
-                    break;
-                }
-            }
+        else if(rcol != 0.0f){
+            outputArray[gid] = rcol;
         }
-        
-        // Recompute result with global memory values if needed
-        if (second_range_val_idx != -1) {
-            if (first_range_val_idx != -1) {
-                result = ValueArray[start + second_range_val_idx] - ValueArray[start_0 + first_range_val_idx];
-            } else {
-                result = ValueArray[start + second_range_val_idx];
-            }
-        } else if (first_range_val_idx != -1) {
-            result = -ValueArray[start_0 + first_range_val_idx];
-        }
-    }
-        
-        // Write result to output array
-        outputArray[gid] = result;
     }
 )CLC";
 

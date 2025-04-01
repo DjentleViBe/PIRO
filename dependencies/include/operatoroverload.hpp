@@ -75,91 +75,148 @@ class CLBuffer{
                         std::vector<float> Lap_val_V = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
                         std::vector<int> Lap_ind_V = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
                         std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
+                        int TABLE_SIZE = N;
+                        std::vector<int> hashvalues_0(TABLE_SIZE, 0);
+                        std::vector<int> hashkeys_0(TABLE_SIZE, -1);
+
                         // look_up = 0, 1, 2, 4 ; 1, 0, 3, 5 = 
                         // int nnz = Lap_val_V.size();
                         std::vector<float> Value_filtered_V = {0, 0, 0, 0, 0, 0, 0, 0};
                         std::vector<float> Value_filtered_E = {0, 0, 0, 0, 0, 0, 0, 0};
-                        CLBuffer LFvalues, Lap_ind, Value_filtered, Value_filtered_0, Value_filtered_row, Lap_rowptr, pivot;
+                        CLBuffer Value_filtered;
+                        CLBuffer hk_0, hv_0, hk_r, hv_r;
                         print_time();
                         std::cout << "Buffer creation begin" << std::endl;
                         
                         // int row = 0;
                         // float sizefactor = 2 / 3 ;
-                        LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                sizeof(float) * N * N * 3 / 4, nullptr, &err);
-                        Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                            sizeof(int) * N * N * 3 / 4, nullptr, &err);
-                        Lap_rowptr.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                            sizeof(int) * (N + 1), nullptr, &err);
+                        hk_0.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                sizeof(int) * N, nullptr, &err);
+                        hv_0.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                sizeof(int) * N, nullptr, &err);
+                        hk_r.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                sizeof(int) * N, nullptr, &err);
+                        hv_r.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                            sizeof(int) * N, nullptr, &err);
                         
                         Value_filtered.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
                             sizeof(float) * N, nullptr, &err);
-                        Value_filtered_0.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                            sizeof(float) * N, nullptr, &err);
-                        Value_filtered_row.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                sizeof(float) * N, nullptr, &err);
                         
-                        pivot.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float), NULL, &err);
                         print_time();
                         std::cout << "Buffer creation end" << std::endl;
                     
-                        err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &Lap_rowptr.buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &Lap_ind.buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &LFvalues.buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &hk_0.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &hv_0.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &hk_r.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &hv_r.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_mem), &Value_filtered.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &N);
-                        err |= clSetKernelArg(kernelfilterarray, 6, sizeof(cl_mem), &pivot.buffer);
                         
-                        err |= clSetKernelArg(kernelfilterrow, 0, sizeof(cl_mem), &Value_filtered_0.buffer);
-                        err |= clSetKernelArg(kernelfilterrow, 1, sizeof(cl_mem), &Value_filtered_row.buffer);
-                        err |= clSetKernelArg(kernelfilterrow, 2, sizeof(cl_mem), &Value_filtered.buffer);
-                        err |= clSetKernelArg(kernelfilterrow, 3, sizeof(cl_int), &N);
-                        err |= clSetKernelArg(kernelfilterrow, 4, sizeof(cl_mem), &pivot.buffer);
-
-                        err |= clSetKernelArg(kernel_math[1], 0, sizeof(cl_mem), &Value_filtered.buffer);
-                        err |= clSetKernelArg(kernel_math[1], 1, sizeof(cl_mem), &Value_filtered.buffer);
-                        err |= clSetKernelArg(kernel_math[1], 2, sizeof(cl_mem), &Value_filtered_row.buffer);
-                        err |= clSetKernelArg(kernel_math[1], 3, sizeof(cl_int), &N);
-                        
-                        float fillValue = 0.0f;
-                        int fillValue_int = 0;
+                        // float fillValue = 0.0f;
+                        // int fillValue_int = 0;
                         
                         print_time();
                         std::cout << "Loop begin" << std::endl;
+                        // const float A = 0.6180339887;
                         for (int rowouter = 0; rowouter < 1; rowouter++){
+                            /////////////// generate hash table for the 0th row
+                            std::cout << "Generating hash table" << std::endl;
+                            print_time();
+                            std::cout << "starthash_0" << std::endl;
+                            for (int j = Lap_rowptr_V[rowouter]; j < Lap_rowptr_V[rowouter + 1]; j++) {
+                                int key_0 = Lap_ind_V[j]; // Original index
+                                //int hashindex = (int)(TABLE_SIZE * (key * A - (int)(key * A))) % TABLE_SIZE;
+                                int hashindex_0 = key_0 % TABLE_SIZE;
+                                int startindex = hashindex_0;
+                                bool inserted = false;
+
+                                while (hashkeys_0[hashindex_0] != -1) { // Linear probing
+                                    std::cout << "probing" << std::endl;
+                                    if (hashkeys_0[hashindex_0] == key_0) { // If key exists, overwrite value
+                                        hashvalues_0[hashindex_0] = Lap_val_V[j];
+                                        inserted = true;
+                                        break;
+                                    }
+
+                                    hashindex_0 = (hashindex_0 + 1) % TABLE_SIZE;
+
+                                    if (hashindex_0 == startindex) { // Table full
+                                        std::cerr << "Error: Hash table is full, cannot insert key " << key_0 << std::endl;
+                                        break;
+                                    }
+                                }
+
+                                if (!inserted && hashkeys_0[hashindex_0] == -1) {  // Insert if slot is found
+                                    hashkeys_0[hashindex_0] = key_0;
+                                    hashvalues_0[hashindex_0] = Lap_val_V[j];
+                                    }
+                                }
+                            print_time();
+                            std::cout << "endhash_0" << std::endl;
+                            /////////////// generate hash table for the 0th row
+                            err = clEnqueueWriteBuffer(queue, hk_0.buffer, CL_TRUE, 0, sizeof(int) * hashkeys_0.size(), hashkeys_0.data(), 0, NULL, NULL);
+                            err = clEnqueueWriteBuffer(queue, hv_0.buffer, CL_TRUE, 0, sizeof(int) * hashvalues_0.size(), hashvalues_0.data(), 0, NULL, NULL);
+                            
+                            //printVector(hashkeys_0);
+                            //printVector(hashvalues_0);
                             // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
-                            for (int row = rowouter; row < 1; row ++){
+                            for (int row = rowouter + 1; row < N; row ++){
+                                std::vector<int> hashvalues_r(TABLE_SIZE, 0);
+                                std::vector<int> hashkeys_r(TABLE_SIZE, -1);
+                                print_time();
+                                std::cout << "starthash_r" << std::endl;
+                                for (int j = Lap_rowptr_V[row]; j < Lap_rowptr_V[row + 1]; j++) {
+                                    // populate rth row hash //////////////////////////
+                                    int key_r = Lap_ind_V[j]; // Original index
+                                    //int hashindex = (int)(TABLE_SIZE * (key * A - (int)(key * A))) % TABLE_SIZE;
+                                    int hashindex_r = key_r % TABLE_SIZE;
+                                    int startindex = hashindex_r;
+                                    bool inserted = false;
+    
+                                    while (hashkeys_r[hashindex_r] != -1) { // Linear probing
+                                        std::cout << "probing" << std::endl;
+                                        if (hashkeys_0[hashindex_r] == key_r) { // If key exists, overwrite value
+                                            hashvalues_0[hashindex_r] = Lap_val_V[j];
+                                            inserted = true;
+                                            break;
+                                        }
+    
+                                        hashindex_r = (hashindex_r + 1) % TABLE_SIZE;
+    
+                                        if (hashindex_r == startindex) { // Table full
+                                            std::cerr << "Error: Hash table is full, cannot insert key " << key_r << std::endl;
+                                            break;
+                                        }
+                                    }
+    
+                                    if (!inserted && hashkeys_r[hashindex_r] == -1) {  // Insert if slot is found
+                                        hashkeys_r[hashindex_r] = key_r;
+                                        hashvalues_r[hashindex_r] = Lap_val_V[j];
+                                        }
+                                    }
+                                print_time();
+                                std::cout << "endhash_r" << std::endl;
+                                // populate rth row hash //////////////////////////
                                 // size_t globalWorkSize_square[2] = { (size_t)N, (size_t)N};
                                 size_t globalWorkSize_square[1] = { (size_t)N};
                                 
-                                clEnqueueFillBuffer(queue, LFvalues.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N * N * 3 / 4, 0, nullptr, nullptr);
-                                clEnqueueFillBuffer(queue, Lap_ind.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N * 3 / 4, 0, nullptr, nullptr);
-                                clEnqueueFillBuffer(queue, Lap_rowptr.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
+                                err = clEnqueueWriteBuffer(queue, hk_r.buffer, CL_TRUE, 0, sizeof(int) * hashkeys_r.size(), hashkeys_r.data(), 0, NULL, NULL);
+                                err = clEnqueueWriteBuffer(queue, hv_r.buffer, CL_TRUE, 0, sizeof(int) * hashvalues_r.size(), hashvalues_r.data(), 0, NULL, NULL);
                                 clFinish(queue);
-                                
-                                err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_TRUE, 0, sizeof(float) * Lap_val_V.size(), Lap_val_V.data(), 0, NULL, NULL);
-                                if (err != CL_SUCCESS) {
-                                    std::cerr << "Error creating LFvalues buffer: " << err << std::endl;
-                                }
-                                err = clEnqueueWriteBuffer(queue, Lap_ind.buffer, CL_TRUE, 0, sizeof(int) * Lap_ind_V.size(), Lap_ind_V.data(), 0, NULL, NULL);
-                                err = clEnqueueWriteBuffer(queue, Lap_rowptr.buffer, CL_TRUE, 0, sizeof(int) * (N + 1), Lap_rowptr_V.data(), 0, NULL, NULL);
-                                clFinish(queue);
+                                print_time();
+                                std::cout << "startkernel" << std::endl;
+                                err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                print_time();
+                                std::cout << "endkernel" << std::endl;
+                                printCL(Value_filtered.buffer, N, 1);
                                 // std::cout << "iteration: " << row << std::endl;
-                                err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &row);
-                                // step 1 : Extract the row
                                 if(row == rowouter){
-                                    print_time();
-                                    std::cout << "start" << std::endl;
-                                    clEnqueueFillBuffer(queue, Value_filtered_0.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
-                                    clFinish(queue);
-                                    err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered_0.buffer);
-                                    err |= clSetKernelArg(kernelfilterarray, 7, sizeof(cl_int), &rowouter);
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
-                                    clFinish(queue);
-                                    print_time();
-                                    std::cout << "end" << std::endl;
-                                    printCL(pivot.buffer, 1, 1);
-                                    printCL(Value_filtered_0.buffer, N, 1);
+                                    
+                                    // err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                    // clFinish(queue);
+                                    
+                                    // printCL(pivot.buffer, 1, 1);
+                                    
                                 }
                                 else{
                                     /*
@@ -242,12 +299,8 @@ class CLBuffer{
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
-                        clReleaseMemObject(LFvalues.buffer);
-                        clReleaseMemObject(Lap_ind.buffer);
-                        clReleaseMemObject(Lap_rowptr.buffer);
+                        
                         clReleaseMemObject(Value_filtered.buffer);
-                        clReleaseMemObject(Value_filtered_0.buffer);
-                        clReleaseMemObject(Value_filtered_row.buffer);
                         // printVector(Lap_val_V);
 
                     }
