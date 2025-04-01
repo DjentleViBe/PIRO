@@ -305,7 +305,8 @@ void print_time() {
     // Print the time with 4-digit millisecond precision
     std::cout << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << '.'
               << std::setfill('0') << std::setw(3) << milliseconds
-              << std::setfill('0') << std::setw(1) << microseconds / 100 << "\t";
+              << std::setfill('0') << std::setw(2) << microseconds / 10
+              << std::setfill('0') << std::setw(1) << microseconds % 10 << "\t";
 }
 
 void printArray(float* array, uint size){
