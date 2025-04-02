@@ -34,7 +34,6 @@ Iteration 1- 7 = 7*(kernelfilterarray + kernelfilterrow + kernel_math[1]) = 7 * 
 
 Total FLOPS = 8 * 21 = 168
 Execution time = 0.0007 * 8 * 8 = 0.0448
-filterarray = 0.0003, filter row = 0.0003, subtraction = 0.0001
 GFLOPS = 168 / 0.0448 = 3.75E-6
 
 Ops per clock = Peak FLOPS / Clock speed = 6.4E12 / 1E9 = 6.4E3
@@ -54,3 +53,16 @@ Ops per clock = 6.4E3
 Peak GFLOPS = 128E3
 
 Efficiency = 38400 / 128E3 = 0.3
+
+## LU_Decomp_part4:
+1. kernelfilterarray = 3 in best case, 4 in worst case
+
+Iteration 0-7 = 8*(kernelfilterarray) = 8 * 4 = 32
+Total FLOPS = 8 * 32 = 256
+Execution time = 0.00001 + 7 * (0.000051 + 0.000045 + 0.001024) = 0.00112 (0.03457 total)
+GFLOPS = 256 / 0.00112 = 228571
+
+Ops per clock = 228571
+Peak GFLOPS = 128E3
+
+Efficiency = 11428 / 128E3 = 1.943
