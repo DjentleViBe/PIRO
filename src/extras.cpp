@@ -360,6 +360,7 @@ std::vector<float> copyCL(cl_mem memC, int N, int type){
                                     sizeof(float) * N, hostValues.data(), 0, NULL, NULL);
 
     }
+    clFinish(queue);
     return hostValues;
 }
 

@@ -13,6 +13,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 
 class CLBuffer{
     public:
@@ -80,6 +81,7 @@ class CLBuffer{
                         std::vector<float> Value_filtered_E = {0, 0, 0, 0, 0, 0, 0, 0};
                         CLBuffer Value_filtered;
                         CLBuffer hk_0, hv_0, hk_r, hv_r;
+                        cl_event event1, event2, event3, event4;
                         print_time();
                         std::cout << "Buffer creation begin" << std::endl;
                         
@@ -108,7 +110,7 @@ class CLBuffer{
                         err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &N);
                         size_t globalWorkSize_square[1] = { (size_t)N};
                         float fillValue = 0.0f;
-                        int fillValue_int = -1;
+                        // int fillValue_int = -1;
                         print_time();
                         std::cout << "Loop begin" << std::endl;
                         // const float A = 0.6180339887;
@@ -117,15 +119,10 @@ class CLBuffer{
                             std::vector<float> hashvalues_0(TABLE_SIZE, 0.0f);
                             std::vector<int> hashkeys_0(TABLE_SIZE, -1);
                             /////////////// generate hash table for the 0th row
-                            // std::cout << "Generating hash table" << std::endl;
-                            //print_time();
-                            //std::cout << "starthash_0" << std::endl;
                             for (int j = Lap_rowptr_V[rowouter]; j < Lap_rowptr_V[rowouter + 1]; j++) {
                                 int key_0 = Lap_ind_V[j]; // Original index
-                                //int hashindex = (int)(TABLE_SIZE * (key * A - (int)(key * A))) % TABLE_SIZE;
                                 int hashindex_0 = key_0 & (TABLE_SIZE - 1); 
                                 int startindex = hashindex_0;
-                                // bool inserted = false;
 
                                 while (true) {  
                                     int existing_key = hashkeys_0[hashindex_0];
@@ -144,26 +141,15 @@ class CLBuffer{
                                     }
                                 }
                             }
-                            //print_time();
-                            //std::cout << "endhash_0" << std::endl;
-                            /////////////// generate hash table for the 0th row
-                            clEnqueueFillBuffer(queue, hv_0.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
-                            clEnqueueFillBuffer(queue, hk_0.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N, 0, nullptr, nullptr);
-                            clFinish(queue);
-                            err = clEnqueueWriteBuffer(queue, hk_0.buffer, CL_TRUE, 0, sizeof(int) * hashkeys_0.size(), hashkeys_0.data(), 0, NULL, NULL);
-                            err = clEnqueueWriteBuffer(queue, hv_0.buffer, CL_TRUE, 0, sizeof(float) * hashvalues_0.size(), hashvalues_0.data(), 0, NULL, NULL);
-                            clFinish(queue);
-                            // printVector(hashkeys_0);
-                            // std::cout << "hash values 0 : ";
-                            // printVector(hashvalues_0);
-                            // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
+
+                            err = clEnqueueWriteBuffer(queue, hk_0.buffer, CL_FALSE, 0, sizeof(int) * hashkeys_0.size(), hashkeys_0.data(), 0, NULL, &event1);
+                            err = clEnqueueWriteBuffer(queue, hv_0.buffer, CL_FALSE, 0, sizeof(float) * hashvalues_0.size(), hashvalues_0.data(), 0, NULL, &event2);
+                            // clFinish(queue);
+
                             for (int row = rowouter + 1; row < N; row ++){
+                                clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
                                 std::vector<float> hashvalues_r(TABLE_SIZE, 0.0f);
                                 std::vector<int> hashkeys_r(TABLE_SIZE, -1);
-                                clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
-                                clFinish(queue);
-                                //print_time();
-                                //std::cout << "starthash_r" << std::endl;
                                 // populate rth row hash //////////////////////////
                                 for (int j = Lap_rowptr_V[row]; j < Lap_rowptr_V[row + 1]; j++) {
                                     int key_r = Lap_ind_V[j]; // Original index
@@ -189,55 +175,42 @@ class CLBuffer{
                                         }
                                     }
                                 }
-                                
-                                clEnqueueFillBuffer(queue, hv_r.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
-                                clEnqueueFillBuffer(queue, hk_r.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N, 0, nullptr, nullptr);
-                                clFinish(queue);
-                                err = clEnqueueWriteBuffer(queue, hk_r.buffer, CL_TRUE, 0, sizeof(int) * hashkeys_r.size(), hashkeys_r.data(), 0, NULL, NULL);
-                                err = clEnqueueWriteBuffer(queue, hv_r.buffer, CL_TRUE, 0, sizeof(float) * hashvalues_r.size(), hashvalues_r.data(), 0, NULL, NULL);
-                                clFinish(queue);
-                                //print_time();
-                                //std::cout << "startkernel" << std::endl;
+                                // print_time();
+                                // std::cout << "write buffer start" << std::endl;
+                                err = clEnqueueWriteBuffer(queue, hk_r.buffer, CL_FALSE, 0, sizeof(int) * hashkeys_r.size(), hashkeys_r.data(), 0, NULL, &event3);
+                                err = clEnqueueWriteBuffer(queue, hv_r.buffer, CL_FALSE, 0, sizeof(float) * hashvalues_r.size(), hashvalues_r.data(), 0, NULL, &event4);
+                                clWaitForEvents(3, (cl_event[]){event1, event2, event3, event4});
+                                // print_time();
+                                // std::cout << "write buffer end" << std::endl;
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                 clFinish(queue);
-                                //print_time();
-                                //std::cout << "endkernel" << std::endl;
-                                // printCL(Value_filtered.buffer, N, 1);
                                 
                                 Value_filtered_E = copyCL(Value_filtered.buffer, N, 1);
-                                // printVector(Value_filtered_E);
                                 std::vector<std::pair<int, double>> to_insert;
                                 std::vector<int> to_delete;
                                 int start = Lap_rowptr_V[row];
                                 int end = Lap_rowptr_V[row + 1];
-                                int it = 0;
-                                
+
+                                // Use a hash map for fast index lookup
+                                std::unordered_map<int, int> index_map;
+                                for (int r = start; r < end; ++r) {
+                                    index_map[Lap_ind_V[r]] = r;
+                                }
                                 for (int vf = 0; vf < N; vf++){
                                     double val = Value_filtered_E[vf];
-                                    it = -1;
-                                    for(int r = start; r < end; r++){
-                                        if(Lap_ind_V[r] == vf){
-                                            // index exists
-                                            it = r;
-                                            break;
-                                        }
-                                    }
-                                    if (std::abs(val) > 1e-6){
-                                        if(it != -1 && val != 0){
-                                            // index exists and value exists, just replace value
-                                            Lap_val_V[it] = val;
-                                            //std::cout << "edits " << it << std::endl;
-                                        }
-                                        else if(it == -1 && val != 0){
-                                            // index does not exist, value exists, insertions
-                                            //std::cout << "insertions " << it << ", " << val << std::endl;
+                                    auto it = index_map.find(vf);
+                                    // it = -1;
+                                    if (std::abs(val) > 1e-6) {
+                                        if (it != index_map.end()) {
+                                            // Index exists, just update the value
+                                            Lap_val_V[it->second] = val;
+                                        } else {
+                                            // New value, needs insertion
                                             to_insert.emplace_back(vf, val);
                                         }
-                                    }
-                                    else if(it != -1){
-                                        // index exist, value does not exists, deletions
-                                        // std::cout << "deletions " << it << std::endl;
-                                        to_delete.push_back(it);
+                                    } else if (it != index_map.end()) {
+                                        // Value is zero but index exists -> deletion
+                                        to_delete.push_back(it->second);
                                     }
                                 }
                                 /* batch insertions*/
@@ -264,13 +237,8 @@ class CLBuffer{
                                         Lap_rowptr_V[k + 1] += delta;
                                     }
                                 }
-                                // printVector(Lap_val_V);
-                                //printVector(Lap_rowptr_V);
                             }
-                            // printVector(Lap_val_V);
-                            //printVector(Lap_rowptr_V);
                         }
-                            // std::cout << "\n";
                         print_time();
                         std::cout << "loop end" << std::endl;
                         
