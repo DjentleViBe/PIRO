@@ -42,4 +42,5 @@ void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     const std::vector<int>& columns,
     const std::vector<float>& values,
     int N);
+uint64_t nextPowerOf2(uint64_t N);
 #endif

@@ -75,7 +75,7 @@ class CLBuffer{
                         std::vector<float> Lap_val_V = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
                         std::vector<int> Lap_ind_V = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
                         std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
-                        int TABLE_SIZE = N;
+                        int TABLE_SIZE = nextPowerOf2(N);
                         std::vector<float> Value_filtered_E = {0, 0, 0, 0, 0, 0, 0, 0};
                         CLBuffer Value_filtered;
                         CLBuffer hk_0, hv_0, hk_r, hv_r;
@@ -134,7 +134,7 @@ class CLBuffer{
                                         break;
                                     }
 
-                                    hashindex_0 = (startindex + j * j) % TABLE_SIZE;
+                                    hashindex_0 = (hashindex_0 + 1) & (TABLE_SIZE - 1);
 
                                     if (hashindex_0 == startindex) { // Table full
                                         std::cerr << "Error: Hash table is full, cannot insert key " << key_0 << std::endl;
@@ -183,7 +183,7 @@ class CLBuffer{
                                             break;
                                         }
     
-                                        hashindex_r = (startindex + j * j) % TABLE_SIZE;
+                                        hashindex_r = (hashindex_r + 1) & (TABLE_SIZE - 1);
     
                                         if (hashindex_r == startindex) { // Table full
                                             std::cerr << "Error: Hash table is full, cannot insert key " << key_r << std::endl;

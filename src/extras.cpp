@@ -25,6 +25,7 @@
 #include <chrono>
 #include <string>
 #include <algorithm>
+#include <cstdint>
 
 int writefile(std::string file_path, std::string line_to_write){
     // Create an output file stream (ofstream) object
@@ -393,23 +394,35 @@ void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     const std::vector<int>& columns,
     const std::vector<float>& values,
     int N) {
-// Initialize a dense matrix with zeros
-std::vector<std::vector<float>> dense_matrix(N, std::vector<float>(N, 0.0f));
+    // Initialize a dense matrix with zeros
+    std::vector<std::vector<float>> dense_matrix(N, std::vector<float>(N, 0.0f));
 
-// Convert CSR to dense format
-for (int i = 0; i < N; i++) {
-for (int j = row_pointer[i]; j < row_pointer[i + 1]; j++) {
-dense_matrix[i][columns[j]] = values[j];
-}
+    // Convert CSR to dense format
+    for (int i = 0; i < N; i++) {
+        for (int j = row_pointer[i]; j < row_pointer[i + 1]; j++) {
+        dense_matrix[i][columns[j]] = values[j];
+    }
 }
 
-// Print the dense matrix
-for (const auto& row : dense_matrix) {
-for (float val : row) {
-std::cout << val << " ";
+    // Print the dense matrix
+    for (const auto& row : dense_matrix) {
+        for (float val : row) {
+        std::cout << val << " ";
+        }
+    std::cout << "\n";
+    }
 }
-std::cout << "\n";
-}
+
+uint64_t nextPowerOf2(uint64_t N) {
+    if (N <= 1) return 1;
+    N--;
+    N |= N >> 1;
+    N |= N >> 2;
+    N |= N >> 4;
+    N |= N >> 8;
+    N |= N >> 16;
+    N |= N >> 32;  // Safe for 64-bit numbers
+    return N + 1;
 }
 
 
