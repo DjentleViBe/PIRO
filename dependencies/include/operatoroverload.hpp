@@ -116,7 +116,7 @@ class CLBuffer{
                             std::vector<float> hashvalues_0(TABLE_SIZE, 0.0f);
                             std::vector<int> hashkeys_0(TABLE_SIZE, -1);
                             /////////////// generate hash table for the 0th row
-                            std::cout << "Generating hash table" << std::endl;
+                            // std::cout << "Generating hash table" << std::endl;
                             //print_time();
                             //std::cout << "starthash_0" << std::endl;
                             for (int j = Lap_rowptr_V[rowouter]; j < Lap_rowptr_V[rowouter + 1]; j++) {
@@ -150,6 +150,9 @@ class CLBuffer{
                             //print_time();
                             //std::cout << "endhash_0" << std::endl;
                             /////////////// generate hash table for the 0th row
+                            clEnqueueFillBuffer(queue, hv_0.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                            clEnqueueFillBuffer(queue, hk_0.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N, 0, nullptr, nullptr);
+                                
                             err = clEnqueueWriteBuffer(queue, hk_0.buffer, CL_TRUE, 0, sizeof(int) * hashkeys_0.size(), hashkeys_0.data(), 0, NULL, NULL);
                             err = clEnqueueWriteBuffer(queue, hv_0.buffer, CL_TRUE, 0, sizeof(float) * hashvalues_0.size(), hashvalues_0.data(), 0, NULL, NULL);
                             
