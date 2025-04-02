@@ -36,7 +36,7 @@ std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector);
 void print_time();
 int countWords(const std::string& str);
 void printCL(cl_mem memC, int N, int type);
-std::vector<float> copyCL(cl_mem memC, int N, int type);
+std::vector<float> copyCL(cl_mem memC, int N, int type, cl_event *event6);
 void printCLArray(cl_mem memC, int N, int type);
 void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     const std::vector<int>& columns,

@@ -347,20 +347,19 @@ void printCL(cl_mem memC, int N, int type){
     std::cout << std::endl;
 }
 
-std::vector<float> copyCL(cl_mem memC, int N, int type){
+std::vector<float> copyCL(cl_mem memC, int N, int type, cl_event *event6){
     std::vector<float> hostValues(N);
     if (type == 0){
         clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
-                                    sizeof(int) * N, hostValues.data(), 0, NULL, NULL);
+                                    sizeof(int) * N, hostValues.data(), 0, NULL, event6);
 
     }
     else if(type ==1){
         
         clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
-                                    sizeof(float) * N, hostValues.data(), 0, NULL, NULL);
+                                    sizeof(float) * N, hostValues.data(), 0, NULL, event6);
 
     }
-    clFinish(queue);
     return hostValues;
 }
 

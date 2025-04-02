@@ -81,7 +81,7 @@ class CLBuffer{
                         std::vector<float> Value_filtered_E = {0, 0, 0, 0, 0, 0, 0, 0};
                         CLBuffer Value_filtered;
                         CLBuffer hk_0, hv_0, hk_r, hv_r;
-                        cl_event event1, event2, event3, event4, event5;
+                        cl_event event1, event2, event3, event4, event5, event6;
                         print_time();
                         std::cout << "Buffer creation begin" << std::endl;
                         
@@ -185,7 +185,7 @@ class CLBuffer{
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                 clFinish(queue);
                                 
-                                Value_filtered_E = copyCL(Value_filtered.buffer, N, 1);
+                                Value_filtered_E = copyCL(Value_filtered.buffer, N, 1, &event6);
                                 std::vector<std::pair<int, double>> to_insert;
                                 std::vector<int> to_delete;
                                 int start = Lap_rowptr_V[row];
@@ -196,6 +196,8 @@ class CLBuffer{
                                 for (int r = start; r < end; ++r) {
                                     index_map[Lap_ind_V[r]] = r;
                                 }
+                                clWaitForEvents(1, (cl_event[]){event6});
+                                
                                 for (int vf = 0; vf < N; vf++){
                                     double val = Value_filtered_E[vf];
                                     auto it = index_map.find(vf);
