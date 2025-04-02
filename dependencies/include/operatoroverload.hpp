@@ -12,6 +12,7 @@
 #include "preprocess.hpp"
 #include <vector>
 #include <iostream>
+#include <immintrin.h>
 
 class CLBuffer{
     public:
