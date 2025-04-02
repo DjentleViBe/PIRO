@@ -270,7 +270,7 @@ void printMatrix(const std::vector<std::vector<int>>& matrix) {
 
 void printVector(const std::vector<float>& vec){
     for (int i = 0; i < vec.size(); ++i) {
-        std::cout << vec[i] << " ";
+        std::cout << round(vec[i] * 10000) / 10000.0 << " ";
     }
     std::cout << std::endl;
 }

@@ -76,12 +76,6 @@ class CLBuffer{
                         std::vector<int> Lap_ind_V = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
                         std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
                         int TABLE_SIZE = N;
-                        std::vector<int> hashvalues_0(TABLE_SIZE, 0);
-                        std::vector<int> hashkeys_0(TABLE_SIZE, -1);
-
-                        // look_up = 0, 1, 2, 4 ; 1, 0, 3, 5 = 
-                        // int nnz = Lap_val_V.size();
-                        std::vector<float> Value_filtered_V = {0, 0, 0, 0, 0, 0, 0, 0};
                         std::vector<float> Value_filtered_E = {0, 0, 0, 0, 0, 0, 0, 0};
                         CLBuffer Value_filtered;
                         CLBuffer hk_0, hv_0, hk_r, hv_r;
@@ -93,11 +87,11 @@ class CLBuffer{
                         hk_0.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
                                 sizeof(int) * N, nullptr, &err);
                         hv_0.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                sizeof(int) * N, nullptr, &err);
+                                sizeof(float) * N, nullptr, &err);
                         hk_r.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
                                 sizeof(int) * N, nullptr, &err);
                         hv_r.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                            sizeof(int) * N, nullptr, &err);
+                            sizeof(float) * N, nullptr, &err);
                         
                         Value_filtered.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
                             sizeof(float) * N, nullptr, &err);
@@ -111,18 +105,20 @@ class CLBuffer{
                         err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &hv_r.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_mem), &Value_filtered.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &N);
-                        
-                        // float fillValue = 0.0f;
-                        // int fillValue_int = 0;
-                        
+                        size_t globalWorkSize_square[1] = { (size_t)N};
+                        float fillValue = 0.0f;
+                        int fillValue_int = -1;
                         print_time();
                         std::cout << "Loop begin" << std::endl;
                         // const float A = 0.6180339887;
-                        for (int rowouter = 0; rowouter < 1; rowouter++){
+                        for (int rowouter = 0; rowouter < N; rowouter++){
+                            err |= clSetKernelArg(kernelfilterarray, 6, sizeof(cl_int), &rowouter);
+                            std::vector<float> hashvalues_0(TABLE_SIZE, 0.0f);
+                            std::vector<int> hashkeys_0(TABLE_SIZE, -1);
                             /////////////// generate hash table for the 0th row
                             std::cout << "Generating hash table" << std::endl;
-                            print_time();
-                            std::cout << "starthash_0" << std::endl;
+                            //print_time();
+                            //std::cout << "starthash_0" << std::endl;
                             for (int j = Lap_rowptr_V[rowouter]; j < Lap_rowptr_V[rowouter + 1]; j++) {
                                 int key_0 = Lap_ind_V[j]; // Original index
                                 //int hashindex = (int)(TABLE_SIZE * (key * A - (int)(key * A))) % TABLE_SIZE;
@@ -149,24 +145,27 @@ class CLBuffer{
                                 if (!inserted && hashkeys_0[hashindex_0] == -1) {  // Insert if slot is found
                                     hashkeys_0[hashindex_0] = key_0;
                                     hashvalues_0[hashindex_0] = Lap_val_V[j];
-                                    }
                                 }
-                            print_time();
-                            std::cout << "endhash_0" << std::endl;
+                            }
+                            //print_time();
+                            //std::cout << "endhash_0" << std::endl;
                             /////////////// generate hash table for the 0th row
                             err = clEnqueueWriteBuffer(queue, hk_0.buffer, CL_TRUE, 0, sizeof(int) * hashkeys_0.size(), hashkeys_0.data(), 0, NULL, NULL);
-                            err = clEnqueueWriteBuffer(queue, hv_0.buffer, CL_TRUE, 0, sizeof(int) * hashvalues_0.size(), hashvalues_0.data(), 0, NULL, NULL);
+                            err = clEnqueueWriteBuffer(queue, hv_0.buffer, CL_TRUE, 0, sizeof(float) * hashvalues_0.size(), hashvalues_0.data(), 0, NULL, NULL);
                             
-                            //printVector(hashkeys_0);
-                            //printVector(hashvalues_0);
+                            // printVector(hashkeys_0);
+                            // std::cout << "hash values 0 : ";
+                            // printVector(hashvalues_0);
                             // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
                             for (int row = rowouter + 1; row < N; row ++){
-                                std::vector<int> hashvalues_r(TABLE_SIZE, 0);
+                                std::vector<float> hashvalues_r(TABLE_SIZE, 0.0f);
                                 std::vector<int> hashkeys_r(TABLE_SIZE, -1);
-                                print_time();
-                                std::cout << "starthash_r" << std::endl;
+                                clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                                
+                                //print_time();
+                                //std::cout << "starthash_r" << std::endl;
+                                // populate rth row hash //////////////////////////
                                 for (int j = Lap_rowptr_V[row]; j < Lap_rowptr_V[row + 1]; j++) {
-                                    // populate rth row hash //////////////////////////
                                     int key_r = Lap_ind_V[j]; // Original index
                                     //int hashindex = (int)(TABLE_SIZE * (key * A - (int)(key * A))) % TABLE_SIZE;
                                     int hashindex_r = key_r % TABLE_SIZE;
@@ -175,8 +174,8 @@ class CLBuffer{
     
                                     while (hashkeys_r[hashindex_r] != -1) { // Linear probing
                                         std::cout << "probing" << std::endl;
-                                        if (hashkeys_0[hashindex_r] == key_r) { // If key exists, overwrite value
-                                            hashvalues_0[hashindex_r] = Lap_val_V[j];
+                                        if (hashkeys_r[hashindex_r] == key_r) { // If key exists, overwrite value
+                                            hashvalues_r[hashindex_r] = Lap_val_V[j];
                                             inserted = true;
                                             break;
                                         }
@@ -193,115 +192,79 @@ class CLBuffer{
                                         hashkeys_r[hashindex_r] = key_r;
                                         hashvalues_r[hashindex_r] = Lap_val_V[j];
                                         }
-                                    }
-                                print_time();
-                                std::cout << "endhash_r" << std::endl;
+                                }
+                                //std::cout << "hash values r : ";
+                                // printVector(hashvalues_r);
+                                //print_time();
+                                //std::cout << "endhash_r" << std::endl;
                                 // populate rth row hash //////////////////////////
                                 // size_t globalWorkSize_square[2] = { (size_t)N, (size_t)N};
-                                size_t globalWorkSize_square[1] = { (size_t)N};
+                                
+                                clEnqueueFillBuffer(queue, hv_r.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                                clEnqueueFillBuffer(queue, hk_r.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N, 0, nullptr, nullptr);
                                 
                                 err = clEnqueueWriteBuffer(queue, hk_r.buffer, CL_TRUE, 0, sizeof(int) * hashkeys_r.size(), hashkeys_r.data(), 0, NULL, NULL);
-                                err = clEnqueueWriteBuffer(queue, hv_r.buffer, CL_TRUE, 0, sizeof(int) * hashvalues_r.size(), hashvalues_r.data(), 0, NULL, NULL);
+                                err = clEnqueueWriteBuffer(queue, hv_r.buffer, CL_TRUE, 0, sizeof(float) * hashvalues_r.size(), hashvalues_r.data(), 0, NULL, NULL);
                                 clFinish(queue);
-                                print_time();
-                                std::cout << "startkernel" << std::endl;
+                                //print_time();
+                                //std::cout << "startkernel" << std::endl;
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
-                                print_time();
-                                std::cout << "endkernel" << std::endl;
-                                printCL(Value_filtered.buffer, N, 1);
-                                // std::cout << "iteration: " << row << std::endl;
-                                if(row == rowouter){
-                                    
-                                    // err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
-                                    // clFinish(queue);
-                                    
-                                    // printCL(pivot.buffer, 1, 1);
-                                    
-                                }
-                                else{
-                                    /*
-                                    // print_time();
-                                    // std::cout << "GPU start" << std::endl;
-                                    err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
-                                    clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
-                                    clEnqueueFillBuffer(queue, Value_filtered_row.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
-                                    clFinish(queue);
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-                                    clFinish(queue);
-                                    Value_filtered_V = copyCL(Value_filtered.buffer, N, 1);
-                                    // printCL(pivot.buffer, 1, 1);
-                                    // step 2 : Multiply with factor = ele / pivot
-                                    err |= clSetKernelArg(kernelfilterrow, 5, sizeof(cl_mem), &rowouter);
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterrow, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-                                    clFinish(queue);
-                                    // step 2 : subtract the row from 0th
-                                    err = clEnqueueNDRangeKernel(queue, kernel_math[1], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-                                    clFinish(queue);
-                                    Value_filtered_E = copyCL(Value_filtered.buffer, N, 1);
-                                    // print_time();
-                                    // std::cout << "GPU finish" << std::endl;
-                                    // Update CSR array
-                                    for (int vf = 0; vf < N; vf++){
-                                        if(Value_filtered_V[vf] == 0 && Value_filtered_E[vf] != 0)
-                                        {
-                                            // if 0 -> value, add this element
-                                            // int start = Lap_rowptr_V[row];
-                                            int end = Lap_rowptr_V[row + 1];
-                                            
-                                            Lap_ind_V.insert(Lap_ind_V.begin() + end, vf);
-                                            Lap_val_V.insert(Lap_val_V.begin() + end, Value_filtered_E[vf]);
-                                            
-                                            for(int rowptr = row; rowptr < N + 1; rowptr++){
-                                                Lap_rowptr_V[rowptr + 1] += 1;
-                                            }
-                                        }
-                                        // i value to value, change this element
-                                        else if(Value_filtered_V[vf] != 0 && Value_filtered_E[vf] == 0)
-                                        {
-                                            // if value -> 0, remove this element
-                                            int start = Lap_rowptr_V[row];
-                                            int end = Lap_rowptr_V[row + 1];
-                                            for(int col = start; col < end; col ++){
-                                                if(Lap_ind_V[col] == vf){
-                                                    Lap_val_V.erase(Lap_val_V.begin() + col);
-                                                    Lap_ind_V.erase(Lap_ind_V.begin() + col);
-                                                    break;
-                                                }
-                                            }
-                                            
-                                            for(int rowptr = row; rowptr < N + 1; rowptr++){
-                                                Lap_rowptr_V[rowptr + 1] -= 1;
-                                                
-                                            }
-                                        }
-                                        else if (Value_filtered_V[vf] == 0 && Value_filtered_E[vf] == 0){
-                                            continue;
-                                        }
-                                        else{
-                                            // if value changes, edit this element
-                                            // row_ptr range
-                                            int start = Lap_rowptr_V[row];
-                                            int end = Lap_rowptr_V[row + 1];
-                                            for(int col = start; col < end; col ++){
-                                                if(Lap_ind_V[col] == vf){
-                                                    Lap_val_V[col] = Value_filtered_E[vf];
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }*/
-                                }
-                                
                                 clFinish(queue);
+                                //print_time();
+                                //std::cout << "endkernel" << std::endl;
+                                // printCL(Value_filtered.buffer, N, 1);
                                 
+                                Value_filtered_E = copyCL(Value_filtered.buffer, N, 1);
+                                for (int vf = 0; vf < N; vf++){
+                                    bool exists = false;
+                                    if(round(Value_filtered_E[vf] * 1E6) / 1E6 != 0){
+                                        // check if the index exists in the CSR format
+                                        for(int r = Lap_rowptr_V[row]; r < Lap_rowptr_V[row + 1]; r++){
+                                            if(Lap_ind_V[r] == vf){
+                                                // it exists just change the value
+                                                Lap_val_V[r] = Value_filtered_E[vf];
+                                                exists = true;
+                                                break;
+                                                }
+                                            }
+                                        // if the index does not exist
+                                        if (!exists){
+                                            int insert_pos = Lap_rowptr_V[row + 1];  
+                                            Lap_ind_V.insert(Lap_ind_V.begin() + insert_pos, vf);
+                                            Lap_val_V.insert(Lap_val_V.begin() + insert_pos, Value_filtered_E[vf]);
+                                            // Update row pointer offsets for future rows
+                                            for (int k = row; k < N + 1; k++) {
+                                                Lap_rowptr_V[k + 1]++;
+                                            }
+                                        }
+                                    }
+                                    else{
+                                        for(int r = Lap_rowptr_V[row]; r < Lap_rowptr_V[row + 1]; r++){
+                                            if(Lap_ind_V[r] == vf){
+                                                // it exists and turned zero, delete the value
+                                                Lap_val_V.erase(Lap_val_V.begin() + r);
+                                                Lap_ind_V.erase(Lap_ind_V.begin() + r);
+                                                // Update row pointer offsets for future rows
+                                                for (int k = row; k < N +1; k++) {
+                                                    Lap_rowptr_V[k + 1]--;
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                // printVector(Lap_val_V);
+                                //printVector(Lap_rowptr_V);
                             }
-                            // std::cout << "\n";
+                            // printVector(Lap_val_V);
+                            //printVector(Lap_rowptr_V);
                         }
+                            // std::cout << "\n";
                         print_time();
                         std::cout << "loop end" << std::endl;
                         
-                        clReleaseMemObject(Value_filtered.buffer);
-                        // printVector(Lap_val_V);
+                        // clReleaseMemObject(Value_filtered.buffer);
+                        printVector(Lap_val_V);
 
                     }
 

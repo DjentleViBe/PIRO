@@ -451,11 +451,12 @@ const char *lu_decompose_sparse = R"CLC(
 const char *filter_array = R"CLC(
     __kernel void filter_array(
         __global const int* hashkey_0,
-        __global const int* hashvalue_0,
+        __global const float* hashvalue_0,
         __global const int* hashkey_r,
-        __global const int* hashvalue_r,
+        __global const float* hashvalue_r,
         __global float* outputArray,
-        const int n
+        const int n,
+        const int rowouter
     ) {
         int gid = get_global_id(0);
         int hashindex = gid % n;
@@ -464,13 +465,16 @@ const char *filter_array = R"CLC(
         float pivot = 0.0f;
         float factor = 0.0f;
 
-        if(hashkey_0[0] == 0){
-            pivot = hashvalue_0[0];
+        if(hashkey_0[rowouter] == rowouter){
+            pivot = hashvalue_0[rowouter];
+            // printf("pivot : %f \n", pivot);
         }
 
-        if(hashkey_r[0] == 0){
-            factor = hashvalue_r[0];
+        if(hashkey_r[rowouter] == rowouter){
+            factor = hashvalue_r[rowouter];
+            // printf("Factor : %f \n", factor);
         }
+        
     
         if(hashkey_0[hashindex] == gid){
             zerocol = hashvalue_0[hashindex];
