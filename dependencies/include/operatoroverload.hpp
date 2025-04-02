@@ -12,6 +12,7 @@
 #include "preprocess.hpp"
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 class CLBuffer{
     public:
@@ -204,42 +205,63 @@ class CLBuffer{
                                 // printCL(Value_filtered.buffer, N, 1);
                                 
                                 Value_filtered_E = copyCL(Value_filtered.buffer, N, 1);
+                                // printVector(Value_filtered_E);
+                                std::vector<std::pair<int, double>> to_insert;
+                                std::vector<int> to_delete;
+                                int start = Lap_rowptr_V[row];
+                                int end = Lap_rowptr_V[row + 1];
+                                int it = 0;
+                                
                                 for (int vf = 0; vf < N; vf++){
-                                    bool exists = false;
-                                    if(std::abs(Value_filtered_E[vf]) > 1e-6){
-                                        // check if the index exists in the CSR format
-                                        for(int r = Lap_rowptr_V[row]; r < Lap_rowptr_V[row + 1]; r++){
-                                            if(Lap_ind_V[r] == vf){
-                                                // it exists just change the value
-                                                Lap_val_V[r] = Value_filtered_E[vf];
-                                                exists = true;
-                                                break;
-                                                }
-                                            }
-                                        // if the index does not exist
-                                        if (!exists){
-                                            int insert_pos = Lap_rowptr_V[row + 1];  
-                                            Lap_ind_V.insert(Lap_ind_V.begin() + insert_pos, vf);
-                                            Lap_val_V.insert(Lap_val_V.begin() + insert_pos, Value_filtered_E[vf]);
-                                            // Update row pointer offsets for future rows
-                                            for (int k = row; k < N + 1; k++) {
-                                                Lap_rowptr_V[k + 1]++;
-                                            }
+                                    double val = Value_filtered_E[vf];
+                                    it = -1;
+                                    for(int r = start; r < end; r++){
+                                        if(Lap_ind_V[r] == vf){
+                                            // index exists
+                                            it = r;
+                                            break;
                                         }
                                     }
-                                    else{
-                                        for(int r = Lap_rowptr_V[row]; r < Lap_rowptr_V[row + 1]; r++){
-                                            if(Lap_ind_V[r] == vf){
-                                                // it exists and turned zero, delete the value
-                                                Lap_val_V.erase(Lap_val_V.begin() + r);
-                                                Lap_ind_V.erase(Lap_ind_V.begin() + r);
-                                                // Update row pointer offsets for future rows
-                                                for (int k = row; k < N +1; k++) {
-                                                    Lap_rowptr_V[k + 1]--;
-                                                }
-                                                break;
-                                            }
+                                    if (std::abs(val) > 1e-6){
+                                        if(it != -1 && val != 0){
+                                            // index exists and value exists, just replace value
+                                            Lap_val_V[it] = val;
+                                            //std::cout << "edits " << it << std::endl;
                                         }
+                                        else if(it == -1 && val != 0){
+                                            // index does not exist, value exists, insertions
+                                            //std::cout << "insertions " << it << ", " << val << std::endl;
+                                            to_insert.emplace_back(vf, val);
+                                        }
+                                    }
+                                    else if(it != -1){
+                                        // index exist, value does not exists, deletions
+                                        // std::cout << "deletions " << it << std::endl;
+                                        to_delete.push_back(it);
+                                    }
+                                }
+                                /* batch insertions*/
+                                for(int k = 0; k < to_insert.size();k++){
+                                    
+                                    int insert_pos = Lap_rowptr_V[row + 1];
+                                    Lap_ind_V.insert(Lap_ind_V.begin() + insert_pos, to_insert[k].first);
+                                    Lap_val_V.insert(Lap_val_V.begin() + insert_pos, to_insert[k].second);
+                                    
+                                }
+
+                                /* Batch deletions: erase from the back to avoid index shifting */
+                                std::sort(to_delete.rbegin(), to_delete.rend());
+                                for (int idx : to_delete) {
+                                    Lap_ind_V.erase(Lap_ind_V.begin() + idx);
+                                    Lap_val_V.erase(Lap_val_V.begin() + idx);
+                                }
+                                
+                                
+                                // Update row pointer offsets for future rows
+                                int delta = to_insert.size() - to_delete.size();
+                                if (delta != 0) {
+                                    for (int k = row; k < N +1; k++) {
+                                        Lap_rowptr_V[k + 1] += delta;
                                     }
                                 }
                                 // printVector(Lap_val_V);
@@ -258,6 +280,7 @@ class CLBuffer{
                         clReleaseMemObject(hv_0.buffer);
                         clReleaseMemObject(hv_r.buffer);
                         printVector(Lap_val_V);
+                        // printVector(Lap_ind_V);
 
                     }
 
