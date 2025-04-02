@@ -59,7 +59,7 @@ Efficiency = 38400 / 128E3 = 0.3
 
 Iteration 0-7 = 8*(kernelfilterarray) = 8 * 4 = 32
 Total FLOPS = 8 * 32 = 256
-Execution time = 0.00001 + 7 * (0.000051 + 0.000045 + 0.001024) = 0.00112
+Execution time = 0.00001 + 7 * (0.000051 + 0.000045 + 0.001024) = 0.00112 (0.03457 total)
 GFLOPS = 256 / 0.00112 = 228571
 
 Ops per clock = 228571
