@@ -81,7 +81,7 @@ class CLBuffer{
                         std::vector<float> Value_filtered_E = {0, 0, 0, 0, 0, 0, 0, 0};
                         CLBuffer Value_filtered;
                         CLBuffer hk_0, hv_0, hk_r, hv_r;
-                        cl_event event1, event2, event3, event4;
+                        cl_event event1, event2, event3, event4, event5;
                         print_time();
                         std::cout << "Buffer creation begin" << std::endl;
                         
@@ -147,7 +147,7 @@ class CLBuffer{
                             // clFinish(queue);
 
                             for (int row = rowouter + 1; row < N; row ++){
-                                clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                                clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, &event5);
                                 std::vector<float> hashvalues_r(TABLE_SIZE, 0.0f);
                                 std::vector<int> hashkeys_r(TABLE_SIZE, -1);
                                 // populate rth row hash //////////////////////////
@@ -179,7 +179,7 @@ class CLBuffer{
                                 // std::cout << "write buffer start" << std::endl;
                                 err = clEnqueueWriteBuffer(queue, hk_r.buffer, CL_FALSE, 0, sizeof(int) * hashkeys_r.size(), hashkeys_r.data(), 0, NULL, &event3);
                                 err = clEnqueueWriteBuffer(queue, hv_r.buffer, CL_FALSE, 0, sizeof(float) * hashvalues_r.size(), hashvalues_r.data(), 0, NULL, &event4);
-                                clWaitForEvents(3, (cl_event[]){event1, event2, event3, event4});
+                                clWaitForEvents(5, (cl_event[]){event1, event2, event3, event4, event5});
                                 // print_time();
                                 // std::cout << "write buffer end" << std::endl;
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
