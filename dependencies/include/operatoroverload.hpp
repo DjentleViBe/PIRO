@@ -134,7 +134,7 @@ class CLBuffer{
                                         break;
                                     }
 
-                                    hashindex_0 = (hashindex_0 + 1) % TABLE_SIZE;
+                                    hashindex_0 = (startindex + j * j) % TABLE_SIZE;
 
                                     if (hashindex_0 == startindex) { // Table full
                                         std::cerr << "Error: Hash table is full, cannot insert key " << key_0 << std::endl;
@@ -176,14 +176,14 @@ class CLBuffer{
                                     bool inserted = false;
     
                                     while (hashkeys_r[hashindex_r] != -1) { // Linear probing
-                                        std::cout << "probing" << std::endl;
+                                        // std::cout << "probing" << std::endl;
                                         if (hashkeys_r[hashindex_r] == key_r) { // If key exists, overwrite value
                                             hashvalues_r[hashindex_r] = Lap_val_V[j];
                                             inserted = true;
                                             break;
                                         }
     
-                                        hashindex_r = (hashindex_r + 1) % TABLE_SIZE;
+                                        hashindex_r = (startindex + j * j) % TABLE_SIZE;
     
                                         if (hashindex_r == startindex) { // Table full
                                             std::cerr << "Error: Hash table is full, cannot insert key " << key_r << std::endl;
