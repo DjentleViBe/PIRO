@@ -119,6 +119,7 @@ class CLBuffer{
                             // std::cout << "Generating hash table" << std::endl;
                             //print_time();
                             //std::cout << "starthash_0" << std::endl;
+                            int mask = TABLE_SIZE - 1;
                             for (int j = Lap_rowptr_V[rowouter]; j < Lap_rowptr_V[rowouter + 1]; j++) {
                                 int key_0 = Lap_ind_V[j]; // Original index
                                 //int hashindex = (int)(TABLE_SIZE * (key * A - (int)(key * A))) % TABLE_SIZE;
@@ -126,23 +127,38 @@ class CLBuffer{
                                 int startindex = hashindex_0;
                                 // bool inserted = false;
 
-                                while (true) {  
+                                // Prefetch upcoming memory access to reduce cache misses
+                                _mm_prefetch((const char*)&hashkeys_0[hashindex_0], _MM_HINT_T0);
+
+                                while (true) {
                                     int existing_key = hashkeys_0[hashindex_0];
-                            
-                                    if (existing_key == -1 || existing_key == key_0) {  // Found empty or same key
+
+                                    if (existing_key == -1 || existing_key == key_0) {  // Found empty or matching key
                                         hashkeys_0[hashindex_0] = key_0;
                                         hashvalues_0[hashindex_0] = Lap_val_V[j];
                                         break;
                                     }
-                            
-                                    hashindex_0 = (hashindex_0 + 1) & (TABLE_SIZE - 1);  // Faster wrapping
-                            
+
+                                    // SIMD optimization: Check 4 next slots at once
+                                    __m128i key_vec = _mm_set1_epi32(key_0);  // Load key into SIMD register
+                                    __m128i hash_vec = _mm_loadu_si128((__m128i*)&hashkeys_0[hashindex_0]);  // Load 4 hash table slots
+                                    __m128i cmp_result = _mm_cmpeq_epi32(key_vec, hash_vec);  // Compare key with 4 slots
+
+                                    if (_mm_movemask_epi8(cmp_result)) {  // If match found
+                                        int match_index = __builtin_ctz(_mm_movemask_epi8(cmp_result)) / 4;  // Get first match
+                                        hashvalues_0[hashindex_0 + match_index] = Lap_val_V[j];  // Update value
+                                        break;
+                                    }
+
+                                    hashindex_0 = (hashindex_0 + 4) & mask;  // Jump 4 slots for faster probing
+
                                     if (hashindex_0 == startindex) {  // Table full
                                         std::cerr << "Error: Hash table is full, cannot insert key " << key_0 << std::endl;
                                         break;
                                     }
                                 }
                             }
+
                             //print_time();
                             //std::cout << "endhash_0" << std::endl;
                             /////////////// generate hash table for the 0th row
@@ -164,6 +180,7 @@ class CLBuffer{
                                 //print_time();
                                 //std::cout << "starthash_r" << std::endl;
                                 // populate rth row hash //////////////////////////
+                                int mask = TABLE_SIZE - 1;
                                 for (int j = Lap_rowptr_V[row]; j < Lap_rowptr_V[row + 1]; j++) {
                                     int key_r = Lap_ind_V[j]; // Original index
                                     //int hashindex = (int)(TABLE_SIZE * (key * A - (int)(key * A))) % TABLE_SIZE;
@@ -171,23 +188,38 @@ class CLBuffer{
                                     int startindex = hashindex_r;
                                     // bool inserted = false;
     
-                                    while (true) {  
+                                    // Prefetch upcoming memory access to reduce cache misses
+                                    _mm_prefetch((const char*)&hashkeys_r[hashindex_r], _MM_HINT_T0);
+
+                                    while (true) {
                                         int existing_key = hashkeys_r[hashindex_r];
-                                
-                                        if (existing_key == -1 || existing_key == key_r) {  // Found empty or same key
+
+                                        if (existing_key == -1 || existing_key == key_r) {  // Found empty or matching key
                                             hashkeys_r[hashindex_r] = key_r;
                                             hashvalues_r[hashindex_r] = Lap_val_V[j];
                                             break;
                                         }
-                                
-                                        hashindex_r = (hashindex_r + 1) & (TABLE_SIZE - 1);  // Faster wrapping
-                                
+
+                                        // SIMD optimization: Check 4 next slots at once
+                                        __m128i key_vec = _mm_set1_epi32(key_r);  // Load key into SIMD register
+                                        __m128i hash_vec = _mm_loadu_si128((__m128i*)&hashkeys_r[hashindex_r]);  // Load 4 hash table slots
+                                        __m128i cmp_result = _mm_cmpeq_epi32(key_vec, hash_vec);  // Compare key with 4 slots
+
+                                        if (_mm_movemask_epi8(cmp_result)) {  // If match found
+                                            int match_index = __builtin_ctz(_mm_movemask_epi8(cmp_result)) / 4;  // Get first match
+                                            hashvalues_r[hashindex_r + match_index] = Lap_val_V[j];  // Update value
+                                            break;
+                                        }
+
+                                        hashindex_r = (hashindex_r + 4) & mask;  // Jump 4 slots for faster probing
+
                                         if (hashindex_r == startindex) {  // Table full
                                             std::cerr << "Error: Hash table is full, cannot insert key " << key_r << std::endl;
                                             break;
                                         }
                                     }
                                 }
+                                
                                 
                                 clEnqueueFillBuffer(queue, hv_r.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
                                 clEnqueueFillBuffer(queue, hk_r.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N, 0, nullptr, nullptr);
