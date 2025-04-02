@@ -122,29 +122,25 @@ class CLBuffer{
                             for (int j = Lap_rowptr_V[rowouter]; j < Lap_rowptr_V[rowouter + 1]; j++) {
                                 int key_0 = Lap_ind_V[j]; // Original index
                                 //int hashindex = (int)(TABLE_SIZE * (key * A - (int)(key * A))) % TABLE_SIZE;
-                                int hashindex_0 = key_0 % TABLE_SIZE;
+                                int hashindex_0 = key_0 & (TABLE_SIZE - 1); 
                                 int startindex = hashindex_0;
-                                bool inserted = false;
+                                // bool inserted = false;
 
-                                while (hashkeys_0[hashindex_0] != -1) { // Linear probing
-                                    std::cout << "probing" << std::endl;
-                                    if (hashkeys_0[hashindex_0] == key_0) { // If key exists, overwrite value
+                                while (true) {  
+                                    int existing_key = hashkeys_0[hashindex_0];
+                            
+                                    if (existing_key == -1 || existing_key == key_0) {  // Found empty or same key
+                                        hashkeys_0[hashindex_0] = key_0;
                                         hashvalues_0[hashindex_0] = Lap_val_V[j];
-                                        inserted = true;
                                         break;
                                     }
-
-                                    hashindex_0 = (hashindex_0 + 1) & (TABLE_SIZE - 1);
-
-                                    if (hashindex_0 == startindex) { // Table full
+                            
+                                    hashindex_0 = (hashindex_0 + 1) & (TABLE_SIZE - 1);  // Faster wrapping
+                            
+                                    if (hashindex_0 == startindex) {  // Table full
                                         std::cerr << "Error: Hash table is full, cannot insert key " << key_0 << std::endl;
                                         break;
                                     }
-                                }
-
-                                if (!inserted && hashkeys_0[hashindex_0] == -1) {  // Insert if slot is found
-                                    hashkeys_0[hashindex_0] = key_0;
-                                    hashvalues_0[hashindex_0] = Lap_val_V[j];
                                 }
                             }
                             //print_time();
@@ -171,37 +167,27 @@ class CLBuffer{
                                 for (int j = Lap_rowptr_V[row]; j < Lap_rowptr_V[row + 1]; j++) {
                                     int key_r = Lap_ind_V[j]; // Original index
                                     //int hashindex = (int)(TABLE_SIZE * (key * A - (int)(key * A))) % TABLE_SIZE;
-                                    int hashindex_r = key_r % TABLE_SIZE;
+                                    int hashindex_r = key_r & (TABLE_SIZE - 1);
                                     int startindex = hashindex_r;
-                                    bool inserted = false;
+                                    // bool inserted = false;
     
-                                    while (hashkeys_r[hashindex_r] != -1) { // Linear probing
-                                        // std::cout << "probing" << std::endl;
-                                        if (hashkeys_r[hashindex_r] == key_r) { // If key exists, overwrite value
+                                    while (true) {  
+                                        int existing_key = hashkeys_r[hashindex_r];
+                                
+                                        if (existing_key == -1 || existing_key == key_r) {  // Found empty or same key
+                                            hashkeys_r[hashindex_r] = key_r;
                                             hashvalues_r[hashindex_r] = Lap_val_V[j];
-                                            inserted = true;
                                             break;
                                         }
-    
-                                        hashindex_r = (hashindex_r + 1) & (TABLE_SIZE - 1);
-    
-                                        if (hashindex_r == startindex) { // Table full
+                                
+                                        hashindex_r = (hashindex_r + 1) & (TABLE_SIZE - 1);  // Faster wrapping
+                                
+                                        if (hashindex_r == startindex) {  // Table full
                                             std::cerr << "Error: Hash table is full, cannot insert key " << key_r << std::endl;
                                             break;
                                         }
                                     }
-    
-                                    if (!inserted && hashkeys_r[hashindex_r] == -1) {  // Insert if slot is found
-                                        hashkeys_r[hashindex_r] = key_r;
-                                        hashvalues_r[hashindex_r] = Lap_val_V[j];
-                                        }
                                 }
-                                //std::cout << "hash values r : ";
-                                // printVector(hashvalues_r);
-                                //print_time();
-                                //std::cout << "endhash_r" << std::endl;
-                                // populate rth row hash //////////////////////////
-                                // size_t globalWorkSize_square[2] = { (size_t)N, (size_t)N};
                                 
                                 clEnqueueFillBuffer(queue, hv_r.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
                                 clEnqueueFillBuffer(queue, hk_r.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N, 0, nullptr, nullptr);
