@@ -152,10 +152,10 @@ class CLBuffer{
                             /////////////// generate hash table for the 0th row
                             clEnqueueFillBuffer(queue, hv_0.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
                             clEnqueueFillBuffer(queue, hk_0.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N, 0, nullptr, nullptr);
-                                
+                            clFinish(queue);
                             err = clEnqueueWriteBuffer(queue, hk_0.buffer, CL_TRUE, 0, sizeof(int) * hashkeys_0.size(), hashkeys_0.data(), 0, NULL, NULL);
                             err = clEnqueueWriteBuffer(queue, hv_0.buffer, CL_TRUE, 0, sizeof(float) * hashvalues_0.size(), hashvalues_0.data(), 0, NULL, NULL);
-                            
+                            clFinish(queue);
                             // printVector(hashkeys_0);
                             // std::cout << "hash values 0 : ";
                             // printVector(hashvalues_0);
@@ -164,7 +164,7 @@ class CLBuffer{
                                 std::vector<float> hashvalues_r(TABLE_SIZE, 0.0f);
                                 std::vector<int> hashkeys_r(TABLE_SIZE, -1);
                                 clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
-                                
+                                clFinish(queue);
                                 //print_time();
                                 //std::cout << "starthash_r" << std::endl;
                                 // populate rth row hash //////////////////////////
@@ -205,7 +205,7 @@ class CLBuffer{
                                 
                                 clEnqueueFillBuffer(queue, hv_r.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
                                 clEnqueueFillBuffer(queue, hk_r.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N, 0, nullptr, nullptr);
-                                
+                                clFinish(queue);
                                 err = clEnqueueWriteBuffer(queue, hk_r.buffer, CL_TRUE, 0, sizeof(int) * hashkeys_r.size(), hashkeys_r.data(), 0, NULL, NULL);
                                 err = clEnqueueWriteBuffer(queue, hv_r.buffer, CL_TRUE, 0, sizeof(float) * hashvalues_r.size(), hashvalues_r.data(), 0, NULL, NULL);
                                 clFinish(queue);
@@ -266,7 +266,11 @@ class CLBuffer{
                         print_time();
                         std::cout << "loop end" << std::endl;
                         
-                        // clReleaseMemObject(Value_filtered.buffer);
+                        clReleaseMemObject(Value_filtered.buffer);
+                        clReleaseMemObject(hk_0.buffer);
+                        clReleaseMemObject(hk_r.buffer);
+                        clReleaseMemObject(hv_0.buffer);
+                        clReleaseMemObject(hv_r.buffer);
                         printVector(Lap_val_V);
 
                     }
