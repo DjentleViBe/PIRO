@@ -206,7 +206,7 @@ class CLBuffer{
                                 Value_filtered_E = copyCL(Value_filtered.buffer, N, 1);
                                 for (int vf = 0; vf < N; vf++){
                                     bool exists = false;
-                                    if(round(Value_filtered_E[vf] * 1E6) / 1E6 != 0){
+                                    if(std::abs(Value_filtered_E[vf]) > 1e-6){
                                         // check if the index exists in the CSR format
                                         for(int r = Lap_rowptr_V[row]; r < Lap_rowptr_V[row + 1]; r++){
                                             if(Lap_ind_V[r] == vf){
