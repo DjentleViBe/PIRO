@@ -111,13 +111,26 @@ class CLBuffer{
                         size_t globalWorkSize_square[1] = { (size_t)N};
                         float fillValue = 0.0f;
                         // int fillValue_int = -1;
+                        std::vector<float> hashvalues_0(TABLE_SIZE, 0.0f);
+                        std::vector<int> hashkeys_0(TABLE_SIZE, -1);
+                        std::vector<float> hashvalues_r(TABLE_SIZE, 0.0f);
+                        std::vector<int> hashkeys_r(TABLE_SIZE, -1);
+                        int* hk_0_ptr = (int*)clEnqueueMapBuffer(queue, hk_0.buffer, CL_FALSE, CL_MAP_WRITE, 0, sizeof(int) * hashkeys_0.size(), 0, nullptr, nullptr, &err);
+                        float* hv_0_ptr = (float*)clEnqueueMapBuffer(queue, hv_0.buffer, CL_FALSE, CL_MAP_WRITE, 0, sizeof(float) * hashvalues_0.size(), 0, nullptr, nullptr, &err);
+                        int* hk_r_ptr = (int*)clEnqueueMapBuffer(queue, hk_r.buffer, CL_FALSE, CL_MAP_WRITE, 0, sizeof(int) * hashkeys_r.size(), 0, nullptr, nullptr, &err);
+                        float* hv_r_ptr = (float*)clEnqueueMapBuffer(queue, hv_r.buffer, CL_FALSE, CL_MAP_WRITE, 0, sizeof(float) * hashvalues_r.size(), 0, nullptr, nullptr, &err);
+                        
+                        float* VE = (float*)clEnqueueMapBuffer(queue, Value_filtered.buffer, CL_TRUE, CL_MAP_WRITE, 0, sizeof(float) * Value_filtered_E.size(), 0, nullptr, nullptr, &err);
+                        
+                        clFinish(queue);
+
                         print_time();
                         std::cout << "Loop begin" << std::endl;
                         // const float A = 0.6180339887;
                         for (int rowouter = 0; rowouter < N; rowouter++){
                             err |= clSetKernelArg(kernelfilterarray, 6, sizeof(cl_int), &rowouter);
-                            std::vector<float> hashvalues_0(TABLE_SIZE, 0.0f);
-                            std::vector<int> hashkeys_0(TABLE_SIZE, -1);
+                            std::fill(hashvalues_0.begin(), hashvalues_0.end(), 0.0f);
+                            std::fill(hashkeys_0.begin(), hashkeys_0.end(), -1);
                             /////////////// generate hash table for the 0th row
                             for (int j = Lap_rowptr_V[rowouter]; j < Lap_rowptr_V[rowouter + 1]; j++) {
                                 int key_0 = Lap_ind_V[j]; // Original index
@@ -140,16 +153,22 @@ class CLBuffer{
                                         break;
                                     }
                                 }
-                            }
 
-                            err = clEnqueueWriteBuffer(queue, hk_0.buffer, CL_FALSE, 0, sizeof(int) * hashkeys_0.size(), hashkeys_0.data(), 0, NULL, &event1);
-                            err = clEnqueueWriteBuffer(queue, hv_0.buffer, CL_FALSE, 0, sizeof(float) * hashvalues_0.size(), hashvalues_0.data(), 0, NULL, &event2);
-                            // clFinish(queue);
+                            }
+                            std::memcpy(hk_0_ptr, hashkeys_0.data(), sizeof(int) * hashkeys_0.size());
+                            std::memcpy(hv_0_ptr, hashvalues_0.data(), sizeof(float) * hashvalues_0.size());
+                            err = clEnqueueUnmapMemObject(queue, hk_0.buffer, hk_0_ptr, 0, nullptr, &event1);
+                            err = clEnqueueUnmapMemObject(queue, hv_0.buffer, hv_0_ptr, 0, nullptr, &event2);
 
                             for (int row = rowouter + 1; row < N; row ++){
+                                //std::memcpy(VE, Value_filtered_E.data(), sizeof(float) * Value_filtered_E.size());
+                                //err = clEnqueueUnmapMemObject(queue, Value_filtered.buffer, VE, 0, nullptr, nullptr);
+                                //printCL(Value_filtered.buffer, N , 1);
+                                // err = clEnqueueUnmapMemObject(queue, Value_filtered.buffer, VE, 0, nullptr, &event5);
+                                
                                 clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, &event5);
-                                std::vector<float> hashvalues_r(TABLE_SIZE, 0.0f);
-                                std::vector<int> hashkeys_r(TABLE_SIZE, -1);
+                                std::fill(hashvalues_r.begin(), hashvalues_r.end(), 0.0f);
+                                std::fill(hashkeys_r.begin(), hashkeys_r.end(), -1);
                                 // populate rth row hash //////////////////////////
                                 for (int j = Lap_rowptr_V[row]; j < Lap_rowptr_V[row + 1]; j++) {
                                     int key_r = Lap_ind_V[j]; // Original index
@@ -177,15 +196,34 @@ class CLBuffer{
                                 }
                                 // print_time();
                                 // std::cout << "write buffer start" << std::endl;
-                                err = clEnqueueWriteBuffer(queue, hk_r.buffer, CL_FALSE, 0, sizeof(int) * hashkeys_r.size(), hashkeys_r.data(), 0, NULL, &event3);
-                                err = clEnqueueWriteBuffer(queue, hv_r.buffer, CL_FALSE, 0, sizeof(float) * hashvalues_r.size(), hashvalues_r.data(), 0, NULL, &event4);
-                                clWaitForEvents(5, (cl_event[]){event1, event2, event3, event4, event5});
+                                std::memcpy(hk_r_ptr, hashkeys_r.data(), sizeof(int) * hashkeys_r.size());
+                                std::memcpy(hv_r_ptr, hashvalues_r.data(), sizeof(float) * hashvalues_r.size());
+                                err = clEnqueueUnmapMemObject(queue, hk_r.buffer, hk_r_ptr, 0, nullptr, &event3);
+                                err = clEnqueueUnmapMemObject(queue, hv_r.buffer, hv_r_ptr, 0, nullptr, &event4);
+    
+                                clWaitForEvents(5, (cl_event[]){event1, event2, event3, event4, event5, event6});
+                                
                                 // print_time();
                                 // std::cout << "write buffer end" << std::endl;
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                 clFinish(queue);
                                 
+                                // std::memcpy(Value_filtered_E.data(), VE, sizeof(float) * Value_filtered_E.size());
+                                err = clEnqueueUnmapMemObject(queue, Value_filtered.buffer, VE, 0, nullptr, nullptr);
+                                clFinish(queue);
+                                if (err != CL_SUCCESS) {
+                                    std::cerr << "Error in unmapping buffer: " << err << std::endl;
+                                    
+                                }
+                                
+                                //for (size_t i = 0; i < Value_filtered_E.size(); ++i) {
+                                //    std::cout << VE[i] << " ";
+                                //    // Use the value as needed
+                                //}
+                                //std::cout << ""<< std::endl;
                                 Value_filtered_E = copyCL(Value_filtered.buffer, N, 1, &event6);
+                                // printVector(Value_filtered_E);
+                                //printCL(Value_filtered.buffer, N, 1);
                                 std::vector<std::pair<int, double>> to_insert;
                                 std::vector<int> to_delete;
                                 int start = Lap_rowptr_V[row];
@@ -196,7 +234,7 @@ class CLBuffer{
                                 for (int r = start; r < end; ++r) {
                                     index_map[Lap_ind_V[r]] = r;
                                 }
-                                clWaitForEvents(1, (cl_event[]){event6});
+                                // clWaitForEvents(1, (cl_event[]){event6});
                                 
                                 for (int vf = 0; vf < N; vf++){
                                     double val = Value_filtered_E[vf];
@@ -243,7 +281,10 @@ class CLBuffer{
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
-                        
+                        err = clEnqueueUnmapMemObject(queue, hk_0.buffer, hk_0_ptr, 0, nullptr, nullptr);
+                        err = clEnqueueUnmapMemObject(queue, hv_0.buffer, hv_0_ptr, 0, nullptr, nullptr);
+                        err = clEnqueueUnmapMemObject(queue, hk_r.buffer, hk_r_ptr, 0, nullptr, nullptr);
+                        err = clEnqueueUnmapMemObject(queue, hv_r.buffer, hv_r_ptr, 0, nullptr, nullptr);
                         clReleaseMemObject(Value_filtered.buffer);
                         clReleaseMemObject(hk_0.buffer);
                         clReleaseMemObject(hk_r.buffer);
