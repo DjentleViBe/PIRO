@@ -17,6 +17,7 @@ extern Giro::SolveParams SP;
 extern Giro::DeviceParams DP;
 extern int ts;
 extern bool LAP_INIT;
+extern bool RHS_INIT;
 
 extern std::vector<cl_program> program_math;
 extern std::vector<cl_kernel> kernel_math;

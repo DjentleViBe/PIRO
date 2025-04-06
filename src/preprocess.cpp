@@ -24,8 +24,11 @@ Giro::MeshParams MP;
 Giro::SolveParams SP;
 Giro::DeviceParams DP;
 Giro::CellDataGPU CDGPU;
+Giro::Equation RHS;
 CLBuffer CD_GPU;
+cl_mem RHSterms;
 bool LAP_INIT = false;
+bool RHS_INIT = false;
 int ts = 0;
 
 // Function to map 3D indices to 1D
@@ -241,6 +244,7 @@ int laplacian_CSR_init(){
         sizeof(float) *  MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size(), MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.data(), &err);
     
     LAP_INIT = true;
+    RHS.sparsecount += MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size();
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers);
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns);
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values);

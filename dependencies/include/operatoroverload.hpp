@@ -13,10 +13,22 @@
 #include <vector>
 #include <iostream>
 
+namespace Giro{
+    class Equation{
+        public:
+            cl_mem operandvalues;
+            cl_mem operandcolumns;
+            cl_mem operandrowptr;
+            int sparsecount;
+    };
+};
+
+extern Giro::Equation RHS;
+
 class CLBuffer{
     public:
         cl_mem buffer;
-        
+
         CLBuffer operator=(const std::vector<CLBuffer>& other){
 
             cl_int err;
@@ -63,188 +75,187 @@ class CLBuffer{
                     if(SP.solverscheme == 17){
                         std::cout << "LU Decomposition" << std::endl;
                         int N = MP.n[0] * MP.n[1] * MP.n[2];
+                        int factor = N * N * 3 / 4;
                         std::cout << N << std::endl;
+                        std::cout << factor << std::endl;
                         size_t globalWorkSize_square[1] = { (size_t)N};
-                        // printCL(other[2].buffer, MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size(), 1);
-                        // copy RHS to host first
-                        
-                        std::vector<float> Lap_val_V = copyCL<float>(queue, other[2].buffer, 
-                                                                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size());
-                        // this needs to Cell data columns
-                        std::vector<int> Lap_ind_V = copyCL<int>(queue, other[1].buffer, 
-                                                                MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.size());
-                        // this needs to Cell data rowpointers
-                        std::vector<int> Lap_rowptr_V = copyCL<int>(queue, other[0].buffer, N + 1);
+                        if(RHS_INIT == false){
+                            float fillValue = 0.0f;
+                            int fillValue_int = 0;
+                            int index = MP.vectornum + MP.scalarnum;
+                            // std::cout << N << std::endl;
+                            RHS.operandrowptr = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                sizeof(int) * (N + 1), nullptr, &err);
+                            RHS.operandcolumns = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                sizeof(int) * factor, nullptr, &err);
+                            RHS.operandvalues = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                sizeof(float) * factor, nullptr, &err);
 
-                        // create value_ for size N = nx_ny_nz
-                        std::vector<float> Value_filtered_V(N);
-                        std::vector<float> Value_filtered_E(N);
-                        CLBuffer Value_filtered, Value_filtered_0, Value_filtered_row, pivot;
-                        print_time();
-                        std::cout << "Buffer creation begin" << std::endl;
-                        
-                        // int row = 0;
-                        // float sizefactor = 2 / 3 ;
-                        // LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                        //        sizeof(float) * N * N * 3 / 4, nullptr, &err);
-                        // Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                        //     sizeof(int) * N * N * 3 / 4, nullptr, &err);
-                        // Lap_rowptr.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                        //    sizeof(int) * (N + 1), nullptr, &err);
-                        
-                        Value_filtered.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                            sizeof(float) * N, nullptr, &err);
-                        Value_filtered_0.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                            sizeof(float) * N, nullptr, &err);
-                        Value_filtered_row.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                sizeof(float) * N, nullptr, &err);
-                        
-                        pivot.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float), NULL, &err);
-                        print_time();
-                        std::cout << "Buffer creation end" << std::endl;
-                    
-                        err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &other[0].buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &other[1].buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &other[2].buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &N);
-                        err |= clSetKernelArg(kernelfilterarray, 6, sizeof(cl_mem), &pivot.buffer);
-                        
-                        err |= clSetKernelArg(kernelfilterrow, 0, sizeof(cl_mem), &Value_filtered_0.buffer);
-                        err |= clSetKernelArg(kernelfilterrow, 1, sizeof(cl_mem), &Value_filtered_row.buffer);
-                        err |= clSetKernelArg(kernelfilterrow, 2, sizeof(cl_mem), &Value_filtered.buffer);
-                        err |= clSetKernelArg(kernelfilterrow, 3, sizeof(cl_int), &N);
-                        err |= clSetKernelArg(kernelfilterrow, 4, sizeof(cl_mem), &pivot.buffer);
+                            clEnqueueFillBuffer(queue, RHS.operandvalues, &fillValue, sizeof(float), 0, sizeof(float) *factor, 0, nullptr, nullptr);
+                            clEnqueueFillBuffer(queue, RHS.operandcolumns, &fillValue_int, sizeof(int), 0, sizeof(int) *factor, 0, nullptr, nullptr);
+                            clEnqueueFillBuffer(queue, RHS.operandrowptr, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
+                            clFinish(queue);
+                            clEnqueueCopyBuffer(queue, other[2].buffer, RHS.operandvalues, 0, 0, sizeof(float) * RHS.sparsecount, 0, NULL, NULL);
+                            clEnqueueCopyBuffer(queue, other[1].buffer, RHS.operandcolumns, 0, 0, sizeof(int) * RHS.sparsecount, 0, NULL, NULL);
+                            clEnqueueCopyBuffer(queue, other[0].buffer, RHS.operandrowptr, 0, 0, sizeof(int) * (N + 1), 0, NULL, NULL);
+                            clFinish(queue);
+                            MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, RHS.sparsecount);
+                            MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, RHS.sparsecount);
+                            MP.AMR[0].CD[index].rowpointers = copyCL<int>(queue, other[0].buffer, N + 1);
+                            std::vector<float> Value_filtered_V(N);
+                            std::vector<float> Value_filtered_E(N);
+                            clFinish(queue);
+                            printVector(MP.AMR[0].CD[index].values);
+                            CLBuffer Value_filtered, Value_filtered_0, Value_filtered_row, pivot;
+                            Value_filtered.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * N, nullptr, &err);
+                            Value_filtered_0.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * N, nullptr, &err);
+                            Value_filtered_row.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * N, nullptr, &err);
+                            pivot.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float), NULL, &err);
+                            // create a local copy of values, ind and rowptr of the RHS
+                            
+                            err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &RHS.operandrowptr);
+                            err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &RHS.operandcolumns);
+                            err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &RHS.operandvalues);
+                            err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
+                            err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &N);
+                            err |= clSetKernelArg(kernelfilterarray, 6, sizeof(cl_mem), &pivot.buffer);
+                            
+                            err |= clSetKernelArg(kernelfilterrow, 0, sizeof(cl_mem), &Value_filtered_0.buffer);
+                            err |= clSetKernelArg(kernelfilterrow, 1, sizeof(cl_mem), &Value_filtered_row.buffer);
+                            err |= clSetKernelArg(kernelfilterrow, 2, sizeof(cl_mem), &Value_filtered.buffer);
+                            err |= clSetKernelArg(kernelfilterrow, 3, sizeof(cl_int), &N);
+                            err |= clSetKernelArg(kernelfilterrow, 4, sizeof(cl_mem), &pivot.buffer);
 
-                        err |= clSetKernelArg(kernel_math[1], 0, sizeof(cl_mem), &Value_filtered.buffer);
-                        err |= clSetKernelArg(kernel_math[1], 1, sizeof(cl_mem), &Value_filtered.buffer);
-                        err |= clSetKernelArg(kernel_math[1], 2, sizeof(cl_mem), &Value_filtered_row.buffer);
-                        err |= clSetKernelArg(kernel_math[1], 3, sizeof(cl_int), &N);
-                        
-                        float fillValue = 0.0f;
-                        int fillValue_int = 0;
-                        
-                        print_time();
-                        std::cout << "Loop begin" << std::endl;
-                        for (int rowouter = 0; rowouter < N; rowouter++){
-                            // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
-                            for (int row = rowouter; row < N; row ++){
-                                clEnqueueFillBuffer(queue, other[2].buffer, &fillValue, sizeof(float), 0, sizeof(float) * N * N * 3 / 4, 0, nullptr, nullptr);
-                                clEnqueueFillBuffer(queue, other[1].buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N * 3 / 4, 0, nullptr, nullptr);
-                                clEnqueueFillBuffer(queue, other[0].buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
-                                clFinish(queue);
-                                printVector(Lap_val_V);
-                                std::cout << Lap_val_V.size() << std::endl;
-                                err = clEnqueueWriteBuffer(queue, other[2].buffer, CL_TRUE, 0, sizeof(float) * Lap_val_V.size(), Lap_val_V.data(), 0, NULL, NULL);
-                                if (err != CL_SUCCESS) {
-                                    std::cerr << "Error creating LFvalues buffer: " << err << std::endl;
-                                }
-                                err = clEnqueueWriteBuffer(queue, other[1].buffer, CL_TRUE, 0, sizeof(int) * Lap_ind_V.size(), Lap_ind_V.data(), 0, NULL, NULL);
-                                err = clEnqueueWriteBuffer(queue, other[0].buffer, CL_TRUE, 0, sizeof(int) * (N + 1), Lap_rowptr_V.data(), 0, NULL, NULL);
-                                clFinish(queue);
-                                // std::cout << "iteration: " << row << std::endl;
-                                err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &row);
-                                // step 1 : Extract the row
-                                if(row == rowouter){
-                                    clEnqueueFillBuffer(queue, Value_filtered_0.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                            err |= clSetKernelArg(kernel_math[1], 0, sizeof(cl_mem), &Value_filtered.buffer);
+                            err |= clSetKernelArg(kernel_math[1], 1, sizeof(cl_mem), &Value_filtered.buffer);
+                            err |= clSetKernelArg(kernel_math[1], 2, sizeof(cl_mem), &Value_filtered_row.buffer);
+                            err |= clSetKernelArg(kernel_math[1], 3, sizeof(cl_int), &N);
+                            
+                            for (int rowouter = 0; rowouter < 3; rowouter++){
+                                std::cout << MP.AMR[0].CD[index].values.size() << std::endl;
+                                // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
+                                for (int row = rowouter; row < N; row ++){
+                                    
+                                    clEnqueueFillBuffer(queue, RHS.operandvalues, &fillValue, sizeof(float), 0, sizeof(float) *factor, 0, nullptr, nullptr);
+                                    clEnqueueFillBuffer(queue, RHS.operandcolumns, &fillValue_int, sizeof(int), 0, sizeof(int) *factor, 0, nullptr, nullptr);
+                                    clEnqueueFillBuffer(queue, RHS.operandrowptr, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
                                     clFinish(queue);
-                                    err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered_0.buffer);
-                                    err |= clSetKernelArg(kernelfilterarray, 7, sizeof(cl_int), &rowouter);
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                    err = clEnqueueWriteBuffer(queue, RHS.operandvalues, CL_TRUE, 0, sizeof(float) * RHS.sparsecount, MP.AMR[0].CD[index].values.data(), 0, NULL, NULL);
+                                    err = clEnqueueWriteBuffer(queue, RHS.operandcolumns, CL_TRUE, 0, sizeof(int) * RHS.sparsecount, MP.AMR[0].CD[index].columns.data(), 0, NULL, NULL);
+                                    err = clEnqueueWriteBuffer(queue, RHS.operandrowptr, CL_TRUE, 0, sizeof(int) * (N + 1), MP.AMR[0].CD[index].rowpointers.data(), 0, NULL, NULL);
                                     clFinish(queue);
-                                    // printCL(pivot.buffer, 1, 1);
-                                }
-                                else{
-                                    print_time();
-                                    std::cout << "GPU start" << std::endl;
-                                    err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
-                                    clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
-                                    clEnqueueFillBuffer(queue, Value_filtered_row.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
-                                    clFinish(queue);
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
-                                    clFinish(queue);
-                                    Value_filtered_V = copyCL<float>(queue, Value_filtered.buffer, N);
-                                    // printCL(pivot.buffer, 1, 1);
-                                    // step 2 : Multiply with factor = ele / pivot
-                                    err |= clSetKernelArg(kernelfilterrow, 5, sizeof(cl_mem), &rowouter);
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterrow, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
-                                    clFinish(queue);
-                                    // step 2 : subtract the row from 0th
-                                    err = clEnqueueNDRangeKernel(queue, kernel_math[1], 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
-                                    clFinish(queue);
-                                    Value_filtered_E = copyCL<float>(queue, Value_filtered.buffer, N);
-                                    print_time();
-                                    std::cout << "GPU finish" << std::endl;
-                                    // Update CSR array
-                                    for (int vf = 0; vf < N; vf++){
-                                        if(Value_filtered_V[vf] == 0 && Value_filtered_E[vf] != 0)
-                                        {
-                                            // if 0 -> value, add this element
-                                            // int start = Lap_rowptr_V[row];
-                                            int end = Lap_rowptr_V[row + 1];
-                                            
-                                            Lap_ind_V.insert(Lap_ind_V.begin() + end, vf);
-                                            Lap_val_V.insert(Lap_val_V.begin() + end, Value_filtered_E[vf]);
-                                            
-                                            for(int rowptr = row; rowptr < N + 1; rowptr++){
-                                                Lap_rowptr_V[rowptr + 1] += 1;
-                                            }
-                                        }
-                                        // i value to value, change this element
-                                        else if(Value_filtered_V[vf] != 0 && Value_filtered_E[vf] == 0)
-                                        {
-                                            // if value -> 0, remove this element
-                                            int start = Lap_rowptr_V[row];
-                                            int end = Lap_rowptr_V[row + 1];
-                                            for(int col = start; col < end; col ++){
-                                                if(Lap_ind_V[col] == vf){
-                                                    Lap_val_V.erase(Lap_val_V.begin() + col);
-                                                    Lap_ind_V.erase(Lap_ind_V.begin() + col);
-                                                    break;
+                                    // printVector(MP.AMR[0].CD[index].values);
+                                    // std::cout << "iteration: " << row << std::endl;
+                                    err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &row);
+                                    // step 1 : Extract the row
+                                    if(row == rowouter){
+                                        clEnqueueFillBuffer(queue, Value_filtered_0.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                                        clFinish(queue);
+                                        err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered_0.buffer);
+                                        err |= clSetKernelArg(kernelfilterarray, 7, sizeof(cl_int), &rowouter);
+                                        err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                        clFinish(queue);
+                                        std::cout << row << " array : \n";
+                                        
+                                        // printCL(pivot.buffer, 1, 1);
+                                    }
+                                    else{
+                                        //print_time();
+                                        // std::cout << "GPU start" << std::endl;
+                                        err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
+                                        clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                                        clEnqueueFillBuffer(queue, Value_filtered_row.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
+                                        clFinish(queue);
+                                        
+                                        err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                        clFinish(queue);
+                                        Value_filtered_V = copyCL<float>(queue, Value_filtered.buffer, N);
+                                        clFinish(queue);
+                                        // printCL(pivot.buffer, 1, 1);
+                                        // step 2 : Multiply with factor = ele / pivot
+                                        err |= clSetKernelArg(kernelfilterrow, 5, sizeof(cl_mem), &rowouter);
+                                        //std::cout << "kernel start" << std::endl;
+                                        err = clEnqueueNDRangeKernel(queue, kernelfilterrow, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                        clFinish(queue);
+                                        // step 2 : subtract the row from 0th
+                                        err = clEnqueueNDRangeKernel(queue, kernel_math[1], 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                        clFinish(queue);
+                                        Value_filtered_E = copyCL<float>(queue, Value_filtered.buffer, N);
+                                        clFinish(queue);
+                                        //print_time();
+                                        //std::cout << "GPU finish" << std::endl;
+                                        // Update CSR array
+                                        // printVector(Value_filtered_E);
+                                        
+                                        for (int vf = 0; vf < N; vf++){
+                                            if(Value_filtered_V[vf] == 0 && Value_filtered_E[vf] != 0)
+                                            {
+                                                // if 0 -> value, add this element
+                                                // int start = Lap_rowptr_V[row];
+                                                int end = MP.AMR[0].CD[index].rowpointers[row + 1];
+                                                
+                                                MP.AMR[0].CD[index].columns.insert(MP.AMR[0].CD[index].columns.begin() + end, vf);
+                                                MP.AMR[0].CD[index].values.insert(MP.AMR[0].CD[index].values.begin() + end, Value_filtered_E[vf]);
+                                                
+                                                for(int rowptr = row; rowptr < N + 1; rowptr++){
+                                                    MP.AMR[0].CD[index].rowpointers[rowptr + 1] += 1;
                                                 }
                                             }
-                                            
-                                            for(int rowptr = row; rowptr < N + 1; rowptr++){
-                                                Lap_rowptr_V[rowptr + 1] -= 1;
+                                            // i value to value, change this element
+                                            else if(Value_filtered_V[vf] != 0 && Value_filtered_E[vf] == 0)
+                                            {
+                                                // if value -> 0, remove this element
+                                                int start = MP.AMR[0].CD[index].rowpointers[row];
+                                                int end = MP.AMR[0].CD[index].rowpointers[row + 1];
+                                                for(int col = start; col < end; col ++){
+                                                    if(MP.AMR[0].CD[index].columns[col] == vf){
+                                                        MP.AMR[0].CD[index].values.erase(MP.AMR[0].CD[index].values.begin() + col);
+                                                        MP.AMR[0].CD[index].columns.erase(MP.AMR[0].CD[index].columns.begin() + col);
+                                                        break;
+                                                    }
+                                                }
                                                 
+                                                for(int rowptr = row; rowptr < N + 1; rowptr++){
+                                                    MP.AMR[0].CD[index].rowpointers[rowptr + 1] -= 1;
+                                                    
+                                                }
                                             }
-                                        }
-                                        else if (Value_filtered_V[vf] == 0 && Value_filtered_E[vf] == 0){
-                                            continue;
-                                        }
-                                        else{
-                                            // if value changes, edit this element
-                                            // row_ptr range
-                                            int start = Lap_rowptr_V[row];
-                                            int end = Lap_rowptr_V[row + 1];
-                                            for(int col = start; col < end; col ++){
-                                                if(Lap_ind_V[col] == vf){
-                                                    Lap_val_V[col] = Value_filtered_E[vf];
-                                                    break;
+                                            else if (Value_filtered_V[vf] == 0 && Value_filtered_E[vf] == 0){
+                                                continue;
+                                            }
+                                            else{
+                                                // if value changes, edit this element
+                                                // row_ptr range
+                                                int start = MP.AMR[0].CD[index].rowpointers[row];
+                                                int end = MP.AMR[0].CD[index].rowpointers[row + 1];
+                                                for(int col = start; col < end; col ++){
+                                                    if(MP.AMR[0].CD[index].columns[col] == vf){
+                                                        MP.AMR[0].CD[index].values[col] = Value_filtered_E[vf];
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
+                                    clFinish(queue); 
+                                    // printCL(RHS.operandvalues,factor, 1);
                                 }
-                                
-                                clFinish(queue);
-                                
                             }
-                            // std::cout << "\n";
+                            clReleaseMemObject(Value_filtered.buffer);
+                            clReleaseMemObject(Value_filtered_0.buffer);
+                            clReleaseMemObject(Value_filtered_row.buffer);
+                            printCL(RHS.operandvalues,factor, 1);
+                            RHS_INIT = true;
+                        }
+                        else{
+                            printCL(RHS.operandvalues,factor, 1);
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
-                        //clReleaseMemObject(LFvalues.buffer);
-                        // clReleaseMemObject(Lap_ind.buffer);
-                        // clReleaseMemObject(Lap_rowptr.buffer);
-                        // clReleaseMemObject(Value_filtered.buffer);
-                        //clReleaseMemObject(Value_filtered_0.buffer);
-                        //clReleaseMemObject(Value_filtered_row.buffer);
-                        //printVector(Lap_val_V);
-
+                        
                     }
-
             }
+
 
             return partD;
 
@@ -409,6 +420,7 @@ namespace Giro{
         public:
             std::vector<CLBuffer> values_gpu;
             std::vector<CLBuffer> laplacian_csr;
+            std::vector<CLBuffer> gradient;
     };
 };
 
