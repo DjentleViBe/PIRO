@@ -229,35 +229,11 @@ int laplacian_CSR_init(){
                     if (it == MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.end()) {
                         // Add the boundary point if not already in the matrix.
                         MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(i); // for diagonal entry
-                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0); // large value to enforce the BC
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(10.0); // large value to enforce the BC
                     }
                     else{
                         size_t index = std::distance(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.begin(), it);
-                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values[index] = 1.0;
-                    }
-                    
-                    // Add zero for neighbors, with boundary check
-                    if (isValidIndex(i + 1) && !isBoundaryPoint(x + 1, y, z)) {
-                        auto it = std::find(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.begin(),
-                            MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.end(), i + 1);
-        
-                        if (it != MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.end()) {
-                            
-                            size_t index = std::distance(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.begin(), it);
-                            MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.erase(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.begin() + index);
-                            MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.erase(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.begin() + index);
-                        }
-                    }
-
-                    if (isValidIndex(i - 1) && !isBoundaryPoint(x - 1, y, z)) {
-                        auto it = std::find(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.begin(),
-                            MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.end(), i - 1);
-        
-                        if (it != MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.end()) {
-                            size_t index = std::distance(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.begin(), it);
-                            MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.erase(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.begin() + index);
-                            MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.erase(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.begin() + index);                    
-                        }
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values[index] = 10.0;
                     }
                 }
                 MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i + 1] = MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.size();

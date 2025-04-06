@@ -24,6 +24,7 @@ namespace Giro{
 };
 
 extern Giro::Equation RHS;
+const float EPSILON = 1E-6;
 
 class CLBuffer{
     public:
@@ -78,6 +79,7 @@ class CLBuffer{
                         int factor = N * N * 3 / 4;
                         std::cout << N << std::endl;
                         std::cout << factor << std::endl;
+                        std::cout << N * N << std::endl;
                         size_t globalWorkSize_square[1] = { (size_t)N};
                         if(RHS_INIT == false){
                             float fillValue = 0.0f;
@@ -106,6 +108,9 @@ class CLBuffer{
                             std::vector<float> Value_filtered_E(N);
                             clFinish(queue);
                             printVector(MP.AMR[0].CD[index].values);
+                            printVector(MP.AMR[0].CD[index].columns);
+                            printVector(MP.AMR[0].CD[index].rowpointers);
+                            std::cout << "for python" << std::endl;
                             CLBuffer Value_filtered, Value_filtered_0, Value_filtered_row, pivot;
                             Value_filtered.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * N, nullptr, &err);
                             Value_filtered_0.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * N, nullptr, &err);
@@ -131,21 +136,19 @@ class CLBuffer{
                             err |= clSetKernelArg(kernel_math[1], 2, sizeof(cl_mem), &Value_filtered_row.buffer);
                             err |= clSetKernelArg(kernel_math[1], 3, sizeof(cl_int), &N);
                             
-                            for (int rowouter = 0; rowouter < 3; rowouter++){
+                            for (int rowouter = 0; rowouter < N; rowouter++){
                                 std::cout << MP.AMR[0].CD[index].values.size() << std::endl;
                                 // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
                                 for (int row = rowouter; row < N; row ++){
                                     
-                                    clEnqueueFillBuffer(queue, RHS.operandvalues, &fillValue, sizeof(float), 0, sizeof(float) *factor, 0, nullptr, nullptr);
-                                    clEnqueueFillBuffer(queue, RHS.operandcolumns, &fillValue_int, sizeof(int), 0, sizeof(int) *factor, 0, nullptr, nullptr);
+                                    clEnqueueFillBuffer(queue, RHS.operandvalues, &fillValue, sizeof(float), 0, sizeof(float) * factor, 0, nullptr, nullptr);
+                                    clEnqueueFillBuffer(queue, RHS.operandcolumns, &fillValue_int, sizeof(int), 0, sizeof(int) * factor, 0, nullptr, nullptr);
                                     clEnqueueFillBuffer(queue, RHS.operandrowptr, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
                                     clFinish(queue);
-                                    err = clEnqueueWriteBuffer(queue, RHS.operandvalues, CL_TRUE, 0, sizeof(float) * RHS.sparsecount, MP.AMR[0].CD[index].values.data(), 0, NULL, NULL);
-                                    err = clEnqueueWriteBuffer(queue, RHS.operandcolumns, CL_TRUE, 0, sizeof(int) * RHS.sparsecount, MP.AMR[0].CD[index].columns.data(), 0, NULL, NULL);
+                                    err = clEnqueueWriteBuffer(queue, RHS.operandvalues, CL_TRUE, 0, sizeof(float) * MP.AMR[0].CD[index].values.size(), MP.AMR[0].CD[index].values.data(), 0, NULL, NULL);
+                                    err = clEnqueueWriteBuffer(queue, RHS.operandcolumns, CL_TRUE, 0, sizeof(int) * MP.AMR[0].CD[index].columns.size(), MP.AMR[0].CD[index].columns.data(), 0, NULL, NULL);
                                     err = clEnqueueWriteBuffer(queue, RHS.operandrowptr, CL_TRUE, 0, sizeof(int) * (N + 1), MP.AMR[0].CD[index].rowpointers.data(), 0, NULL, NULL);
                                     clFinish(queue);
-                                    // printVector(MP.AMR[0].CD[index].values);
-                                    // std::cout << "iteration: " << row << std::endl;
                                     err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &row);
                                     // step 1 : Extract the row
                                     if(row == rowouter){
@@ -156,12 +159,8 @@ class CLBuffer{
                                         err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                         clFinish(queue);
                                         std::cout << row << " array : \n";
-                                        
-                                        // printCL(pivot.buffer, 1, 1);
                                     }
                                     else{
-                                        //print_time();
-                                        // std::cout << "GPU start" << std::endl;
                                         err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &Value_filtered.buffer);
                                         clEnqueueFillBuffer(queue, Value_filtered.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
                                         clEnqueueFillBuffer(queue, Value_filtered_row.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N, 0, nullptr, nullptr);
@@ -171,24 +170,18 @@ class CLBuffer{
                                         clFinish(queue);
                                         Value_filtered_V = copyCL<float>(queue, Value_filtered.buffer, N);
                                         clFinish(queue);
-                                        // printCL(pivot.buffer, 1, 1);
+                                        
                                         // step 2 : Multiply with factor = ele / pivot
                                         err |= clSetKernelArg(kernelfilterrow, 5, sizeof(cl_mem), &rowouter);
-                                        //std::cout << "kernel start" << std::endl;
                                         err = clEnqueueNDRangeKernel(queue, kernelfilterrow, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                         clFinish(queue);
-                                        // step 2 : subtract the row from 0th
                                         err = clEnqueueNDRangeKernel(queue, kernel_math[1], 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                                         clFinish(queue);
                                         Value_filtered_E = copyCL<float>(queue, Value_filtered.buffer, N);
                                         clFinish(queue);
-                                        //print_time();
-                                        //std::cout << "GPU finish" << std::endl;
-                                        // Update CSR array
-                                        // printVector(Value_filtered_E);
-                                        
+
                                         for (int vf = 0; vf < N; vf++){
-                                            if(Value_filtered_V[vf] == 0 && Value_filtered_E[vf] != 0)
+                                            if(std::abs(Value_filtered_V[vf]) < EPSILON && std::abs(Value_filtered_E[vf]) > EPSILON)
                                             {
                                                 // if 0 -> value, add this element
                                                 // int start = Lap_rowptr_V[row];
@@ -197,12 +190,12 @@ class CLBuffer{
                                                 MP.AMR[0].CD[index].columns.insert(MP.AMR[0].CD[index].columns.begin() + end, vf);
                                                 MP.AMR[0].CD[index].values.insert(MP.AMR[0].CD[index].values.begin() + end, Value_filtered_E[vf]);
                                                 
-                                                for(int rowptr = row; rowptr < N + 1; rowptr++){
-                                                    MP.AMR[0].CD[index].rowpointers[rowptr + 1] += 1;
+                                                for(int rowptr = row + 1; rowptr <= N; rowptr++){
+                                                    MP.AMR[0].CD[index].rowpointers[rowptr] += 1;
                                                 }
                                             }
                                             // i value to value, change this element
-                                            else if(Value_filtered_V[vf] != 0 && Value_filtered_E[vf] == 0)
+                                            else if(std::abs(Value_filtered_V[vf]) > EPSILON && std::abs(Value_filtered_E[vf]) < EPSILON)
                                             {
                                                 // if value -> 0, remove this element
                                                 int start = MP.AMR[0].CD[index].rowpointers[row];
@@ -215,12 +208,12 @@ class CLBuffer{
                                                     }
                                                 }
                                                 
-                                                for(int rowptr = row; rowptr < N + 1; rowptr++){
-                                                    MP.AMR[0].CD[index].rowpointers[rowptr + 1] -= 1;
+                                                for(int rowptr = row + 1; rowptr <= N; rowptr++){
+                                                    MP.AMR[0].CD[index].rowpointers[rowptr] -= 1;
                                                     
                                                 }
                                             }
-                                            else if (Value_filtered_V[vf] == 0 && Value_filtered_E[vf] == 0){
+                                            else if (std::abs(Value_filtered_V[vf]) < EPSILON && std::abs(Value_filtered_E[vf]) < EPSILON){
                                                 continue;
                                             }
                                             else{
@@ -237,14 +230,15 @@ class CLBuffer{
                                             }
                                         }
                                     }
-                                    clFinish(queue); 
-                                    // printCL(RHS.operandvalues,factor, 1);
+                                    clFinish(queue);
                                 }
                             }
                             clReleaseMemObject(Value_filtered.buffer);
                             clReleaseMemObject(Value_filtered_0.buffer);
                             clReleaseMemObject(Value_filtered_row.buffer);
-                            printCL(RHS.operandvalues,factor, 1);
+                            // printVector(MP.AMR[0].CD[index].values);
+                            printCL(RHS.operandvalues, MP.AMR[0].CD[index].values.size(), 1);
+                            printCL(RHS.operandrowptr, N, 0);
                             RHS_INIT = true;
                         }
                         else{
