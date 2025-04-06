@@ -463,15 +463,18 @@ const char *filter_array = R"CLC(
         int start = inputArrayrow[threshold_row];
         int end = inputArrayrow[threshold_row + 1];
         int idx = start + gid;
+        if (idx < end){
+            if(threshold_row == rowouter && gid == 0){
+                pivot[0] = ValueArray[start]; 
+            }
+            
 
-        if(threshold_row == rowouter && gid == 0){
-            pivot[0] = ValueArray[start]; 
-        }
-        
-
-        if (start + gid < end) {
-            int col_index = inputArraycol[idx];
-            outputArray[col_index] = ValueArray[idx];
+            if (start + gid < end) {
+                int col_index = inputArraycol[idx];
+                if (col_index >= 0 && col_index < n){
+                    outputArray[col_index] = ValueArray[idx];
+                }
+            }
         }
     }
 )CLC";

@@ -42,6 +42,7 @@ std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N) {
     std::vector<T> hostValues(N);
     clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                         sizeof(T) * N, hostValues.data(), 0, NULL, NULL);
+    clFinish(queue);
     return hostValues;
 }
 

@@ -170,7 +170,7 @@ int laplacian_CSR_init(){
     MP.AMR[0].CD.push_back(CD);
     CDGPU.laplacian_csr.push_back(CD_GPU);
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 2; // row pointers
-    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.assign(N + 1, 0.0);
+    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.assign(N + 1, 0);
     CDGPU.laplacian_csr.push_back(CD_GPU);
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 3; // columns
     CDGPU.laplacian_csr.push_back(CD_GPU);
