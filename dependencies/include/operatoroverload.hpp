@@ -139,6 +139,8 @@ class CLBuffer{
                             print_time();
                             std::cout << "loop begin" << std::endl;
                             for (int rowouter = 0; rowouter < N; rowouter++){
+                                print_time();
+                                std::cout << "Row Outer : " << rowouter << std::endl;
                                 err |= clSetKernelArg(kernelfilterrow, 5, sizeof(cl_mem), &rowouter);
                                 // std::cout << "Values size : " << Lap_val_V.size() << std::endl;
                                 for (int row = rowouter; row < N; row ++){
