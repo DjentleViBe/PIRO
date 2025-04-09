@@ -76,22 +76,9 @@ class CLBuffer{
                         std::cout << "LU Decomposition" << std::endl;
                         int N = MP.n[0] * MP.n[1] * MP.n[2];
                         int factor = N * N * 3 / 4;
-                        // int N = 8;
-                        
-                        // size_t globalWorkSize[1] = { (size_t)N};
-                        // std::vector<float> Lap_full = {-6.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0,
-                        //                                 1.0,-6.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0,
-                        //                                1.0,0.0,-6.0,1.0,0.0,0.0,1.0,0.0,
-                        //                                0.0,1.0,1.0,-6.0,0.0,0.0,0.0,1.0,
-                        //                                1.0,0.0,0.0,0.0,-6.0,1.0,1.0,0.0,
-                        //                                0.0,1.0,0.0,0.0,1.0,-6.0,0.0,1.0,
-                        //                                0.0,0.0,1.0,0.0,1.0,0.0,-6.0,1.0,
-                        //                                0.0,0.0,0.0,1.0,0.0,1.0,1.0,-6.0};
-                        
-                        
-                        // std::vector<float> MP.AMR[0].CD[index].values = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
-                        // std::vector<int> MP.AMR[0].CD[index].columns = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
-                        // std::vector<int> MP.AMR[0].CD[index].rowpointers = {0, 4, 8, 12, 16, 20, 24, 28, 32};
+                        int index = MP.vectornum + MP.scalarnum;
+                        print_time();
+                        std::cout << "RHS_INIT begin" << std::endl;
                         if(RHS_INIT == false){
                             int TABLE_SIZE = nextPowerOf2(N);
                             std::vector<float> Value_filtered_E(N);
@@ -137,7 +124,6 @@ class CLBuffer{
                             float* VE = (float*)clEnqueueMapBuffer(queue, Value_filtered.buffer, CL_TRUE, CL_MAP_WRITE, 0, sizeof(float) * Value_filtered_E.size(), 0, nullptr, nullptr, &err);
                             float fillValue = 0.0f;
                             int fillValue_int = 0;
-                            int index = MP.vectornum + MP.scalarnum;
                             // std::cout << N << std::endl;
                             RHS.operandrowptr = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int) * (N + 1), nullptr, &err);
                             RHS.operandcolumns = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int) * factor, nullptr, &err);
@@ -314,10 +300,11 @@ class CLBuffer{
                             clReleaseMemObject(hk_r.buffer);
                             clReleaseMemObject(hv_0.buffer);
                             clReleaseMemObject(hv_r.buffer);
-                            printVector(MP.AMR[0].CD[index].values);
                             RHS_INIT = true;
-                            // printVector(MP.AMR[0].CD[index].columns);
                         }
+                        print_time();
+                        std::cout << "RHS_INIT end" << std::endl;
+                        printVector(MP.AMR[0].CD[index].values);
                     }
             }
 
