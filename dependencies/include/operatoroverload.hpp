@@ -234,7 +234,7 @@ class CLBuffer{
                                 //    // Use the value as needed
                                 //}
                                 //std::cout << ""<< std::endl;
-                                Value_filtered_E = copyCL(Value_filtered.buffer, N, 1, &event6);
+                                Value_filtered_E = copyCL<float>(queue, Value_filtered.buffer, N, &event6);
                                 // printVector(Value_filtered_E);
                                 //printCL(Value_filtered.buffer, N, 1);
                                 std::vector<std::pair<int, double>> to_insert;
