@@ -271,14 +271,14 @@ void printMatrix(const std::vector<std::vector<int>>& matrix) {
 
 void printVector(const std::vector<float>& vec){
     for (int i = 0; i < vec.size(); ++i) {
-        std::cout << round(vec[i] * 10000) / 10000.0 << " ";
+        std::cout << round(vec[i] * 10000) / 10000.0 << ", ";
     }
     std::cout << std::endl;
 }
 
 void printVector(const std::vector<int>& vec){
     for (int i = 0; i < vec.size(); ++i) {
-        std::cout << vec[i] << " ";
+        std::cout << vec[i] << ", ";
     }
     std::cout << std::endl;
 }
@@ -333,7 +333,7 @@ void printCL(cl_mem memC, int N, int type){
         clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                                     sizeof(int) * N, hostValues.data(), 0, NULL, NULL);
         for (size_t i = 0; i < hostValues.size(); ++i) {
-            std::cout << hostValues[i] << " ";
+            std::cout << hostValues[i] << ", ";
             }
     }
     else if(type ==1){
@@ -341,13 +341,13 @@ void printCL(cl_mem memC, int N, int type){
         clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                                     sizeof(float) * N, hostValues.data(), 0, NULL, NULL);
         for (size_t i = 0; i < hostValues.size(); ++i) {
-            std::cout << round(hostValues[i] * 10) / 10.0 << " ";
+            std::cout << round(hostValues[i] * 10) / 10.0 << ", ";
             }
     }
     std::cout << std::endl;
 }
 
-std::vector<float> copyCL(cl_mem memC, int N, int type, cl_event *event6){
+/*std::vector<float> copyCL(cl_mem memC, int N, int type, cl_event *event6){
     std::vector<float> hostValues(N);
     if (type == 0){
         clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
@@ -361,7 +361,7 @@ std::vector<float> copyCL(cl_mem memC, int N, int type, cl_event *event6){
 
     }
     return hostValues;
-}
+}*/
 
 void printCLArray(cl_mem memC, int N, int type){
     if (type == 0){

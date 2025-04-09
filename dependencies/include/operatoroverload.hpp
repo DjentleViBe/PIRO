@@ -15,6 +15,19 @@
 #include <algorithm>
 #include <unordered_map>
 
+namespace Giro{
+    class Equation{
+        public:
+            cl_mem operandvalues;
+            cl_mem operandcolumns;
+            cl_mem operandrowptr;
+            int sparsecount;
+    };
+};
+
+extern Giro::Equation RHS;
+const float EPSILON = 1E-6;
+
 class CLBuffer{
     public:
         cl_mem buffer;
@@ -460,6 +473,7 @@ namespace Giro{
         public:
             std::vector<CLBuffer> values_gpu;
             std::vector<CLBuffer> laplacian_csr;
+            std::vector<CLBuffer> gradient;
     };
 };
 
