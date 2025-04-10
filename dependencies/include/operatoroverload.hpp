@@ -111,7 +111,8 @@ class CLBuffer{
                             err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &hv_r.buffer);
                             err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_mem), &Value_filtered.buffer);
                             err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &N);
-                            size_t globalWorkSize_square[1] = { (size_t)N};
+                            size_t globalWorkSize[1] = { (size_t)N};
+                            size_t local_work_size  = 256;
                             std::vector<float> hashvalues_0(TABLE_SIZE, 0.0f);
                             std::vector<int> hashkeys_0(TABLE_SIZE, -1);
                             std::vector<float> hashvalues_r(TABLE_SIZE, 0.0f);
@@ -222,7 +223,7 @@ class CLBuffer{
                                     
                                     // print_time();
                                     // std::cout << "write buffer end" << std::endl;
-                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
+                                    err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, &local_work_size, 0, NULL, NULL);
                                     clFinish(queue);
                                     
                                     // std::memcpy(Value_filtered_E.data(), VE, sizeof(float) * Value_filtered_E.size());
