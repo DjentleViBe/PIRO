@@ -143,6 +143,8 @@ class CLBuffer{
                             print_time();
                             std::cout << "Loop begin" << std::endl;
                             for (int rowouter = 0; rowouter < N; rowouter++){
+                                print_time();
+                                std::cout << "rowouter : " << rowouter << std::endl;
                                 err |= clSetKernelArg(kernelfilterarray, 6, sizeof(cl_int), &rowouter);
                                 std::fill(hashvalues_0.begin(), hashvalues_0.end(), 0.0f);
                                 std::fill(hashkeys_0.begin(), hashkeys_0.end(), -1);
@@ -304,7 +306,7 @@ class CLBuffer{
                         }
                         print_time();
                         std::cout << "RHS_INIT end" << std::endl;
-                        printVector(MP.AMR[0].CD[index].values);
+                        // printVector(MP.AMR[0].CD[index].values);
                     }
             }
 
