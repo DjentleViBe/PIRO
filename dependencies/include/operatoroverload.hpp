@@ -13,6 +13,19 @@
 #include <vector>
 #include <iostream>
 
+namespace Giro{
+    class Equation{
+        public:
+            cl_mem operandvalues;
+            cl_mem operandcolumns;
+            cl_mem operandrowptr;
+            int sparsecount;
+    };
+};
+
+extern Giro::Equation RHS;
+const float EPSILON = 1E-6;
+
 class CLBuffer{
     public:
         cl_mem buffer;
@@ -59,80 +72,31 @@ class CLBuffer{
                 std::cout << "Backward Euler" << std::endl;
                     if(SP.solverscheme == 17){
                         std::cout << "LU Decomposition" << std::endl;
-                        /*
-                        int nnz = MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size();
-                        std::vector<float>A(nnz, 0.0);
-                        std::vector<int>A_int(nnz, 0);
-
-                        
-                        std::vector<CLBuffer> L(3);
-                        
-                        L[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(int) * (N + 1), A_int.data(), &err);
-                        L[1].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(int) * nnz, A_int.data(), &err);
-                        L[2].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(float) * nnz, A.data(), &err);
-                        
-                        std::vector<CLBuffer> U(3);
-                        U[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(int) * (N + 1), A_int.data(), &err);
-                        U[1].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(int) * nnz, A_int.data(), &err);
-                        U[2].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            sizeof(float) * nnz, A_int.data(), &err);
-
-                        // CLBuffer b, y, x;
-                        // b.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                        //    sizeof(float) * N, A.data(), &err);
-                        
-                        // take the inverse of the RHS
-                        std::cout << "LU Decomposition kernel" << std::endl;
-                        err |= clSetKernelArg(kernellu_decomposition, 0, sizeof(cl_mem), &other[0].buffer);
-                        err |= clSetKernelArg(kernellu_decomposition, 1, sizeof(cl_mem), &other[1].buffer);
-                        err |= clSetKernelArg(kernellu_decomposition, 2, sizeof(cl_mem), &other[2].buffer);
-
-                        err |= clSetKernelArg(kernellu_decomposition, 3, sizeof(cl_mem), &L[0].buffer);
-                        err |= clSetKernelArg(kernellu_decomposition, 4, sizeof(cl_mem), &L[1].buffer);
-                        err |= clSetKernelArg(kernellu_decomposition, 5, sizeof(cl_mem), &L[2].buffer);
-
-                        err |= clSetKernelArg(kernellu_decomposition, 6, sizeof(cl_mem), &U[0].buffer);
-                        err |= clSetKernelArg(kernellu_decomposition, 7, sizeof(cl_mem), &U[1].buffer);
-                        err |= clSetKernelArg(kernellu_decomposition, 8, sizeof(cl_mem), &U[2].buffer);
-                        err |= clSetKernelArg(kernellu_decomposition, 9, sizeof(cl_int), &N);
-                        err = clEnqueueNDRangeKernel(queue, kernellu_decomposition, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-                        clFinish(queue);
-
-                        err |= clSetKernelArg(kernelforward_substitution_csr, 0, sizeof(cl_mem), &L[0].buffer);
-                        err |= clSetKernelArg(kernelforward_substitution_csr, 1, sizeof(cl_mem), &L[1].buffer);
-                        err |= clSetKernelArg(kernelforward_substitution_csr, 2, sizeof(cl_mem), &L[2].buffer);
-                        err |= clSetKernelArg(kernelforward_substitution_csr, 3, sizeof(cl_mem), &partC.buffer);
-                        err |= clSetKernelArg(kernelforward_substitution_csr, 4, sizeof(cl_mem), &this->buffer);
-                        err |= clSetKernelArg(kernelforward_substitution_csr, 5, sizeof(cl_int), &N);
-                        err = clEnqueueNDRangeKernel(queue, kernelforward_substitution_csr, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-                        clFinish(queue);
-
-                        err |= clSetKernelArg(kernelbackward_substitution_csr, 0, sizeof(cl_mem), &U[0].buffer);
-                        err |= clSetKernelArg(kernelbackward_substitution_csr, 1, sizeof(cl_mem), &U[1].buffer);
-                        err |= clSetKernelArg(kernelbackward_substitution_csr, 2, sizeof(cl_mem), &U[2].buffer);
-                        err |= clSetKernelArg(kernelbackward_substitution_csr, 3, sizeof(cl_mem), &partD.buffer);
-                        err |= clSetKernelArg(kernelbackward_substitution_csr, 4, sizeof(cl_mem), &partC.buffer);
-                        err |= clSetKernelArg(kernelbackward_substitution_csr, 5, sizeof(cl_int), &N);
-                        err = clEnqueueNDRangeKernel(queue, kernelbackward_substitution_csr, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-                        clFinish(queue);*/
-                        int N = 8;
+                        int N = MP.n[0] * MP.n[1] * MP.n[2];
                         size_t globalWorkSize_square[2] = { (size_t)N, (size_t)N };
-                        std::vector<float> Lap_full = {-6.0,1.0,1.0,0.0,1.0,0.0,0.0,0.0,
-                                                        1.0,-6.0,0.0,1.0,0.0,1.0,0.0,0.0,
-                                                        1.0,0.0,-6.0,1.0,0.0,0.0,1.0,0.0,
-                                                        0.0,1.0,1.0,-6.0,0.0,0.0,0.0,1.0,
-                                                        1.0,0.0,0.0,0.0,-6.0,1.0,1.0,0.0,
-                                                        0.0,1.0,0.0,0.0,1.0,-6.0,0.0,1.0,
-                                                        0.0,0.0,1.0,0.0,1.0,0.0,-6.0,1.0,
-                                                        0.0,0.0,0.0,1.0,0.0,1.0,1.0,-6.0,};
-                        
+                        cl_event event7, event8, event9;
+                        int index = MP.vectornum + MP.scalarnum;
+                        MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, RHS.sparsecount, &event7);
+                        MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, RHS.sparsecount, &event8);
+                        MP.AMR[0].CD[index].rowpointers = copyCL<int>(queue, other[0].buffer, N + 1, &event9);
+                        clWaitForEvents(3, (cl_event[]){event7, event8, event9});
                         CLBuffer LF, LTM, U;
+                        std::vector<float>Lap_full(N * N, 0.0f);
                         std::vector<float>LT_matrix(N * N, 0.0);
+                        // printVector(MP.AMR[0].CD[index].columns);
+                        // printVector(MP.AMR[0].CD[index].values);
+                        print_time();
+                        std::cout << "make dense" << std::endl;
+                        for (int row = 0; row < N; ++row) {
+                            int start = MP.AMR[0].CD[index].rowpointers[row];
+                            int end = MP.AMR[0].CD[index].rowpointers[row + 1];
+                            for (int idx = start; idx < end; ++idx) {
+                                int col = MP.AMR[0].CD[index].columns[idx];
+                                Lap_full[row * N + col] = MP.AMR[0].CD[index].values[idx];
+                                // std::cout << idx << " " << row * N + col << " " << MP.AMR[0].CD[index].values[idx] << std::endl;
+                            }
+                        }
+                        // printVector(Lap_full);
                         LF.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                 sizeof(float) * N * N, Lap_full.data(), &err);
                         LTM.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -147,6 +111,8 @@ class CLBuffer{
                         print_time();
                         std::cout << "Begin" << std::endl;
                         for(int k = 0; k < N; k++){
+                            print_time();
+                            std::cout << "rowouter : " << k << std::endl;
                             err |= clSetKernelArg(kernellu_decompose_dense, 3, sizeof(cl_int), &k);
                             err = clEnqueueNDRangeKernel(queue, kernellu_decompose_dense, 2, NULL, globalWorkSize_square, NULL, 0, NULL, NULL);
                         
@@ -155,7 +121,7 @@ class CLBuffer{
                         print_time();
                         std::cout << "End" << std::endl;
                         std::cout << "LU Decomposition print" << std::endl;
-                        printCLArray(LF.buffer, N, 1);
+                        //printCLArray(LF.buffer, N, 1);
                         std::cout << "LU Decomposition finish" << std::endl;
                     }
             }
@@ -322,6 +288,7 @@ namespace Giro{
         public:
             std::vector<CLBuffer> values_gpu;
             std::vector<CLBuffer> laplacian_csr;
+            std::vector<CLBuffer> gradient;
     };
 };
 
