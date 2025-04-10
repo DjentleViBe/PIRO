@@ -206,6 +206,11 @@ class CLBuffer{
                                             }
                                         }
                                     }
+                                    // printVector(hashvalues_r);
+                                    if (hashvalues_r[rowouter] == 0) {
+                                        // std::cout << "skipping" << std::endl;
+                                        continue;  // Skip the row if its value is 0
+                                    }
                                     // print_time();
                                     // std::cout << "write buffer start" << std::endl;
                                     std::memcpy(hk_r_ptr, hashkeys_r.data(), sizeof(int) * hashkeys_r.size());
