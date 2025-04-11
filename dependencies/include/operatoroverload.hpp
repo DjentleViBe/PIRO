@@ -78,7 +78,7 @@ class CLBuffer{
                         int factor = N * N * 3 / 4;
                         int index = MP.vectornum + MP.scalarnum;
                         print_time();
-                        std::cout << "RHS_INIT begin" << std::endl;
+                        std::cout << "RHS_INIT begin, sparse count : " << RHS.sparsecount << std::endl;
                         if(RHS_INIT == false){
                             int TABLE_SIZE = nextPowerOf2(N);
                             std::vector<float> Value_filtered_E(N);
