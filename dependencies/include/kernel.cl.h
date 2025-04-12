@@ -449,49 +449,44 @@ const char *lu_decompose_sparse = R"CLC(
     )CLC";
         
 const char *filter_array = R"CLC(
-    __kernel void filter_array(
-        __global const int* hashkey_0,
-        __global const float* hashvalue_0,
-        __global const int* hashkey_r,
-        __global const float* hashvalue_r,
-        __global float* outputArray,
-        const int n,
-        const int rowouter
-    ) {
+    __kernel void filter_array(__global float* Avalues,
+                            __global int* Aind,
+                            __global int* Arowptr,
+                            __global float* outputArray,
+                            const int n,
+                            const int sparsecount,
+                            const int rowouter) {
         int gid = get_global_id(0);
-        int hashindex = gid % n;
-        float zerocol = 0.0f;
-        float rcol = 0.0f;
+        int total = n * n;
+        if (gid >= total) return;
+        int row = gid / n; // row
+        int col = gid % n;
+
+        float val_0 = 0.0f;
+        float val_n = 0.0f;
         float pivot = 0.0f;
         float factor = 0.0f;
 
-        if(hashkey_0[rowouter] == rowouter){
-            pivot = hashvalue_0[rowouter];
-            // printf("pivot : %f \n", pivot);
+        // find the 0th row
+        for (int i = Arowptr[rowouter]; i < Arowptr[rowouter + 1]; i++){
+            if(Aind[i] == rowouter){
+                val_0 = Avalues[i];
+            }
+            if (Aind[i] == rowouter) {
+                pivot = Avalues[i];
+            }
         }
-
-        if(hashkey_r[rowouter] == rowouter){
-            factor = hashvalue_r[rowouter];
-            // printf("Factor : %f \n", factor);
+        // find the nth row
+        // printf("%d\n", Arowptr[row]);
+        for (int i = Arowptr[row]; i < Arowptr[row + 1]; i++){
+            if(Aind[i] == col){
+                val_n = Avalues[i];
+            }
+            else if(Aind[i] == 0){
+                factor = Avalues[i];
+            }
         }
-        
-    
-        if(hashkey_0[hashindex] == gid){
-            zerocol = hashvalue_0[hashindex];
-        }
-        if(hashkey_r[hashindex] == gid){
-            rcol = hashvalue_r[hashindex];
-        }
-
-        if(zerocol != 0.0f && rcol != 0.0f){
-            outputArray[gid] = rcol - (factor / pivot) * zerocol;
-        }
-        else if(zerocol != 0.0f){
-            outputArray[gid] = - (factor / pivot) * zerocol;
-        }
-        else if(rcol != 0.0f){
-            outputArray[gid] = rcol;
-        }
+        outputArray[gid] = val_n - (factor / pivot) * val_0;
     }
 )CLC";
 

@@ -50,6 +50,8 @@ extern cl_kernel    kernelgradient_type1,
 
 extern cl_context   context;
 extern cl_command_queue queue;
+extern cl_ulong globalMemSize, maxAllocSize;
+
 int preprocess(const std::string& name);
 int idx(int i, int j, int k, int N_x, int N_y);
 int opencl_init();

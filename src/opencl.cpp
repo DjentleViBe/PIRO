@@ -23,7 +23,7 @@ cl_device_id *devices;
 cl_device_id device;
 cl_context context;
 cl_command_queue queue;
-
+cl_ulong globalMemSize, maxAllocSize;
 // math opertions programs and kernels
 // 0: add
 // 1: subtract
@@ -89,7 +89,7 @@ static void print_device_info(cl_device_id device){
     cl_uint maxWorkGroupSize;
     clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxWorkGroupSize, NULL);
 
-    cl_ulong globalMemSize, maxAllocSize;
+    
     clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_ulong), &globalMemSize, NULL);
     clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(cl_ulong), &maxAllocSize, NULL);
     
