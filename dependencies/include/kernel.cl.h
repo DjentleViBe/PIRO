@@ -485,27 +485,13 @@ const char *filter_array = R"CLC(
                     found_minus = l;
                     break;
                 }
-                steps_minus++;
             }
-
-            for(int l = gid; l < gid + N && l <= inputArrayrow[N]; l++){
-                if(inputArraycol[l] == 0){
-                    found_plus = l;
-                    break;
-                }
-                steps_plus++;
-            }
-
-            if(steps_minus < steps_plus){
-                factor_ind = found_minus;
-            }
-            else{
-                factor_ind = found_plus;
-            }
-
+            
+            factor_ind = found_minus;
             factor = ValueArray[factor_ind];
-            printf("%d minus=%d plus=%d %d %f\n", gid, steps_minus, steps_plus, factor_ind, factor);
+            
             ValueArray[gid] = ValueArray[gid] - (factor / piv) * val0;
+            // printf("%d  factor_ind = %d factor = %f value = %f\n", gid, factor_ind, factor, ValueArray[gid]);
         }
     }
 )CLC";

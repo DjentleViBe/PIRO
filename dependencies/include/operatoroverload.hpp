@@ -74,80 +74,133 @@ class CLBuffer{
                         std::vector<float> Lap_val_V = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
                         std::vector<int> Lap_ind_V = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
                         std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
-                        // look_up = 0, 1, 2, 4 ; 1, 0, 3, 5 = 
-                        // int nnz = Lap_val_V.size();
-                        std::cout << "0s adding" << std::endl;
-                        int rowouter = 0;
-                        std::unordered_set<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
-                                                              Lap_ind_V.begin() + Lap_rowptr_V[rowouter + 1]);
-                        
-                        for (int r = rowouter + 1; r < N; ++r) {
-                            std::unordered_set<int> current_row_cols(Lap_ind_V.begin() + Lap_rowptr_V[r],
-                                                                    Lap_ind_V.begin() + Lap_rowptr_V[r + 1]);
-                            std::vector<int> missing_cols;
-
-                            for (int col : rowouter_cols) {
-                                if (current_row_cols.find(col) == current_row_cols.end()) {
-                                    missing_cols.push_back(col);
-                                }
+                        std::vector<float> sorted_vals;
+                        std::vector<int> sorted_indices;
+                    
+                        // Loop through each row
+                        for (int row = 0; row < Lap_rowptr_V.size() - 1; ++row) {
+                            int start = Lap_rowptr_V[row];
+                            int end = Lap_rowptr_V[row + 1];
+                    
+                            // Extract the elements of the current row
+                            std::vector<int> row_indices(Lap_ind_V.begin() + start, Lap_ind_V.begin() + end);
+                            std::vector<float> row_values(Lap_val_V.begin() + start, Lap_val_V.begin() + end);
+                    
+                            // Sort the row by column indices
+                            std::vector<std::pair<int, float>> row_data;
+                            for (size_t i = 0; i < row_indices.size(); ++i) {
+                                row_data.push_back({row_indices[i], row_values[i]});
                             }
-                        
-                            // Sort to preserve order if needed
-                            std::sort(missing_cols.begin(), missing_cols.end());
-                        
-                            // Insert missing columns into current row
-                            int insert_pos = Lap_rowptr_V[r + 1];
-                            for (int col : missing_cols) {
-                                Lap_ind_V.insert(Lap_ind_V.begin() + insert_pos, col);
-                                Lap_val_V.insert(Lap_val_V.begin() + insert_pos, 0.0);
-                                ++insert_pos;
-                            }
-                        
-                            // Update row pointers
-                            for (int rowp = r + 1; rowp <= N; ++rowp) {
-                                Lap_rowptr_V[rowp] += missing_cols.size();
+                    
+                            std::sort(row_data.begin(), row_data.end());  // Sort by column index
+                    
+                            // Update sorted_vals and sorted_indices
+                            for (const auto& pair : row_data) {
+                                sorted_indices.push_back(pair.first);
+                                sorted_vals.push_back(pair.second);
                             }
                         }
-                        std::cout << "0s added" << std::endl;
-                        
-                        size_t globalWorkSize[1] = { (size_t)Lap_rowptr_V[N]};
-                        printVector(Lap_rowptr_V);
-                        printVector(Lap_ind_V);
-                        printVector(Lap_val_V);
-                        CLBuffer LFvalues, Lap_ind, Lap_rowptr;
-                        print_time();
-                        std::cout << "Buffer creation begin" << std::endl;
-                        
-                        // int row = 0;
-                        // float sizefactor = 2 / 3 ;
-                        LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * N * N * 3 / 4, nullptr, &err);
-                        Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int) * N * N * 3 / 4, nullptr, &err);
-                        Lap_rowptr.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int) * (N + 1), nullptr, &err);
-                        
-                        print_time();
-                        std::cout << "Buffer creation end" << std::endl;
                     
+                        // Now we have the sorted values and indices
+                        Lap_val_V = sorted_vals;
+                        Lap_ind_V = sorted_indices;
+                        
+                        /////////////////////////////////////////////////////////////////////////////////////////
+                        size_t globalWorkSize[1] = { (size_t)Lap_rowptr_V[N]};
+                        CLBuffer LFvalues, Lap_ind, Lap_rowptr;
+                        LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * N * N, nullptr, &err);
+                        Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int) * N * N, nullptr, &err);
+                        Lap_rowptr.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int) * (N + 1), nullptr, &err);
                         err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &Lap_rowptr.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &Lap_ind.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &LFvalues.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &N);
-                        //float fillValue = 0.0f;
-                        //int fillValue_int = 0;
                         
                         print_time();
                         std::cout << "Loop begin" << std::endl;
+                        //std::cout << "before Write buffer : ";
+                        //printVector(Lap_val_V);
                         for (int rowouter = 0; rowouter < 1; rowouter++){
+                            std::unordered_set<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
+                                                              Lap_ind_V.begin() + Lap_rowptr_V[rowouter + 1]);
+                            
+                            for (int r = rowouter + 1; r < N; ++r) {
+                                printVector(Lap_rowptr_V);
+                                std::unordered_set<int> current_row_cols(Lap_ind_V.begin() + Lap_rowptr_V[r],
+                                                                    Lap_ind_V.begin() + Lap_rowptr_V[r + 1]);
+                                std::vector<int> missing_cols;
+                                bool begin_check = false;
+                                bool skip = false;
+                                for (int col : rowouter_cols) {
+                                    if (current_row_cols.find(col) == current_row_cols.end()) {
+                                        if(col == rowouter){
+                                            skip = true;
+                                            break;
+                                        }
+                                        missing_cols.push_back(col);
+                                        if(!begin_check && col == rowouter){
+                                            begin_check = true;
+                                        }
+                                    }
+                                }
+                                if(!skip){
+                                    int insert_pos = 0;
+                                    // Insert missing columns into current row
+                                    if(!begin_check){
+                                        insert_pos = Lap_rowptr_V[r + 1];
+                                    }
+                                    else{
+                                        // Sort to preserve order if needed
+                                        std::sort(missing_cols.begin(), missing_cols.end());
+                                        insert_pos = Lap_rowptr_V[r];
+                                    }
+                                    
+                                    for (int col : missing_cols) {
+                                        Lap_ind_V.insert(Lap_ind_V.begin() + insert_pos, col);
+                                        Lap_val_V.insert(Lap_val_V.begin() + insert_pos, 0.0);
+                                        ++insert_pos;
+                                    }
+                                    // Update row pointers
+                                    for (int rowp = r + 1; rowp <= N; ++rowp) {
+                                        Lap_rowptr_V[rowp] += missing_cols.size();
+                                    }  
+                                }
+                                std::cout << skip << r << std::endl;
+                                printVector(Lap_rowptr_V);
+                            }
+                            
+                            //std::cout << "before Write buffer : ";
+                            
+                            //printVector(Lap_ind_V);
                             err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_TRUE, 0, sizeof(float) * Lap_val_V.size(), Lap_val_V.data(), 0, NULL, NULL);
                             err = clEnqueueWriteBuffer(queue, Lap_ind.buffer, CL_TRUE, 0, sizeof(int) * Lap_ind_V.size(), Lap_ind_V.data(), 0, NULL, NULL);
                             err = clEnqueueWriteBuffer(queue, Lap_rowptr.buffer, CL_TRUE, 0, sizeof(int) * (N + 1), Lap_rowptr_V.data(), 0, NULL, NULL);
                             clFinish(queue);
+                            
+                            std::cout << "after Write buffer : ";
+                            printCL(LFvalues.buffer, N * N, 1);
                             err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-                            // std::cout << "\n";
+                            clFinish(queue);
+                            Lap_val_V = copyCL(LFvalues.buffer, N * N, 1);
+                            printVector(Lap_val_V);
+                            printVector(Lap_rowptr_V);
+
+                            // remove the first column from rowouter + 1
+                            for(int rowp = rowouter + 1; rowp < N; rowp++){
+                                int delete_pos = Lap_rowptr_V[rowp] - rowp + 1;
+                                std::cout << "," << Lap_rowptr_V[rowp] << " ";
+                                Lap_val_V.erase(Lap_val_V.begin() + delete_pos);
+                                Lap_ind_V.erase(Lap_ind_V.begin() + delete_pos);
+                            }
+                            for(int rowp = rowouter + 1; rowp <= N; rowp++){
+                                Lap_rowptr_V[rowp]--;
+                            }
+
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
-                        printCL(LFvalues.buffer, N * N * 3 / 4, 1);
+                        printVector(Lap_val_V);
                         clReleaseMemObject(LFvalues.buffer);
                         clReleaseMemObject(Lap_ind.buffer);
                         clReleaseMemObject(Lap_rowptr.buffer);
