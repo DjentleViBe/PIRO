@@ -452,132 +452,61 @@ const char *filter_array = R"CLC(
     __kernel void filter_array(
         __global const int* inputArrayrow,
         __global const int* inputArraycol,
-        __global const float* ValueArray,
-        __global float* outputArray,
-        const int threshold_row,
-        const int n,
-        __global float* pivot,
+        __global float* ValueArray,
+        const int N,
         const int rowouter
     ) {
         // Get the global ID for this work item
-    const int gid = get_global_id(0);
-    const int local_id = get_local_id(0);
-    const int group_size = get_local_size(0);
-    const int group_id = get_group_id(0);
-    
-    // Pre-compute ranges only once
-    const int start_0 = inputArrayrow[threshold_row];
-    const int end_0 = inputArrayrow[threshold_row + 1];
-    const int start = end_0;  // Same as inputArrayrow[threshold_row + 1]
-    const int end = inputArrayrow[threshold_row + 2];
-    
-    // Calculate sizes of ranges
-    const int range1_size = end_0 - start_0;
-    const int range2_size = end - start;
-    
-    // Use local memory for caching frequently accessed data
-    __local int local_col_cache[256]; // Adjust size based on work-group size
-    __local float local_val_cache[256]; // Adjust size based on work-group size
-    
-    float result = 0.0f;
-    int first_range_val_idx = -1;
-    int second_range_val_idx = -1;
-    
-    // Collaborative loading of first range data into local memory for the work-group
-    // Each work item loads one or more elements
-    for (int i = local_id; i < range1_size && i < 256; i += group_size) {
-        if (start_0 + i < end_0) {
-            local_col_cache[i] = inputArraycol[start_0 + i];
-            local_val_cache[i] = ValueArray[start_0 + i];
+        const int gid = get_global_id(0);
+        if(gid > inputArrayrow[N]){
+            return;
         }
-    }
-    
-    // Ensure all work items have completed loading local memory
-    barrier(CLK_LOCAL_MEM_FENCE);
-    
-    // Binary search in first range (if data is sorted)
-    // For unsorted data, we'll use a linear scan but with local memory
-    for (int i = 0; i < range1_size && i < 256; i++) {
-        if (local_col_cache[i] == gid) {
-            first_range_val_idx = i;
-            break;
+        float val0 = 0.0f;
+        float piv = 0.0f;
+        float factor = 0.0f;
+        int found_minus = -1;
+        int found_plus = -1;
+        int steps_minus = 0;
+        int steps_plus = 0;
+        int factor_ind;
+
+        for(int k = inputArrayrow[rowouter]; k < inputArrayrow[rowouter + 1]; k++){
+            if(inputArraycol[gid] == inputArraycol[k]){
+                val0 = ValueArray[k];
+            }
+            if(inputArraycol[k] == 0){
+                piv = ValueArray[k];
+            }
         }
-    }
-    
-    // Reset local memory for second range
-    barrier(CLK_LOCAL_MEM_FENCE);
-    
-    // Collaborative loading of second range data
-    for (int i = local_id; i < range2_size && i < 256; i += group_size) {
-        if (start + i < end) {
-            local_col_cache[i] = inputArraycol[start + i];
-            local_val_cache[i] = ValueArray[start + i];
-        }
-    }
-    
-    // Ensure all work items have completed loading local memory
-    barrier(CLK_LOCAL_MEM_FENCE);
-    
-    // Search in second range using local memory
-    for (int i = 0; i < range2_size && i < 256; i++) {
-        if (local_col_cache[i] == gid) {
-            second_range_val_idx = i;
-            break;
-        }
-    }
-    
-    // Compute the result based on found indices
-    if (second_range_val_idx != -1) {
-        if (first_range_val_idx != -1) {
-            // Found in both ranges
-            result = local_val_cache[second_range_val_idx] - local_val_cache[first_range_val_idx];
-        } else {
-            // Found only in second range
-            result = local_val_cache[second_range_val_idx];
-        }
-    } else if (first_range_val_idx != -1) {
-        // Found only in first range
-        result = -local_val_cache[first_range_val_idx];
-    }
-    
-    // For very large ranges that don't fit in local memory, fall back to global memory
-    if ((range1_size > 256 || range2_size > 256) && 
-        (first_range_val_idx == -1 || second_range_val_idx == -1)) {
-        
-        // Fall back for first range if not found in local cache
-        if (first_range_val_idx == -1) {
-            for (int k = start_0 + 256; k < end_0; k++) {
-                if (gid == inputArraycol[k]) {
-                    first_range_val_idx = k - start_0;
+
+        if(gid >= inputArrayrow[rowouter + 1]){
+            for(int l = gid; l > gid - N && l >= 0; l--){
+                if(inputArraycol[l] == 0){
+                    found_minus = l;
                     break;
                 }
+                steps_minus++;
             }
-        }
-        
-        // Fall back for second range if not found in local cache
-        if (second_range_val_idx == -1) {
-            for (int j = start + 256; j < end; j++) {
-                if (gid == inputArraycol[j]) {
-                    second_range_val_idx = j - start;
+
+            for(int l = gid; l < gid + N && l <= inputArrayrow[N]; l++){
+                if(inputArraycol[l] == 0){
+                    found_plus = l;
                     break;
                 }
+                steps_plus++;
             }
-        }
-        
-        // Recompute result with global memory values if needed
-        if (second_range_val_idx != -1) {
-            if (first_range_val_idx != -1) {
-                result = ValueArray[start + second_range_val_idx] - ValueArray[start_0 + first_range_val_idx];
-            } else {
-                result = ValueArray[start + second_range_val_idx];
+
+            if(steps_minus < steps_plus){
+                factor_ind = found_minus;
             }
-        } else if (first_range_val_idx != -1) {
-            result = -ValueArray[start_0 + first_range_val_idx];
+            else{
+                factor_ind = found_plus;
+            }
+
+            factor = ValueArray[factor_ind];
+            printf("%d minus=%d plus=%d %d %f\n", gid, steps_minus, steps_plus, factor_ind, factor);
+            ValueArray[gid] = ValueArray[gid] - (factor / piv) * val0;
         }
-    }
-        
-        // Write result to output array
-        outputArray[gid] = result;
     }
 )CLC";
 
