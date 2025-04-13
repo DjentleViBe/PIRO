@@ -25,7 +25,7 @@
 #include <chrono>
 #include <string>
 #include <algorithm>
-#include <cstdint>
+#include <iomanip> 
 
 int writefile(std::string file_path, std::string line_to_write){
     // Create an output file stream (ofstream) object
@@ -271,14 +271,14 @@ void printMatrix(const std::vector<std::vector<int>>& matrix) {
 
 void printVector(const std::vector<float>& vec){
     for (int i = 0; i < vec.size(); ++i) {
-        std::cout << round(vec[i] * 10000) / 10000.0 << ", ";
+        std::cout << vec[i] << " ";
     }
     std::cout << std::endl;
 }
 
 void printVector(const std::vector<int>& vec){
     for (int i = 0; i < vec.size(); ++i) {
-        std::cout << vec[i] << ", ";
+        std::cout << vec[i] << " ";
     }
     std::cout << std::endl;
 }
@@ -306,8 +306,7 @@ void print_time() {
     // Print the time with 4-digit millisecond precision
     std::cout << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << '.'
               << std::setfill('0') << std::setw(3) << milliseconds
-              << std::setfill('0') << std::setw(2) << microseconds / 10
-              << std::setfill('0') << std::setw(1) << microseconds % 10 << "\t";
+              << std::setfill('0') << std::setw(1) << microseconds / 100 << "\t";
 }
 
 void printArray(float* array, uint size){
@@ -333,7 +332,7 @@ void printCL(cl_mem memC, int N, int type){
         clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                                     sizeof(int) * N, hostValues.data(), 0, NULL, NULL);
         for (size_t i = 0; i < hostValues.size(); ++i) {
-            std::cout << hostValues[i] << ", ";
+            std::cout << hostValues[i] << " ";
             }
     }
     else if(type ==1){
@@ -341,7 +340,7 @@ void printCL(cl_mem memC, int N, int type){
         clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                                     sizeof(float) * N, hostValues.data(), 0, NULL, NULL);
         for (size_t i = 0; i < hostValues.size(); ++i) {
-            std::cout << round(hostValues[i] * 10) / 10.0 << ", ";
+            std::cout << round(hostValues[i] * 10) / 10.0 << " ";
             }
     }
     std::cout << std::endl;
@@ -391,7 +390,7 @@ void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     // Print the dense matrix
     for (const auto& row : dense_matrix) {
         for (float val : row) {
-        std::cout << val << " ";
+            std::cout << std::fixed << std::setprecision(1) << val << "\t";
         }
     std::cout << "\n";
     }
