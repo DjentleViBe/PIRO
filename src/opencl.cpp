@@ -95,8 +95,8 @@ static void print_device_info(cl_device_id device){
     
     std::cout << "Compute Units: " << numComputeUnits << std::endl;
     std::cout << "Max Work Group Size: " << maxWorkGroupSize << std::endl;
-    std::cout << "Max Global Mem Size: " << globalMemSize << " bytes" << std::endl;
-    std::cout << "Max Alloc Size: " << maxAllocSize << " bytes" << std::endl;
+    // std::cout << "Max Global Mem Size: " << globalMemSize << " bytes" << std::endl;
+    // std::cout << "Max Alloc Size: " << maxAllocSize << " bytes" << std::endl;
 
 
 }

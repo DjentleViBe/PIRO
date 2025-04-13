@@ -449,44 +449,51 @@ const char *lu_decompose_sparse = R"CLC(
     )CLC";
         
 const char *filter_array = R"CLC(
-    __kernel void filter_array(__global float* Avalues,
-                            __global int* Aind,
-                            __global int* Arowptr,
-                            __global float* outputArray,
-                            const int n,
-                            const int sparsecount,
-                            const int rowouter) {
-        int gid = get_global_id(0);
-        int total = n * n;
-        if (gid >= total) return;
-        int row = gid / n; // row
-        int col = gid % n;
-
-        float val_0 = 0.0f;
-        float val_n = 0.0f;
-        float pivot = 0.0f;
+    __kernel void filter_array(
+        __global const int* inputArrayrow,
+        __global const int* inputArraycol,
+        __global float* ValueArray,
+        const int N,
+        const int rowouter
+    ) {
+        // Get the global ID for this work item
+        const int gid = get_global_id(0);
+        if(gid > inputArrayrow[N]){
+            return;
+        }
+        float val0 = 0.0f;
+        float piv = 0.0f;
         float factor = 0.0f;
+        int found_minus = -1;
+        int found_plus = -1;
+        int steps_minus = 0;
+        int steps_plus = 0;
+        int factor_ind;
 
-        // find the 0th row
-        for (int i = Arowptr[rowouter]; i < Arowptr[rowouter + 1]; i++){
-            if(Aind[i] == rowouter){
-                val_0 = Avalues[i];
+        for(int k = inputArrayrow[rowouter]; k < inputArrayrow[rowouter + 1]; k++){
+            if(inputArraycol[gid] == inputArraycol[k]){
+                val0 = ValueArray[k];
             }
-            if (Aind[i] == rowouter) {
-                pivot = Avalues[i];
-            }
-        }
-        // find the nth row
-        // printf("%d\n", Arowptr[row]);
-        for (int i = Arowptr[row]; i < Arowptr[row + 1]; i++){
-            if(Aind[i] == col){
-                val_n = Avalues[i];
-            }
-            else if(Aind[i] == 0){
-                factor = Avalues[i];
+            if(inputArraycol[k] == rowouter){
+                piv = ValueArray[k];
+                // printf("%d, %f %f ", k, piv, ValueArray[k]);
             }
         }
-        outputArray[gid] = val_n - (factor / pivot) * val_0;
+
+        if(gid >= inputArrayrow[rowouter + 1]){
+            for(int l = gid; l > gid - N && l >= 0; l--){
+                if(inputArraycol[l] == rowouter){
+                    found_minus = l;
+                    break;
+                }
+            }
+            
+            factor_ind = found_minus;
+            factor = ValueArray[factor_ind];
+            // printf("%d, factor = %f, pivot = %f\n", gid, factor, piv);
+            ValueArray[gid] = ValueArray[gid] - (factor / piv) * val0;
+            // printf("%d  factor_ind = %d factor = %f value = %f\n", gid, factor_ind, factor, ValueArray[gid]);
+        }
     }
 )CLC";
 
