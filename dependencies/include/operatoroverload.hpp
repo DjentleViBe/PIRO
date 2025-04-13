@@ -120,12 +120,13 @@ class CLBuffer{
                         std::cout << "Loop begin" << std::endl;
                         //std::cout << "before Write buffer : ";
                         //printVector(Lap_val_V);
-                        for (int rowouter = 0; rowouter < 1; rowouter++){
+                        for (int rowouter = 0; rowouter < 2; rowouter++){
+                            std::cout << "\nrowouter : " << rowouter << std::endl;
                             std::unordered_set<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
                                                               Lap_ind_V.begin() + Lap_rowptr_V[rowouter + 1]);
                             
                             for (int r = rowouter + 1; r < N; ++r) {
-                                printVector(Lap_rowptr_V);
+                                //printVector(Lap_rowptr_V);
                                 std::unordered_set<int> current_row_cols(Lap_ind_V.begin() + Lap_rowptr_V[r],
                                                                     Lap_ind_V.begin() + Lap_rowptr_V[r + 1]);
                                 std::vector<int> missing_cols;
@@ -165,42 +166,59 @@ class CLBuffer{
                                         Lap_rowptr_V[rowp] += missing_cols.size();
                                     }  
                                 }
-                                std::cout << skip << r << std::endl;
-                                printVector(Lap_rowptr_V);
+                                //std::cout << skip << r << std::endl;
+                                //printVector(Lap_rowptr_V);
                             }
-                            
+                            std::cout << "inserting 0 completed" << std::endl;
                             //std::cout << "before Write buffer : ";
                             
-                            //printVector(Lap_ind_V);
                             err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_TRUE, 0, sizeof(float) * Lap_val_V.size(), Lap_val_V.data(), 0, NULL, NULL);
                             err = clEnqueueWriteBuffer(queue, Lap_ind.buffer, CL_TRUE, 0, sizeof(int) * Lap_ind_V.size(), Lap_ind_V.data(), 0, NULL, NULL);
                             err = clEnqueueWriteBuffer(queue, Lap_rowptr.buffer, CL_TRUE, 0, sizeof(int) * (N + 1), Lap_rowptr_V.data(), 0, NULL, NULL);
                             clFinish(queue);
                             
-                            std::cout << "after Write buffer : ";
-                            printCL(LFvalues.buffer, N * N, 1);
+                            //std::cout << "after Write buffer : ";
+                            //printCL(LFvalues.buffer, N * N, 1);
+                            std::cout << "Launching kernel" << std::endl;
                             err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                             clFinish(queue);
+                            std::cout << "Kernel finish" << std::endl;
                             Lap_val_V = copyCL(LFvalues.buffer, N * N, 1);
+                            std::cout << "Copy finish" << std::endl;
+                            
                             printVector(Lap_val_V);
+                            printVector(Lap_ind_V);
                             printVector(Lap_rowptr_V);
-
-                            // remove the first column from rowouter + 1
-                            for(int rowp = rowouter + 1; rowp < N; rowp++){
-                                int delete_pos = Lap_rowptr_V[rowp] - rowp + 1;
-                                std::cout << "," << Lap_rowptr_V[rowp] << " ";
-                                Lap_val_V.erase(Lap_val_V.begin() + delete_pos);
-                                Lap_ind_V.erase(Lap_ind_V.begin() + delete_pos);
+                            // std::cout << rowouter  << ", " << Lap_rowptr_V[rowouter + 1] << std::endl;
+                            // remove the rowouter column from rowouter + 1
+                            // std::vector<int> result_ind_V;
+                            /// std::vector<float> result_val_V;
+                            // std::vector<int> idx_store;
+                            for (auto it = Lap_rowptr_V.rbegin(); it != Lap_rowptr_V.rend() - 1; ++it) {
+                                size_t idx = *it;
+                                // Safety check
+                                if (idx < Lap_ind_V.size() && Lap_ind_V[idx] == 0) {
+                                    Lap_val_V.erase(Lap_val_V.begin() + idx);
+                                    Lap_ind_V.erase(Lap_ind_V.begin() + idx);
+                                    for (size_t j = 0; j < Lap_rowptr_V.size(); ++j) {
+                                        if (Lap_rowptr_V[j] > idx) {
+                                            Lap_rowptr_V[j]--;
+                                        }
+                                    }
+                                }
                             }
-                            for(int rowp = rowouter + 1; rowp <= N; rowp++){
-                                Lap_rowptr_V[rowp]--;
-                            }
-
+                            
+                            std::cout << "erase finish" << std::endl;
+                            
+                            printVector(Lap_val_V);
+                            printVector(Lap_ind_V);
+                            printVector(Lap_rowptr_V);
+                            csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
+                        
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
-                        printVector(Lap_val_V);
                         clReleaseMemObject(LFvalues.buffer);
                         clReleaseMemObject(Lap_ind.buffer);
                         clReleaseMemObject(Lap_rowptr.buffer);

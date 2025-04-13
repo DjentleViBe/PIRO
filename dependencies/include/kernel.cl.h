@@ -474,14 +474,14 @@ const char *filter_array = R"CLC(
             if(inputArraycol[gid] == inputArraycol[k]){
                 val0 = ValueArray[k];
             }
-            if(inputArraycol[k] == 0){
+            if(inputArraycol[k] == rowouter){
                 piv = ValueArray[k];
             }
         }
 
         if(gid >= inputArrayrow[rowouter + 1]){
             for(int l = gid; l > gid - N && l >= 0; l--){
-                if(inputArraycol[l] == 0){
+                if(inputArraycol[l] == rowouter){
                     found_minus = l;
                     break;
                 }
