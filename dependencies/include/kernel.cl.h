@@ -476,6 +476,7 @@ const char *filter_array = R"CLC(
             }
             if(inputArraycol[k] == rowouter){
                 piv = ValueArray[k];
+                // printf("%d, %f %f ", k, piv, ValueArray[k]);
             }
         }
 
@@ -489,7 +490,7 @@ const char *filter_array = R"CLC(
             
             factor_ind = found_minus;
             factor = ValueArray[factor_ind];
-            
+            // printf("%d, factor = %f, pivot = %f\n", gid, factor, piv);
             ValueArray[gid] = ValueArray[gid] - (factor / piv) * val0;
             // printf("%d  factor_ind = %d factor = %f value = %f\n", gid, factor_ind, factor, ValueArray[gid]);
         }
