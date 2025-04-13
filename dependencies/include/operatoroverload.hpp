@@ -121,7 +121,8 @@ class CLBuffer{
                         //std::cout << "before Write buffer : ";
                         //printVector(Lap_val_V);
                         for (int rowouter = 0; rowouter < N; rowouter++){
-                            std::cout << "\nrowouter : " << rowouter << std::endl;
+                            print_time();
+                            std::cout << "rowouter : " << rowouter << std::endl;
                             std::unordered_set<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
                                                               Lap_ind_V.begin() + Lap_rowptr_V[rowouter + 1]);
                             
@@ -169,19 +170,19 @@ class CLBuffer{
                                 //std::cout << skip << r << std::endl;
                                 //printVector(Lap_rowptr_V);
                             }
-                            std::cout << "inserting 0 completed" << std::endl;
-                            std::cout << "before Write buffer : ";
-                            printCL(LFvalues.buffer, N * N, 1); 
-                            printVector(Lap_val_V);
-                            printVector(Lap_ind_V);
-                            printVector(Lap_rowptr_V);
+                            // std::cout << "inserting 0 completed" << std::endl;
+                            // std::cout << "before Write buffer : ";
+                            // printCL(LFvalues.buffer, N * N, 1); 
+                            // printVector(Lap_val_V);
+                            // printVector(Lap_ind_V);
+                            // printVector(Lap_rowptr_V);
                             float fillValue = 0.0f;
                             int fillValue_int = 0;
                             clEnqueueFillBuffer(queue, LFvalues.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N * N, 0, nullptr, nullptr);
                             clEnqueueFillBuffer(queue, Lap_ind.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
                             clEnqueueFillBuffer(queue, Lap_rowptr.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
                             clFinish(queue);
-                            std::cout << Lap_val_V.size() << ", " << Lap_ind_V.size() << std::endl;
+                            // std::cout << Lap_val_V.size() << ", " << Lap_ind_V.size() << std::endl;
                             err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 0, sizeof(float) * Lap_ind_V.size(), Lap_val_V.data(), 0, NULL, &event1);
                             err = clEnqueueWriteBuffer(queue, Lap_ind.buffer, CL_FALSE, 0, sizeof(int) * Lap_ind_V.size(), Lap_ind_V.data(), 0, NULL, &event2);
                             err = clEnqueueWriteBuffer(queue, Lap_rowptr.buffer, CL_FALSE, 0, sizeof(int) * (N + 1), Lap_rowptr_V.data(), 0, NULL, &event3);
@@ -190,15 +191,15 @@ class CLBuffer{
                             }
                             clWaitForEvents(3, (cl_event[]){event1, event2, event3});
                             size_t globalWorkSize[1] = { (size_t)Lap_rowptr_V[N]};
-                            std::cout << "after Write buffer : ";
-                            printCL(LFvalues.buffer, N * N, 1);
-                            std::cout << "Launching kernel" << std::endl;
+                            // std::cout << "after Write buffer : ";
+                            // printCL(LFvalues.buffer, N * N, 1);
+                            // std::cout << "Launching kernel" << std::endl;
                             err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                             clFinish(queue);
-                            std::cout << "Kernel finish" << std::endl;
+                            // std::cout << "Kernel finish" << std::endl;
                             Lap_val_V = copyCL(LFvalues.buffer, N * N, 1);
-                            std::cout << "Copy finish" << std::endl;
+                            // std::cout << "Copy finish" << std::endl;
 
                             for (auto it = Lap_rowptr_V.rbegin(); it != Lap_rowptr_V.rend() - 1; ++it) {
                                 size_t idx = *it;
@@ -213,17 +214,13 @@ class CLBuffer{
                                     }
                                 }
                             }
-                            
-                            std::cout << "erase finish" << std::endl;
-                            
-                            printVector(Lap_val_V);
-                            printVector(Lap_ind_V);
-                            printVector(Lap_rowptr_V);
-                            csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
-                        
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
+                        printVector(Lap_val_V);
+                        printVector(Lap_ind_V);
+                        printVector(Lap_rowptr_V);
+                        csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
                         clReleaseMemObject(LFvalues.buffer);
                         clReleaseMemObject(Lap_ind.buffer);
                         clReleaseMemObject(Lap_rowptr.buffer);
