@@ -25,6 +25,7 @@
 #include <chrono>
 #include <string>
 #include <algorithm>
+#include <iomanip> 
 
 int writefile(std::string file_path, std::string line_to_write){
     // Create an output file stream (ofstream) object
@@ -405,7 +406,7 @@ void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     // Print the dense matrix
     for (const auto& row : dense_matrix) {
         for (float val : row) {
-            std::cout << std::round(val * 10) / 10.0 << "\t";
+            std::cout << std::fixed << std::setprecision(1) << val << "\t";
         }
         std::cout << "\n";
     }
