@@ -237,16 +237,19 @@ class CLBuffer{
                                 // err = clEnqueueWriteBuffer(queue, RHS.operandrowptr, CL_FALSE, 0, sizeof(int) * (N + 1), MP.AMR[0].CD[index].rowpointers.data(), 0, NULL, &event3);
                                 clWaitForEvents(3, (cl_event[]){event1, event2, event3});
                                 size_t globalWorkSize[1] = { (size_t)MP.AMR[0].CD[index].rowpointers[N]};
-                                size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
+                                
+                                // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
                                 
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
-                                err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
+                                err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                                 clFinish(queue);
 
                                 
                                 MP.AMR[0].CD[index].values = copyCL_offset<float>(queue, RHS.operandvalues, 
-                                                                                    MP.AMR[0].CD[index].rowpointers[rowouter] * sizeof(float),
-                                                                                    N * N - MP.AMR[0].CD[index].rowpointers[rowouter], &event4);
+                                                                                MP.AMR[0].CD[index].values, 
+                                                                                MP.AMR[0].CD[index].rowpointers[rowouter], 
+                                                                                N * N - MP.AMR[0].CD[index].rowpointers[rowouter], &event4);
+                                // std::cout << MP.AMR[0].CD[index].rowpointers[N] << std::endl;
                                 // std::memcpy(MP.AMR[0].CD[index].values.data(), values_ptr, sizeof(float) *  N * N );
                                 // err = clEnqueueUnmapMemObject(queue, RHS.operandvalues, values_ptr, 0, nullptr, &event4);
                                 for (auto it = MP.AMR[0].CD[index].rowpointers.rbegin(); it != MP.AMR[0].CD[index].rowpointers.rend() - 1; ++it) {
