@@ -182,7 +182,7 @@ class CLBuffer{
                                         }
                                         if (current_row_cols.find(col) == current_row_cols.end()) {
                                             missing_cols.push_back(col);
-                                            if(!begin_check && col == rowouter){
+                                            if(!begin_check && col == rowouter + 1){
                                                 begin_check = true;
                                             }
                                         }
