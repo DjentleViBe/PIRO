@@ -176,11 +176,11 @@ class CLBuffer{
                                     bool begin_check = false;
                                     bool skip = false;
                                     for (int col : rowouter_cols) {
+                                        if(col <= rowouter){
+                                            skip = true;
+                                            break;
+                                        }
                                         if (current_row_cols.find(col) == current_row_cols.end()) {
-                                            if(col <= rowouter){
-                                                skip = true;
-                                                break;
-                                            }
                                             missing_cols.push_back(col);
                                             if(!begin_check && col == rowouter){
                                                 begin_check = true;
@@ -226,7 +226,7 @@ class CLBuffer{
                                 
                                 // std::cout << MP.AMR[0].CD[index].rowpointers[N] << std::endl;
                                 size_t nnz = (size_t)MP.AMR[0].CD[index].rowpointers[N];
-                                cl_ulong local = maxAllocSize; // or whatever max workgroup size your device supports
+                                size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
                                 if (nnz % local != 0) {
                                     globalWorkSize[0] = ((nnz + local - 1) / local) * local;
                                 } else {
@@ -236,7 +236,7 @@ class CLBuffer{
                                 // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
                                 
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
-                                err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+                                err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
 
                                 
