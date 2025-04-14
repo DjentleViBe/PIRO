@@ -43,6 +43,14 @@ std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *even
     clFinish(queue);
     return hostValues;
 }
+template <typename U>
+std::vector<U> copyCL_offset(cl_command_queue queue, cl_mem memC, size_t offset, int N, cl_event *event6) {
+    std::vector<U> hostValues(N);
+    clEnqueueReadBuffer(queue, memC, CL_TRUE, offset,
+                        sizeof(U) * N, hostValues.data(), 0, NULL, event6);
+    clFinish(queue);
+    return hostValues;
+}
 void printCLArray(cl_mem memC, int N, int type);
 void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     const std::vector<int>& columns,
