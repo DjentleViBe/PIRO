@@ -162,6 +162,8 @@ class CLBuffer{
                             err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &RHS.operandvalues);
                             err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &N);
 
+                            size_t globalWorkSize[1];
+                            size_t localWorkSize[1];
                             print_time();
                             std::cout << "Loop begin" << std::endl;
                             for (int rowouter = 0; rowouter < N; rowouter++){
@@ -219,11 +221,19 @@ class CLBuffer{
                                 err = clEnqueueUnmapMemObject(queue, RHS.operandvalues, values_ptr, 0, nullptr, &event3);
                             
                                 clWaitForEvents(3, (cl_event[]){event1, event2, event3});
-                                size_t globalWorkSize[1] = { (size_t)MP.AMR[0].CD[index].rowpointers[N]};
+                                
+                                size_t nnz = (size_t)MP.AMR[0].CD[index].rowpointers[N];
+                                size_t local = maxAllocSize; // or whatever max workgroup size your device supports
+                                if (nnz % local != 0) {
+                                    globalWorkSize[0] = ((nnz + local - 1) / local) * local;
+                                } else {
+                                    globalWorkSize[0] = nnz;
+                                }
+                                localWorkSize[0] = local;
                                 // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
                                 
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
-                                err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+                                err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
 
                                 
