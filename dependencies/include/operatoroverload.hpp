@@ -177,14 +177,14 @@ class CLBuffer{
                                 //printVector(Lap_rowptr_V);
                             }
                             clFinish(queue);
-                            int* rowptr_ptr = (int*)clEnqueueMapBuffer(queue, Lap_rowptr.buffer, CL_TRUE, CL_MAP_WRITE, 0, sizeof(int) * (N + 1), 0, nullptr, nullptr, &err);
-                            int* ind_ptr = (int*)clEnqueueMapBuffer(queue, Lap_ind.buffer , CL_TRUE, CL_MAP_WRITE, 0, sizeof(int) * N * N, 0, nullptr, nullptr, &err);
-                            float* values_ptr = (float*)clEnqueueMapBuffer(queue, LFvalues.buffer, CL_TRUE, CL_MAP_WRITE, 0, sizeof(float) * N * N, 0, nullptr, nullptr, &err);
+                            int* rowptr_ptr = (int*)clEnqueueMapBuffer(queue, Lap_rowptr.buffer, CL_TRUE, CL_MAP_WRITE, sizeof(int) * rowouter, sizeof(int) * (N + 1 - rowouter), 0, nullptr, nullptr, &err);
+                            int* ind_ptr = (int*)clEnqueueMapBuffer(queue, Lap_ind.buffer , CL_TRUE, CL_MAP_WRITE, sizeof(int) * Lap_rowptr_V[rowouter], sizeof(int) * (N * N - Lap_rowptr_V[rowouter]), 0, nullptr, nullptr, &err);
+                            float* values_ptr = (float*)clEnqueueMapBuffer(queue, LFvalues.buffer, CL_TRUE, CL_MAP_WRITE, sizeof(float) * Lap_rowptr_V[rowouter], sizeof(float) * (N * N - Lap_rowptr_V[rowouter]), 0, nullptr, nullptr, &err);
                         
                             // std::cout << Lap_val_V.size() << ", " << Lap_ind_V.size() << std::endl;
-                            std::memcpy(rowptr_ptr, Lap_rowptr_V.data(), sizeof(int) *  N + 1);
-                            std::memcpy(ind_ptr, Lap_ind_V.data(), sizeof(int) * Lap_ind_V.size());
-                            std::memcpy(values_ptr, Lap_val_V.data(), sizeof(float) *  Lap_val_V.size());
+                            std::memcpy(rowptr_ptr, Lap_rowptr_V.data() + rowouter, sizeof(int) *  N + 1 - rowouter);
+                            std::memcpy(ind_ptr, Lap_ind_V.data() + Lap_rowptr_V[rowouter], sizeof(int) * (Lap_ind_V.size() - Lap_rowptr_V[rowouter]));
+                            std::memcpy(values_ptr, Lap_val_V.data() + Lap_rowptr_V[rowouter], sizeof(float) *  (Lap_val_V.size() - Lap_rowptr_V[rowouter]));
 
                             err = clEnqueueUnmapMemObject(queue, Lap_rowptr.buffer, rowptr_ptr, 0, nullptr, &event1);
                             err = clEnqueueUnmapMemObject(queue, Lap_ind.buffer, ind_ptr, 0, nullptr, &event2);
