@@ -170,17 +170,6 @@ class CLBuffer{
                                 //std::cout << skip << r << std::endl;
                                 //printVector(Lap_rowptr_V);
                             }
-                            // std::cout << "inserting 0 completed" << std::endl;
-                            // std::cout << "before Write buffer : ";
-                            // printCL(LFvalues.buffer, N * N, 1); 
-                            // printVector(Lap_val_V);
-                            // printVector(Lap_ind_V);
-                            // printVector(Lap_rowptr_V);
-                            float fillValue = 0.0f;
-                            int fillValue_int = 0;
-                            clEnqueueFillBuffer(queue, LFvalues.buffer, &fillValue, sizeof(float), 0, sizeof(float) * N * N, 0, nullptr, nullptr);
-                            clEnqueueFillBuffer(queue, Lap_ind.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
-                            clEnqueueFillBuffer(queue, Lap_rowptr.buffer, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
                             clFinish(queue);
                             // std::cout << Lap_val_V.size() << ", " << Lap_ind_V.size() << std::endl;
                             err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 0, sizeof(float) * Lap_ind_V.size(), Lap_val_V.data(), 0, NULL, &event1);
@@ -191,6 +180,7 @@ class CLBuffer{
                             }
                             clWaitForEvents(3, (cl_event[]){event1, event2, event3});
                             size_t globalWorkSize[1] = { (size_t)Lap_rowptr_V[N]};
+                            // size_t localWorkSize[1] = { (size_t)Lap_rowptr_V[N] / 2};
                             // std::cout << "after Write buffer : ";
                             // printCL(LFvalues.buffer, N * N, 1);
                             // std::cout << "Launching kernel" << std::endl;
@@ -198,9 +188,11 @@ class CLBuffer{
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
                             clFinish(queue);
                             // std::cout << "Kernel finish" << std::endl;
-                            Lap_val_V = copyCL(LFvalues.buffer, N * N, 1);
+                            // Lap_val_V = copyCL<float>(queue, LFvalues.buffer, N * N, &event3);
+                            Lap_val_V = copyCL_offset<float>(queue, LFvalues.buffer, Lap_val_V, 
+                                                            Lap_rowptr_V[rowouter], 
+                                                            N * N - Lap_rowptr_V[rowouter], &event3);
                             // std::cout << "Copy finish" << std::endl;
-
                             for (auto it = Lap_rowptr_V.rbegin(); it != Lap_rowptr_V.rend() - 1; ++it) {
                                 size_t idx = *it;
                                 // Safety check

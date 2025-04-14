@@ -346,22 +346,6 @@ void printCL(cl_mem memC, int N, int type){
     std::cout << std::endl;
 }
 
-std::vector<float> copyCL(cl_mem memC, int N, int type){
-    std::vector<float> hostValues(N);
-    if (type == 0){
-        clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
-                                    sizeof(int) * N, hostValues.data(), 0, NULL, NULL);
-
-    }
-    else if(type ==1){
-        
-        clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
-                                    sizeof(float) * N, hostValues.data(), 0, NULL, NULL);
-
-    }
-    return hostValues;
-}
-
 void printCLArray(cl_mem memC, int N, int type){
     if (type == 0){
         std::vector<int> hostValues(N * N);
@@ -399,17 +383,29 @@ void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     // Convert CSR to dense format
     for (int i = 0; i < N; i++) {
         for (int j = row_pointer[i]; j < row_pointer[i + 1]; j++) {
-            dense_matrix[i][columns[j]] = values[j];
-        }
+        dense_matrix[i][columns[j]] = values[j];
     }
+}
 
     // Print the dense matrix
     for (const auto& row : dense_matrix) {
         for (float val : row) {
             std::cout << std::fixed << std::setprecision(1) << val << "\t";
         }
-        std::cout << "\n";
+    std::cout << "\n";
     }
+}
+
+uint64_t nextPowerOf2(uint64_t N) {
+    if (N <= 1) return 1;
+    N--;
+    N |= N >> 1;
+    N |= N >> 2;
+    N |= N >> 4;
+    N |= N >> 8;
+    N |= N >> 16;
+    N |= N >> 32;  // Safe for 64-bit numbers
+    return N + 1;
 }
 
 

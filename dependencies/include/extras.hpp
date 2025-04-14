@@ -1,6 +1,7 @@
 #ifndef extras_hpp
 #define extras_hpp
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include "datatypes.hpp"
@@ -35,11 +36,30 @@ void printArray(float* array, uint size);
 std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector);
 void print_time();
 int countWords(const std::string& str);
+template <typename T>
+std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *event6) {
+    std::vector<T> hostValues(N);
+    clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
+                        sizeof(T) * N, hostValues.data(), 0, NULL, event6);
+    clFinish(queue);
+    return hostValues;
+}
+template <typename U>
+std::vector<U> copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U> Lap, int offset, int N, cl_event *event6) {
+    if(Lap.size() < N){
+        Lap.insert(Lap.end(), N - Lap.size(), 0.0); 
+    }
+    size_t offset_size = sizeof(U) * offset;
+    clEnqueueReadBuffer(queue, memC, CL_TRUE, offset_size,
+                        sizeof(U) * N, Lap.data() + offset, 0, NULL, event6);
+    clFinish(queue);
+    return Lap;
+}
 void printCL(cl_mem memC, int N, int type);
-std::vector<float> copyCL(cl_mem memC, int N, int type);
 void printCLArray(cl_mem memC, int N, int type);
 void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     const std::vector<int>& columns,
     const std::vector<float>& values,
     int N);
+uint64_t nextPowerOf2(uint64_t N);
 #endif
