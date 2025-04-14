@@ -125,10 +125,6 @@ class CLBuffer{
                             err = clEnqueueUnmapMemObject(queue, RHS.operandvalues, values_ptr, 0, nullptr, &event9);
                             print_time();
                             std::cout << "Buffer creation end" << std::endl;
-                            // MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, RHS.sparsecount, &event7);
-                            // MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, RHS.sparsecount, &event8);
-                            // MP.AMR[0].CD[index].rowpointers = copyCL<int>(queue, other[0].buffer, N + 1, &event9);
-                            // sorted array
                             std::vector<float> sorted_vals;
                             std::vector<int> sorted_indices;
                             clWaitForEvents(3, (cl_event[]){event7, event8, event9});
@@ -165,8 +161,7 @@ class CLBuffer{
                             err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &RHS.operandcolumns);
                             err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &RHS.operandvalues);
                             err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &N);
-                            
-                            // printVector(MP.AMR[0].CD[index].rowpointers);
+
                             print_time();
                             std::cout << "Loop begin" << std::endl;
                             for (int rowouter = 0; rowouter < N; rowouter++){
@@ -216,14 +211,6 @@ class CLBuffer{
                                         }  
                                     }
                                 }
-                                //std::cout << skip << r << std::endl;
-                                //printVector(Lap_rowptr_V);
-                                // float fillValue = 0.0f;
-                                // int fillValue_int = 0;
-                                // clEnqueueFillBuffer(queue, RHS.operandvalues, &fillValue, sizeof(float), 0, sizeof(float) * N * N, 0, nullptr, nullptr);
-                                // clEnqueueFillBuffer(queue, RHS.operandcolumns, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
-                                // clEnqueueFillBuffer(queue, RHS.operandrowptr, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
-                                // clFinish(queue);
                                 std::memcpy(rowptr_ptr, MP.AMR[0].CD[index].rowpointers.data(), sizeof(int) *  N + 1);
                                 std::memcpy(ind_ptr, MP.AMR[0].CD[index].columns.data(), sizeof(float) * MP.AMR[0].CD[index].columns.size());
                                 std::memcpy(values_ptr, MP.AMR[0].CD[index].values.data(), sizeof(float) *  MP.AMR[0].CD[index].columns.size());
@@ -231,13 +218,8 @@ class CLBuffer{
                                 err = clEnqueueUnmapMemObject(queue, RHS.operandcolumns, ind_ptr, 0, nullptr, &event2);
                                 err = clEnqueueUnmapMemObject(queue, RHS.operandvalues, values_ptr, 0, nullptr, &event3);
                             
-                                // std::cout << Lap_val_V.size() << ", " << Lap_ind_V.size() << std::endl;
-                                // err = clEnqueueWriteBuffer(queue, RHS.operandvalues, CL_FALSE, 0, sizeof(float) * MP.AMR[0].CD[index].columns.size(), MP.AMR[0].CD[index].values.data(), 0, NULL, &event1);
-                                // err = clEnqueueWriteBuffer(queue, RHS.operandcolumns, CL_FALSE, 0, sizeof(int) * MP.AMR[0].CD[index].columns.size(), MP.AMR[0].CD[index].columns.data(), 0, NULL, &event2);
-                                // err = clEnqueueWriteBuffer(queue, RHS.operandrowptr, CL_FALSE, 0, sizeof(int) * (N + 1), MP.AMR[0].CD[index].rowpointers.data(), 0, NULL, &event3);
                                 clWaitForEvents(3, (cl_event[]){event1, event2, event3});
                                 size_t globalWorkSize[1] = { (size_t)MP.AMR[0].CD[index].rowpointers[N]};
-                                
                                 // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
                                 
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
@@ -249,9 +231,6 @@ class CLBuffer{
                                                                                 MP.AMR[0].CD[index].values, 
                                                                                 MP.AMR[0].CD[index].rowpointers[rowouter], 
                                                                                 N * N - MP.AMR[0].CD[index].rowpointers[rowouter], &event4);
-                                // std::cout << MP.AMR[0].CD[index].rowpointers[N] << std::endl;
-                                // std::memcpy(MP.AMR[0].CD[index].values.data(), values_ptr, sizeof(float) *  N * N );
-                                // err = clEnqueueUnmapMemObject(queue, RHS.operandvalues, values_ptr, 0, nullptr, &event4);
                                 for (auto it = MP.AMR[0].CD[index].rowpointers.rbegin(); it != MP.AMR[0].CD[index].rowpointers.rend() - 1; ++it) {
                                     size_t idx = *it;
                                     // Safety check
