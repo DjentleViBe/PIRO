@@ -139,19 +139,26 @@ class CLBuffer{
                                 std::vector<int> missing_cols;
                                 bool begin_check = false;
                                 bool skip = false;
-                                for (int col : rowouter_cols) {
-                                    if (current_row_cols.find(col) == current_row_cols.end()) {
-                                        if(col <= rowouter){
-                                            skip = true;
-                                            break;
+                                std::cout << Lap_val_V[Lap_rowptr_V[r]] << std::endl;
+                                if(std::abs(Lap_val_V[Lap_rowptr_V[r]]) < 1E-6){
+                                    skip = true;
+                                    std::cout << "skipped : " << Lap_rowptr_V[r] << std::endl;
+                                    break;
+                                }
+
+                                if(!skip){
+                                    for (int col : rowouter_cols) {
+                                        if(col < rowouter){
+                                            continue;
                                         }
-                                        missing_cols.push_back(col);
-                                        if(!begin_check && col == rowouter){
-                                            begin_check = true;
+                                        if (current_row_cols.find(col) == current_row_cols.end()) {
+                                            missing_cols.push_back(col);
+                                            if(!begin_check && col == rowouter){
+                                                begin_check = true;
+                                            }
                                         }
                                     }
-                                }
-                                if(!skip){
+                                
                                     int insert_pos = 0;
                                     // Insert missing columns into current row
                                     if(!begin_check){
@@ -225,6 +232,7 @@ class CLBuffer{
                                     }
                                 }
                             }
+                            csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
