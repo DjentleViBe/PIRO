@@ -176,7 +176,7 @@ class CLBuffer{
                                     bool begin_check = false;
                                     bool skip = false;
                                     for (int col : rowouter_cols) {
-                                        if(col <= rowouter){
+                                        if(col < rowouter){
                                             skip = true;
                                             break;
                                         }
