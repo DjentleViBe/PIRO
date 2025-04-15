@@ -175,19 +175,24 @@ class CLBuffer{
                                     std::vector<int> missing_cols;
                                     bool begin_check = false;
                                     bool skip = false;
-                                    for (int col : rowouter_cols) {
-                                        if(col < rowouter){
-                                            skip = true;
-                                            break;
-                                        }
-                                        if (current_row_cols.find(col) == current_row_cols.end()) {
-                                            missing_cols.push_back(col);
-                                            if(!begin_check && col == rowouter + 1){
-                                                begin_check = true;
+                                    if(std::abs(MP.AMR[0].CD[index].values[MP.AMR[0].CD[index].rowpointers[r]]) < 1E-6){
+                                        skip = true;
+                                        break;
+                                    }
+
+                                    if(!skip){
+                                        for (int col : rowouter_cols) {
+                                            if(col < rowouter){
+                                                continue;
+                                            }
+                                            if (current_row_cols.find(col) == current_row_cols.end()) {
+                                                missing_cols.push_back(col);
+                                                if(!begin_check && col == rowouter){
+                                                    begin_check = true;
+                                                }
                                             }
                                         }
-                                    }
-                                    if(!skip){
+                                    
                                         int insert_pos = 0;
                                         // Insert missing columns into current row
                                         if(!begin_check){
