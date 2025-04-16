@@ -257,29 +257,26 @@ class CLBuffer{
                                 print_time();
                                 std::cout << "CopyCL\n";
 
-                                std::vector<size_t> remove_indices;
+                                auto& cd = MP.AMR[0].CD[index];  // Reference to avoid repeated lookups
+                                auto& rowpointers = cd.rowpointers;
+                                auto& columns = cd.columns;
+                                auto& values = cd.values;
 
-                                // Collect indices to remove
-                                for (auto it = MP.AMR[0].CD[index].rowpointers.rbegin(); it != MP.AMR[0].CD[index].rowpointers.rend() - 1; ++it) {
-                                    size_t idx = *it;
-                                    if (idx < MP.AMR[0].CD[index].columns.size() && MP.AMR[0].CD[index].columns[idx] == 0) {
-                                        remove_indices.push_back(idx);
-                                    }
-                                }
-
-                                // Sort and deduplicate
-                                std::sort(remove_indices.begin(), remove_indices.end());
-                                remove_indices.erase(std::unique(remove_indices.begin(), remove_indices.end()), remove_indices.end());
-
-                                // Erase marked entries from `columns` and `values`, and adjust `rowpointers`
-                                for (auto rit = remove_indices.rbegin(); rit != remove_indices.rend(); ++rit) {
+                                // Iterate in reverse and adjust row pointers in a single pass
+                                for (auto rit = rowpointers.rbegin(); rit != rowpointers.rend() - 1; ++rit) {
                                     size_t idx = *rit;
-                                    MP.AMR[0].CD[index].columns.erase(MP.AMR[0].CD[index].columns.begin() + idx);
-                                    MP.AMR[0].CD[index].values.erase(MP.AMR[0].CD[index].values.begin() + idx);
-
-                                    for (auto& rp : MP.AMR[0].CD[index].rowpointers) {
-                                        if (rp > idx) {
-                                            rp--;
+                                    
+                                    // Safety check and condition
+                                    if (idx < columns.size() && columns[idx] == 0) {
+                                        // Erase the elements
+                                        values.erase(values.begin() + idx);
+                                        columns.erase(columns.begin() + idx);
+                                        
+                                        // Adjust row pointers in a single pass
+                                        for (auto& rp : rowpointers) {
+                                            if (rp > idx) {
+                                                rp--;
+                                            }
                                         }
                                     }
                                 }
