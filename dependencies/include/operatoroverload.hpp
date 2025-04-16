@@ -163,13 +163,13 @@ class CLBuffer{
                             auto& cd = MP.AMR[0].CD[index];
                             print_time();
                             std::cout << "Loop begin" << std::endl;
-                            for (int rowouter = 0; rowouter < 1; rowouter++){
+                            for (int rowouter = 0; rowouter < N; rowouter++){
                                 print_time();
                                 std::cout << "rowouter : " << rowouter << std::endl;
                                 std::unordered_set<int> rowouter_cols(cd.columns.begin() + cd.rowpointers[rowouter],
                                                                         cd.columns.begin() + cd.rowpointers[rowouter + 1]);
-                                print_time();
-                                std::cout << "Inserting 0s\n";
+                                // print_time();
+                                // std::cout << "Inserting 0s\n";
                                 
                                 for (int r = rowouter + 1; r < N; ++r) {
                                     std::unordered_set<int> current_row_cols(cd.columns.begin() + cd.rowpointers[r],
@@ -218,8 +218,8 @@ class CLBuffer{
                                     } 
                                     
                                 }
-                                print_time();
-                                std::cout << "Inserting 0s finished\n";
+                                // print_time();
+                                // std::cout << "Inserting 0s finished\n";
                                 int* rowptr_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandrowptr, CL_FALSE, CL_MAP_WRITE, sizeof(int) * rowouter, sizeof(int) * (N + 1 - rowouter), 0, nullptr, &event10, &err);
                                 int* ind_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandcolumns, CL_FALSE, CL_MAP_WRITE, sizeof(int) * cd.rowpointers[rowouter], sizeof(int) * (N * N - cd.rowpointers[rowouter]), 0, nullptr, &event11, &err);
                                 float* values_ptr = (float*)clEnqueueMapBuffer(queue, RHS.operandvalues, CL_FALSE, CL_MAP_WRITE, sizeof(float) * cd.rowpointers[rowouter], sizeof(float) * (N * N - cd.rowpointers[rowouter]), 0, nullptr, &event12, &err);
@@ -234,8 +234,8 @@ class CLBuffer{
                                 err = clEnqueueUnmapMemObject(queue, RHS.operandvalues, values_ptr, 0, nullptr, &event3);
                             
                                 clWaitForEvents(3, (cl_event[]){event1, event2, event3});
-                                print_time();
-                                std::cout << "Map memory object finished\n";
+                                // print_time();
+                                // std::cout << "Map memory object finished\n";
                                 // std::cout << cd.rowpointers[N] << std::endl;
                                 size_t nnz = (size_t)cd.rowpointers[N];
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
@@ -250,15 +250,15 @@ class CLBuffer{
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
-                                print_time();
-                                std::cout << "Kernel finished\n";
+                                // print_time();
+                                // std::cout << "Kernel finished\n";
                                 
                                 cd.values = copyCL_offset<float>(queue, RHS.operandvalues, 
                                                                                 cd.values, 
                                                                                 cd.rowpointers[rowouter], 
                                                                                 N * N - cd.rowpointers[rowouter], &event4);
-                                print_time();
-                                std::cout << "CopyCL\n";
+                                // print_time();
+                                // std::cout << "CopyCL\n";
 
                                 // Local reference for better access
                                 auto& data = cd;
@@ -301,8 +301,8 @@ class CLBuffer{
                                 data.columns = std::move(new_colind);
                                 data.values = std::move(new_values);
 
-                                print_time();
-                                std::cout << "Values erased\n";
+                                // print_time();
+                                // std::cout << "Values erased\n";
                             }
                             print_time();
                             std::cout << "loop end" << std::endl;
