@@ -219,20 +219,33 @@ class CLBuffer{
                                                             N * N - Lap_rowptr_V[rowouter], &event4);
                             
                             // std::cout << "Copy finish" << std::endl;
-                            for (auto it = Lap_rowptr_V.rbegin(); it != Lap_rowptr_V.rend() - 1; ++it) {
-                                size_t idx = *it;
-                                // Safety check
-                                if (idx < Lap_ind_V.size() && Lap_ind_V[idx] == 0) {
-                                    Lap_val_V.erase(Lap_val_V.begin() + idx);
-                                    Lap_ind_V.erase(Lap_ind_V.begin() + idx);
-                                    for (size_t j = 0; j < Lap_rowptr_V.size(); ++j) {
-                                        if (Lap_rowptr_V[j] > idx) {
-                                            Lap_rowptr_V[j]--;
-                                        }
+                            // printVector(Lap_val_V);
+                            // printVector(Lap_ind_V);
+
+                            std::vector<int> new_rowptr;
+                            std::vector<int> new_colind;
+                            std::vector<float> new_values;
+                            new_rowptr.push_back(0);
+    
+                            for (int i = 0; i < N; ++i) {
+                                int row_start = Lap_rowptr_V[i];
+                                int row_end = Lap_rowptr_V[i + 1];
+                                
+                                for (int j = row_start; j < row_end; ++j) {
+                                    if (std::abs(Lap_val_V[j]) > 1E-6) {
+                                        new_colind.push_back(Lap_ind_V[j]);
+                                        new_values.push_back(Lap_val_V[j]);
                                     }
                                 }
+                                new_rowptr.push_back(static_cast<int>(new_values.size()));
                             }
-                            // csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
+
+                            Lap_rowptr_V = std::move(new_rowptr);
+                            Lap_ind_V = std::move(new_colind);
+                            Lap_val_V = std::move(new_values);
+                            // std::cout << "" << std::endl;
+                            // printVector(Lap_val_V);
+                            //csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
