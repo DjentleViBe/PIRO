@@ -163,12 +163,13 @@ class CLBuffer{
                         
                             print_time();
                             std::cout << "Loop begin" << std::endl;
-                            for (int rowouter = 0; rowouter < N; rowouter++){
+                            for (int rowouter = 0; rowouter < 1; rowouter++){
                                 print_time();
                                 std::cout << "rowouter : " << rowouter << std::endl;
                                 std::unordered_set<int> rowouter_cols(MP.AMR[0].CD[index].columns.begin() + MP.AMR[0].CD[index].rowpointers[rowouter],
                                                                         MP.AMR[0].CD[index].columns.begin() + MP.AMR[0].CD[index].rowpointers[rowouter + 1]);
-                            
+                                print_time();
+                                std::cout << "Inserting 0s\n";
                                 for (int r = rowouter + 1; r < N; ++r) {
                                     std::unordered_set<int> current_row_cols(MP.AMR[0].CD[index].columns.begin() + MP.AMR[0].CD[index].rowpointers[r],
                                                                             MP.AMR[0].CD[index].columns.begin() + MP.AMR[0].CD[index].rowpointers[r + 1]);
@@ -215,6 +216,8 @@ class CLBuffer{
                                         }  
                                     }
                                 }
+                                print_time();
+                                std::cout << "Inserting 0s finished\n";
                                 int* rowptr_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandrowptr, CL_TRUE, CL_MAP_WRITE, sizeof(int) * rowouter, sizeof(int) * (N + 1 - rowouter), 0, nullptr, nullptr, &err);
                                 int* ind_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandcolumns, CL_TRUE, CL_MAP_WRITE, sizeof(int) * MP.AMR[0].CD[index].rowpointers[rowouter], sizeof(int) * (N * N - MP.AMR[0].CD[index].rowpointers[rowouter]), 0, nullptr, nullptr, &err);
                                 float* values_ptr = (float*)clEnqueueMapBuffer(queue, RHS.operandvalues, CL_TRUE, CL_MAP_WRITE, sizeof(float) * MP.AMR[0].CD[index].rowpointers[rowouter], sizeof(float) * (N * N - MP.AMR[0].CD[index].rowpointers[rowouter]), 0, nullptr, nullptr, &err);
@@ -228,7 +231,8 @@ class CLBuffer{
                                 err = clEnqueueUnmapMemObject(queue, RHS.operandvalues, values_ptr, 0, nullptr, &event3);
                             
                                 clWaitForEvents(3, (cl_event[]){event1, event2, event3});
-                                
+                                print_time();
+                                std::cout << "Map memory object finished\n";
                                 // std::cout << MP.AMR[0].CD[index].rowpointers[N] << std::endl;
                                 size_t nnz = (size_t)MP.AMR[0].CD[index].rowpointers[N];
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
@@ -243,25 +247,44 @@ class CLBuffer{
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
-
+                                print_time();
+                                std::cout << "Kernel finished\n";
                                 
                                 MP.AMR[0].CD[index].values = copyCL_offset<float>(queue, RHS.operandvalues, 
                                                                                 MP.AMR[0].CD[index].values, 
                                                                                 MP.AMR[0].CD[index].rowpointers[rowouter], 
                                                                                 N * N - MP.AMR[0].CD[index].rowpointers[rowouter], &event4);
+                                print_time();
+                                std::cout << "CopyCL\n";
+
+                                std::vector<size_t> remove_indices;
+
+                                // Collect indices to remove
                                 for (auto it = MP.AMR[0].CD[index].rowpointers.rbegin(); it != MP.AMR[0].CD[index].rowpointers.rend() - 1; ++it) {
                                     size_t idx = *it;
-                                    // Safety check
                                     if (idx < MP.AMR[0].CD[index].columns.size() && MP.AMR[0].CD[index].columns[idx] == 0) {
-                                        MP.AMR[0].CD[index].values.erase(MP.AMR[0].CD[index].values.begin() + idx);
-                                        MP.AMR[0].CD[index].columns.erase(MP.AMR[0].CD[index].columns.begin() + idx);
-                                        for (size_t j = 0; j < MP.AMR[0].CD[index].rowpointers.size(); ++j) {
-                                            if (MP.AMR[0].CD[index].rowpointers[j] > idx) {
-                                                MP.AMR[0].CD[index].rowpointers[j]--;
-                                            }
+                                        remove_indices.push_back(idx);
+                                    }
+                                }
+
+                                // Sort and deduplicate
+                                std::sort(remove_indices.begin(), remove_indices.end());
+                                remove_indices.erase(std::unique(remove_indices.begin(), remove_indices.end()), remove_indices.end());
+
+                                // Erase marked entries from `columns` and `values`, and adjust `rowpointers`
+                                for (auto rit = remove_indices.rbegin(); rit != remove_indices.rend(); ++rit) {
+                                    size_t idx = *rit;
+                                    MP.AMR[0].CD[index].columns.erase(MP.AMR[0].CD[index].columns.begin() + idx);
+                                    MP.AMR[0].CD[index].values.erase(MP.AMR[0].CD[index].values.begin() + idx);
+
+                                    for (auto& rp : MP.AMR[0].CD[index].rowpointers) {
+                                        if (rp > idx) {
+                                            rp--;
                                         }
                                     }
                                 }
+                                print_time();
+                                std::cout << "Values erased\n";
                             }
                             print_time();
                             std::cout << "loop end" << std::endl;
