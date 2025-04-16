@@ -81,7 +81,7 @@ class CLBuffer{
                         print_time();
                         std::cout << "RHS_INIT begin, sparse count : " << RHS.sparsecount << std::endl;
                         if(RHS_INIT == false){
-                            cl_event event1, event2, event3, event4, event7, event8, event9;
+                            cl_event event1, event2, event3, event4, event7, event8, event9, event10, event11, event12;
                             print_time();
                             std::cout << "Buffer creation begin" << std::endl;
                             // calculate remaining memory
@@ -160,81 +160,84 @@ class CLBuffer{
                             size_t globalWorkSize[1];
                             size_t localWorkSize[1];
                             // csr_to_dense_and_print(MP.AMR[0].CD[index].rowpointers, MP.AMR[0].CD[index].columns, MP.AMR[0].CD[index].values, N);
-                        
+                            auto& cd = MP.AMR[0].CD[index];
                             print_time();
                             std::cout << "Loop begin" << std::endl;
-                            for (int rowouter = 0; rowouter < N; rowouter++){
+                            for (int rowouter = 0; rowouter < 1; rowouter++){
                                 print_time();
                                 std::cout << "rowouter : " << rowouter << std::endl;
-                                std::unordered_set<int> rowouter_cols(MP.AMR[0].CD[index].columns.begin() + MP.AMR[0].CD[index].rowpointers[rowouter],
-                                                                        MP.AMR[0].CD[index].columns.begin() + MP.AMR[0].CD[index].rowpointers[rowouter + 1]);
-                                // print_time();
-                                // std::cout << "Inserting 0s\n";
+                                std::unordered_set<int> rowouter_cols(cd.columns.begin() + cd.rowpointers[rowouter],
+                                                                        cd.columns.begin() + cd.rowpointers[rowouter + 1]);
+                                print_time();
+                                std::cout << "Inserting 0s\n";
+                                
                                 for (int r = rowouter + 1; r < N; ++r) {
-                                    std::unordered_set<int> current_row_cols(MP.AMR[0].CD[index].columns.begin() + MP.AMR[0].CD[index].rowpointers[r],
-                                                                            MP.AMR[0].CD[index].columns.begin() + MP.AMR[0].CD[index].rowpointers[r + 1]);
+                                    std::unordered_set<int> current_row_cols(cd.columns.begin() + cd.rowpointers[r],
+                                                                            cd.columns.begin() + cd.rowpointers[r + 1]);
                                     std::vector<int> missing_cols;
                                     bool begin_check = false;
-                                    bool skip = false;
-                                    if(std::abs(MP.AMR[0].CD[index].values[MP.AMR[0].CD[index].rowpointers[r]]) < 1E-6){
-                                        skip = true;
+                                    // bool skip = false;
+                                    if(std::abs(cd.values[cd.rowpointers[r]]) < 1E-6){
                                         break;
                                     }
 
-                                    if(!skip){
-                                        for (int col : rowouter_cols) {
-                                            if(col < rowouter){
-                                                continue;
+                                    for (int col : rowouter_cols) {
+                                        if(col < rowouter){
+                                            continue;
+                                        }
+                                        if (current_row_cols.find(col) == current_row_cols.end()) {
+                                            missing_cols.push_back(col);
+                                            if(!begin_check && col == rowouter){
+                                                begin_check = true;
                                             }
-                                            if (current_row_cols.find(col) == current_row_cols.end()) {
-                                                missing_cols.push_back(col);
-                                                if(!begin_check && col == rowouter){
-                                                    begin_check = true;
-                                                }
-                                            }
+                                        }
+                                    }
+                                
+                                    if (!missing_cols.empty()) {
+                                        int insert_pos = begin_check ? cd.rowpointers[r] : cd.rowpointers[r + 1];
+                                    
+                                        // Sort missing columns if needed
+                                        if (begin_check) {
+                                            std::sort(missing_cols.begin(), missing_cols.end());
                                         }
                                     
-                                        int insert_pos = 0;
-                                        // Insert missing columns into current row
-                                        if(!begin_check){
-                                            insert_pos = MP.AMR[0].CD[index].rowpointers[r + 1];
-                                        }
-                                        else{
-                                            // Sort to preserve order if needed
-                                            std::sort(missing_cols.begin(), missing_cols.end());
-                                            insert_pos = MP.AMR[0].CD[index].rowpointers[r];
-                                        }
-                                        
+                                        // Pre-allocate space in the vectors
+                                        cd.columns.resize(cd.columns.size() + missing_cols.size());
+                                        cd.values.resize(cd.values.size() + missing_cols.size());
+
+                                        // Fill in the missing columns and their corresponding values directly
                                         for (int col : missing_cols) {
-                                            MP.AMR[0].CD[index].columns.insert(MP.AMR[0].CD[index].columns.begin() + insert_pos, col);
-                                            MP.AMR[0].CD[index].values.insert(MP.AMR[0].CD[index].values.begin() + insert_pos, 0.0);
+                                            cd.columns[insert_pos] = col; // Directly assign column value
+                                            cd.values[insert_pos] = 0.0;  // Directly assign value (assuming initial value is 0)
                                             ++insert_pos;
                                         }
                                         // Update row pointers
                                         for (int rowp = r + 1; rowp <= N; ++rowp) {
-                                            MP.AMR[0].CD[index].rowpointers[rowp] += missing_cols.size();
-                                        }  
-                                    }
+                                            cd.rowpointers[rowp] += missing_cols.size();
+                                        }
+                                    } 
+                                    
                                 }
-                                // print_time();
-                                // std::cout << "Inserting 0s finished\n";
-                                int* rowptr_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandrowptr, CL_TRUE, CL_MAP_WRITE, sizeof(int) * rowouter, sizeof(int) * (N + 1 - rowouter), 0, nullptr, nullptr, &err);
-                                int* ind_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandcolumns, CL_TRUE, CL_MAP_WRITE, sizeof(int) * MP.AMR[0].CD[index].rowpointers[rowouter], sizeof(int) * (N * N - MP.AMR[0].CD[index].rowpointers[rowouter]), 0, nullptr, nullptr, &err);
-                                float* values_ptr = (float*)clEnqueueMapBuffer(queue, RHS.operandvalues, CL_TRUE, CL_MAP_WRITE, sizeof(float) * MP.AMR[0].CD[index].rowpointers[rowouter], sizeof(float) * (N * N - MP.AMR[0].CD[index].rowpointers[rowouter]), 0, nullptr, nullptr, &err);
+                                print_time();
+                                std::cout << "Inserting 0s finished\n";
+                                int* rowptr_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandrowptr, CL_FALSE, CL_MAP_WRITE, sizeof(int) * rowouter, sizeof(int) * (N + 1 - rowouter), 0, nullptr, &event10, &err);
+                                int* ind_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandcolumns, CL_FALSE, CL_MAP_WRITE, sizeof(int) * cd.rowpointers[rowouter], sizeof(int) * (N * N - cd.rowpointers[rowouter]), 0, nullptr, &event11, &err);
+                                float* values_ptr = (float*)clEnqueueMapBuffer(queue, RHS.operandvalues, CL_FALSE, CL_MAP_WRITE, sizeof(float) * cd.rowpointers[rowouter], sizeof(float) * (N * N - cd.rowpointers[rowouter]), 0, nullptr, &event12, &err);
+                                clWaitForEvents(3, (cl_event[]){event10, event11, event12});
                                 
-                                std::memcpy(rowptr_ptr, MP.AMR[0].CD[index].rowpointers.data() + rowouter, sizeof(int) *  N + 1 - rowouter);
-                                std::memcpy(ind_ptr, MP.AMR[0].CD[index].columns.data() + MP.AMR[0].CD[index].rowpointers[rowouter], sizeof(int) * (MP.AMR[0].CD[index].columns.size() - MP.AMR[0].CD[index].rowpointers[rowouter]));
-                                std::memcpy(values_ptr, MP.AMR[0].CD[index].values.data() + MP.AMR[0].CD[index].rowpointers[rowouter], sizeof(float) *  (MP.AMR[0].CD[index].values.size() - MP.AMR[0].CD[index].rowpointers[rowouter]));
+                                std::memcpy(rowptr_ptr, cd.rowpointers.data() + rowouter, sizeof(int) *  N + 1 - rowouter);
+                                std::memcpy(ind_ptr, cd.columns.data() + cd.rowpointers[rowouter], sizeof(int) * (cd.columns.size() - cd.rowpointers[rowouter]));
+                                std::memcpy(values_ptr, cd.values.data() + cd.rowpointers[rowouter], sizeof(float) *  (cd.values.size() - cd.rowpointers[rowouter]));
     
                                 err = clEnqueueUnmapMemObject(queue, RHS.operandrowptr, rowptr_ptr, 0, nullptr, &event1);
                                 err = clEnqueueUnmapMemObject(queue, RHS.operandcolumns, ind_ptr, 0, nullptr, &event2);
                                 err = clEnqueueUnmapMemObject(queue, RHS.operandvalues, values_ptr, 0, nullptr, &event3);
                             
                                 clWaitForEvents(3, (cl_event[]){event1, event2, event3});
-                                // print_time();
-                                // std::cout << "Map memory object finished\n";
-                                // std::cout << MP.AMR[0].CD[index].rowpointers[N] << std::endl;
-                                size_t nnz = (size_t)MP.AMR[0].CD[index].rowpointers[N];
+                                print_time();
+                                std::cout << "Map memory object finished\n";
+                                // std::cout << cd.rowpointers[N] << std::endl;
+                                size_t nnz = (size_t)cd.rowpointers[N];
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
                                 if (nnz % local != 0) {
                                     globalWorkSize[0] = ((nnz + local - 1) / local) * local;
@@ -247,39 +250,59 @@ class CLBuffer{
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
-                                // print_time();
-                                // std::cout << "Kernel finished\n";
+                                print_time();
+                                std::cout << "Kernel finished\n";
                                 
-                                MP.AMR[0].CD[index].values = copyCL_offset<float>(queue, RHS.operandvalues, 
-                                                                                MP.AMR[0].CD[index].values, 
-                                                                                MP.AMR[0].CD[index].rowpointers[rowouter], 
-                                                                                N * N - MP.AMR[0].CD[index].rowpointers[rowouter], &event4);
-                                // print_time();
-                                // std::cout << "CopyCL\n";
+                                cd.values = copyCL_offset<float>(queue, RHS.operandvalues, 
+                                                                                cd.values, 
+                                                                                cd.rowpointers[rowouter], 
+                                                                                N * N - cd.rowpointers[rowouter], &event4);
+                                print_time();
+                                std::cout << "CopyCL\n";
 
-                                std::vector<int> new_rowptr;
-                                std::vector<int> new_colind;
-                                std::vector<float> new_values;
-                                new_rowptr.push_back(0);
-        
+                                // Local reference for better access
+                                auto& data = cd;
+
+                                // Calculate total non-zero elements for efficient memory allocation
+                                int total_nonzeros = 0;
                                 for (int i = 0; i < N; ++i) {
-                                    int row_start = MP.AMR[0].CD[index].rowpointers[i];
-                                    int row_end = MP.AMR[0].CD[index].rowpointers[i + 1];
-                                    
-                                    for (int j = row_start; j < row_end; ++j) {
-                                        if (std::abs(MP.AMR[0].CD[index].values[j]) > 1E-6) {
-                                            new_colind.push_back(MP.AMR[0].CD[index].columns[j]);
-                                            new_values.push_back(MP.AMR[0].CD[index].values[j]);
-                                        }
-                                    }
-                                    new_rowptr.push_back(static_cast<int>(new_values.size()));
+                                    total_nonzeros += data.rowpointers[i + 1] - data.rowpointers[i];
                                 }
 
-                                MP.AMR[0].CD[index].rowpointers = std::move(new_rowptr);
-                                MP.AMR[0].CD[index].columns = std::move(new_colind);
-                                MP.AMR[0].CD[index].values = std::move(new_values);
-                                // print_time();
-                                // std::cout << "Values erased\n";
+                                // Reserve memory up front for the vectors
+                                std::vector<int> new_rowptr(N + 1);
+                                std::vector<int> new_colind;
+                                std::vector<float> new_values;
+                                new_colind.reserve(total_nonzeros);  // Reserve memory for all non-zero entries
+                                new_values.reserve(total_nonzeros);  // Same for values
+
+                                new_rowptr[0] = 0;
+
+                                int new_values_count = 0;
+                                for (int i = 0; i < N; ++i) {
+                                    int row_start = data.rowpointers[i];
+                                    int row_end = data.rowpointers[i + 1];
+
+                                    // Process non-zero elements in the row
+                                    for (int j = row_start; j < row_end; ++j) {
+                                        if (std::abs(data.values[j]) > 1E-6) {
+                                            new_colind.push_back(data.columns[j]);
+                                            new_values.push_back(data.values[j]);
+                                            ++new_values_count;
+                                        }
+                                    }
+
+                                    // Set the new row pointer to the count of non-zero values so far
+                                    new_rowptr[i + 1] = new_values_count;
+                                }
+
+                                // Move the new vectors into the original structure
+                                data.rowpointers = std::move(new_rowptr);
+                                data.columns = std::move(new_colind);
+                                data.values = std::move(new_values);
+
+                                print_time();
+                                std::cout << "Values erased\n";
                             }
                             print_time();
                             std::cout << "loop end" << std::endl;
