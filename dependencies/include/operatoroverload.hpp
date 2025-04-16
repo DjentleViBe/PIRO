@@ -257,29 +257,27 @@ class CLBuffer{
                                 print_time();
                                 std::cout << "CopyCL\n";
 
-                                auto& cd = MP.AMR[0].CD[index];  // Reference to avoid repeated lookups
-                                auto& rowpointers = cd.rowpointers;
-                                auto& columns = cd.columns;
-                                auto& values = cd.values;
-
-                                // Iterate in reverse and adjust row pointers in a single pass
-                                for (auto rit = rowpointers.rbegin(); rit != rowpointers.rend() - 1; ++rit) {
-                                    size_t idx = *rit;
+                                std::vector<int> new_rowptr;
+                                std::vector<int> new_colind;
+                                std::vector<float> new_values;
+                                new_rowptr.push_back(0);
+        
+                                for (int i = 0; i < N; ++i) {
+                                    int row_start = MP.AMR[0].CD[index].rowpointers[i];
+                                    int row_end = MP.AMR[0].CD[index].rowpointers[i + 1];
                                     
-                                    // Safety check and condition
-                                    if (idx < columns.size() && columns[idx] == 0) {
-                                        // Erase the elements
-                                        values.erase(values.begin() + idx);
-                                        columns.erase(columns.begin() + idx);
-                                        
-                                        // Adjust row pointers in a single pass
-                                        for (auto& rp : rowpointers) {
-                                            if (rp > idx) {
-                                                rp--;
-                                            }
+                                    for (int j = row_start; j < row_end; ++j) {
+                                        if (std::abs(MP.AMR[0].CD[index].values[j]) > 1E-6) {
+                                            new_colind.push_back(MP.AMR[0].CD[index].columns[j]);
+                                            new_values.push_back(MP.AMR[0].CD[index].values[j]);
                                         }
                                     }
+                                    new_rowptr.push_back(static_cast<int>(new_values.size()));
                                 }
+
+                                MP.AMR[0].CD[index].rowpointers = std::move(new_rowptr);
+                                MP.AMR[0].CD[index].columns = std::move(new_colind);
+                                MP.AMR[0].CD[index].values = std::move(new_values);
                                 print_time();
                                 std::cout << "Values erased\n";
                             }
