@@ -17,6 +17,7 @@ extern Giro::SolveParams SP;
 extern Giro::DeviceParams DP;
 extern int ts;
 extern bool LAP_INIT;
+extern bool RHS_INIT;
 
 extern std::vector<cl_program> program_math;
 extern std::vector<cl_kernel> kernel_math;
@@ -49,6 +50,9 @@ extern cl_kernel    kernelgradient_type1,
 
 extern cl_context   context;
 extern cl_command_queue queue;
+extern cl_ulong globalMemSize, maxAllocSize;
+extern cl_uint maxWorkGroupSize;
+
 int preprocess(const std::string& name);
 int idx(int i, int j, int k, int N_x, int N_y);
 int opencl_init();
