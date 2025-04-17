@@ -131,7 +131,7 @@ class CLBuffer{
                         //printVector(Lap_val_V);
                         size_t globalWorkSize[1];
                         size_t localWorkSize[1];
-                        for (int rowouter = 0; rowouter < 1; rowouter++){
+                        for (int rowouter = 0; rowouter < N; rowouter++){
                             print_time();
                             std::cout << "rowouter : " << rowouter << std::endl;
                             std::unordered_set<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
@@ -144,9 +144,6 @@ class CLBuffer{
                                 std::vector<int> missing_cols;
                                 
                                 for (int col : rowouter_cols) {
-                                    if(col < rowouter){
-                                        continue;
-                                    }
                                     if (current_row_cols.find(col) == current_row_cols.end()) {
                                         missing_cols.push_back(col);
                                     }
