@@ -46,15 +46,16 @@ std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *even
 }
 template <typename U>
 std::vector<U> copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U> Lap, int offset, int N, cl_event *event6) {
-    if (Lap.size() < offset + N) {
-        // Only resize from the offset onwards, fill with 0.0 from offset to the new size
-        Lap.resize(offset + N, 0.0);
+    if(Lap.size() < offset + N){
+        std::cout << "inserting extra : " <<  Lap.size() << ", N = "<< N << std::endl;
+        Lap.insert(Lap.end(), offset + N - Lap.size(), 0.0); 
+        
     }
-    size_t offset_size = sizeof(U) * offset;
+    size_t offset_size = sizeof(U) * offset;     
     clEnqueueReadBuffer(queue, memC, CL_TRUE, offset_size,
                         sizeof(U) * N, Lap.data() + offset, 0, NULL, event6);
+    
     clWaitForEvents(1, event6);
-    // clFinish(queue);
     return Lap;
 }
 void printCL(cl_mem memC, int N, int type);
