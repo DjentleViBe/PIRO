@@ -170,15 +170,15 @@ class CLBuffer{
                                                                 cd.columns.begin() + cd.rowpointers[rowouter + 1]);
                             // print_time();
                             // std::cout << "Inserting 0s\n";
-                            printVector(cd.rowpointers);
-                            printVector(cd.values);
-                            std::cout << "r value : ";
+                            // printVector(cd.rowpointers);
+                            // printVector(cd.values);
+                            // std::cout << "r value : ";
                             for (int r = rowouter + 1; r < N; ++r) {
                                 
                                 
                                 std::unordered_set<int> current_row_cols(cd.columns.begin() + cd.rowpointers[r],
                                                                 cd.columns.begin() + cd.rowpointers[r + 1]);
-                                                                std::cout << r << " ";
+                                
                                 int num_inserted = 0;
                                 int row_start = cd.rowpointers[r];
                                 int row_end   = cd.rowpointers[r + 1];
@@ -207,11 +207,11 @@ class CLBuffer{
                                 } 
                                 
                             }
-                            std::cout << "after insert" << std::endl;
-                            printVector(cd.rowpointers);
-                            printVector(cd.values);
+                            // std::cout << "after insert" << std::endl;
+                            // printVector(cd.rowpointers);
+                            // printVector(cd.values);
                             // print_time();
-                            std::cout << "Inserting 0s finished\n";
+                            // std::cout << "Inserting 0s finished\n";
                             clFinish(queue);
                             int* rowptr_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandrowptr, CL_FALSE, CL_MAP_WRITE, sizeof(int) * rowouter, sizeof(int) * (N + 1 - rowouter), 0, nullptr, &event10, &err);
                             int* ind_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandcolumns, CL_FALSE, CL_MAP_WRITE, sizeof(int) * cd.rowpointers[rowouter], sizeof(int) * (N * N - cd.rowpointers[rowouter]), 0, nullptr, &event11, &err);
@@ -228,7 +228,7 @@ class CLBuffer{
                         
                             clWaitForEvents(3, (cl_event[]){event1, event2, event3});
                             // print_time();
-                            std::cout << "Map memory object finished\n";
+                            // std::cout << "Map memory object finished\n";
                             // std::cout << cd.rowpointers[N] << std::endl;
                             size_t nnz = (size_t)cd.rowpointers[N];
                             size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
@@ -244,13 +244,13 @@ class CLBuffer{
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                             clFinish(queue);
                             // print_time();
-                            std::cout << "Kernel finished\n";
+                            // std::cout << "Kernel finished\n";
                             
                             cd.values = copyCL_offset<float>(queue, RHS.operandvalues, 
                                                             cd.values, 
                                                             cd.rowpointers[rowouter], 
                                                             N * N - cd.rowpointers[rowouter], &event4);
-                            std::cout << "Copy finished\n";
+                            // std::cout << "Copy finished\n";
                             std::vector<int> new_rowptr;
                             std::vector<int> new_colind;
                             std::vector<float> new_values;
@@ -274,7 +274,7 @@ class CLBuffer{
                             cd.values = std::move(new_values);
                             // printVector(MP.AMR[0].CD[index].values);
                             // print_time();
-                            std::cout << "Values erased\n";
+                            // std::cout << "Values erased\n";
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
