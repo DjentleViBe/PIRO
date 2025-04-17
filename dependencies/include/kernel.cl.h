@@ -450,6 +450,7 @@ const char *lu_decompose_sparse = R"CLC(
         
 const char *filter_array = R"CLC(
     __kernel void filter_array(
+        __global const int* inputrowptr,
         __global const int* inputArrayrow,
         __global const int* inputArraycol,
         __global float* ValueArray,
@@ -458,40 +459,56 @@ const char *filter_array = R"CLC(
     ) {
         // Get the global ID for this work item
         const int gid = get_global_id(0);
-        if(gid >= inputArrayrow[N]){
+
+        if(gid > inputrowptr[N]){
             return;
         }
+        
         float val0 = 0.0f;
         float piv = 0.0f;
         float factor = 0.0f;
-        int found_minus = -1;
-        int found_plus = -1;
-        int steps_minus = 0;
-        int steps_plus = 0;
+        bool found_minus = false;
         int factor_ind;
 
-        for(int k = inputArrayrow[rowouter]; k < inputArrayrow[rowouter + 1]; k++){
+        for(int k = inputrowptr[rowouter]; k < inputrowptr[rowouter + 1]; k++){
             if(inputArraycol[gid] == inputArraycol[k]){
                 val0 = ValueArray[k];
             }
             if(inputArraycol[k] == rowouter){
                 piv = ValueArray[k];
-                // printf("%d, %f %f ", k, piv, ValueArray[k]);
             }
         }
-
-        if(gid >= inputArrayrow[rowouter + 1]){
+       
+        if(gid >= inputrowptr[rowouter + 1]){
+            // printf("gid = %d, rowptr = %d\n", gid, inputrowptr[rowouter + 1]);
+            int currentrow = inputArrayrow[gid];
+            // move left until previous row is encountered
             for(int l = gid; l > gid - N && l >= 0; l--){
+                if(inputArrayrow[l] != currentrow){
+                    break;
+                }
                 if(inputArraycol[l] == rowouter){
-                    found_minus = l;
+                    found_minus = true;
+                    factor_ind = l;
                     break;
                 }
             }
+            if(!found_minus){
+                // move right until next row is encountered
+                for(int l = gid; l < gid + N; l++){
+                    if(inputArrayrow[l] != currentrow){
+                        break;
+                    }
+                    if(inputArraycol[l] == rowouter){
+                        factor_ind = l;
+                        break;
+                    }
+                }
+            }
             
-            factor_ind = found_minus;
             factor = ValueArray[factor_ind];
-            // printf("%d, factor = %f, pivot = %f\n", gid, factor, piv);
-            ValueArray[gid] = ValueArray[gid] - (factor / piv) * val0;
+            // printf("%d, factor = %f, pivot = %f, currentrow = %d, factor_ind = %d\n", gid, factor, piv, currentrow, factor_ind);
+            if(factor != 0) ValueArray[gid] = ValueArray[gid] - (factor / piv) * val0;
             // printf("%d  factor_ind = %d factor = %f value = %f\n", gid, factor_ind, factor, ValueArray[gid]);
         }
     }
