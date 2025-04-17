@@ -172,61 +172,78 @@ class CLBuffer{
                                 print_time();
                                 std::cout << "Inserting 0s\n";
                                 
-                                for (int r = rowouter + 1; r < N; ++r) {
-                                    // First, determine which columns need to be added and where
-                                    std::vector<std::pair<int, double>> to_insert;
-                                    int row_start = cd.rowpointers[r];
-                                    int row_end = cd.rowpointers[r + 1];
+                                // Two-pass approach for efficiently adding elements to CSR representation
+
+                                // First pass: determine final matrix structure
+                                std::vector<int> new_pre_rowptr(cd.rowpointers.size());
+                                new_pre_rowptr[0] = 0;
+
+                                // Collect all columns that need to be added to each row
+                                std::vector<std::unordered_set<int>> columns_to_add(N);
+                                std::unordered_set<int> rowouter_cols_set(rowouter_cols.begin(), rowouter_cols.end());
+
+                                // Pre-calculate new row sizes
+                                for (int r = 0; r < N; ++r) {
+                                    int existing_cols = cd.rowpointers[r + 1] - cd.rowpointers[r];
+                                    int additional_cols = 0;
                                     
-                                    // Create a sorted set of existing columns for this row
-                                    std::set<int> current_row_cols(cd.columns.begin() + row_start, 
-                                                                   cd.columns.begin() + row_end);
-                                    
-                                    // Find columns that need to be inserted
-                                    for (int col : rowouter_cols) {
-                                        if (current_row_cols.find(col) == current_row_cols.end()) {
-                                            to_insert.push_back({col, 0.0});
+                                    if (r > rowouter) {
+                                        // Create a set of existing columns for efficient lookup
+                                        std::unordered_set<int> current_cols;
+                                        for (int j = cd.rowpointers[r]; j < cd.rowpointers[r + 1]; ++j) {
+                                            current_cols.insert(cd.columns[j]);
+                                        }
+                                        
+                                        // Find which columns need to be added
+                                        for (int col : rowouter_cols) {
+                                            if (current_cols.find(col) == current_cols.end()) {
+                                                columns_to_add[r].insert(col);
+                                                additional_cols++;
+                                            }
                                         }
                                     }
                                     
-                                    if (!to_insert.empty()) {
-                                        // Collect all values for the new row
-                                        std::vector<std::pair<int, double>> new_row;
-                                        new_row.reserve((row_end - row_start) + to_insert.size());
-                                        
-                                        // Add existing entries
-                                        for (int i = row_start; i < row_end; i++) {
-                                            new_row.push_back({cd.columns[i], cd.values[i]});
-                                        }
-                                        
-                                        // Add new entries
-                                        for (const auto& entry : to_insert) {
-                                            new_row.push_back(entry);
-                                        }
-                                        
-                                        // Sort the combined row by column index
-                                        std::sort(new_row.begin(), new_row.end());
-                                        
-                                        // Calculate the shift for subsequent rows
-                                        int shift = to_insert.size();
-                                        
-                                        // Update the CSR data structure in one go
-                                        cd.columns.erase(cd.columns.begin() + row_start, cd.columns.begin() + row_end);
-                                        cd.values.erase(cd.values.begin() + row_start, cd.values.begin() + row_end);
-                                        
-                                        // Insert all at once
-                                        for (const auto& entry : new_row) {
-                                            cd.columns.insert(cd.columns.begin() + row_start, entry.first);
-                                            cd.values.insert(cd.values.begin() + row_start, entry.second);
-                                            row_start++;
-                                        }
-                                        
-                                        // Update row pointers
-                                        for (int i = r + 1; i < cd.rowpointers.size(); ++i) {
-                                            cd.rowpointers[i] += shift;
-                                        }
+                                    new_pre_rowptr[r + 1] = new_pre_rowptr[r] + existing_cols + additional_cols;
+                                }
+
+                                // Prepare new arrays with exact final size
+                                std::vector<int> new_pre_indices(new_pre_rowptr.back());
+                                std::vector<float> new_pre_values(new_pre_rowptr.back());
+
+                                // Second pass: populate the new arrays
+                                for (int r = 0; r < N; ++r) {
+                                    int old_start = cd.rowpointers[r];
+                                    int old_end = cd.rowpointers[r + 1];
+                                    int new_start = new_pre_rowptr[r];
+                                    
+                                    // Get existing entries
+                                    std::vector<std::pair<int, double>> row_entries;
+                                    row_entries.reserve(old_end - old_start + columns_to_add[r].size());
+                                    
+                                    for (int j = old_start; j < old_end; ++j) {
+                                        row_entries.push_back({cd.columns[j], cd.values[j]});
+                                    }
+                                    
+                                    // Add new entries
+                                    for (int col : columns_to_add[r]) {
+                                        row_entries.push_back({col, 0.0});
+                                    }
+                                    
+                                    // Sort by column index
+                                    std::sort(row_entries.begin(), row_entries.end(), 
+                                            [](const auto& a, const auto& b) { return a.first < b.first; });
+                                    
+                                    // Store in new arrays
+                                    for (size_t i = 0; i < row_entries.size(); ++i) {
+                                        new_pre_indices[new_start + i] = row_entries[i].first;
+                                        new_pre_values[new_start + i] = row_entries[i].second;
                                     }
                                 }
+
+                                // Replace old arrays with new ones
+                                cd.rowpointers = std::move(new_pre_rowptr);
+                                cd.columns = std::move(new_pre_indices);
+                                cd.values = std::move(new_pre_values);
                                 print_time();
                                 std::cout << "Inserting 0s finished\n";
                                 int* rowptr_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandrowptr, CL_FALSE, CL_MAP_WRITE, sizeof(int) * rowouter, sizeof(int) * (N + 1 - rowouter), 0, nullptr, &event10, &err);
