@@ -163,7 +163,7 @@ class CLBuffer{
                             auto& cd = MP.AMR[0].CD[index];
                             print_time();
                             std::cout << "Loop begin" << std::endl;
-                            for (int rowouter = 0; rowouter < N; rowouter++){
+                            for (int rowouter = 0; rowouter < N - 2; rowouter++){
                                 print_time();
                                 std::cout << "rowouter : " << rowouter << std::endl;
                                 std::unordered_set<int> rowouter_cols(cd.columns.begin() + cd.rowpointers[rowouter],
@@ -173,50 +173,34 @@ class CLBuffer{
                                 
                                 for (int r = rowouter + 1; r < N; ++r) {
                                     std::unordered_set<int> current_row_cols(cd.columns.begin() + cd.rowpointers[r],
-                                                                            cd.columns.begin() + cd.rowpointers[r + 1]);
-                                    std::vector<int> missing_cols;
-                                    bool begin_check = false;
-                                    // bool skip = false;
-                                    if(std::abs(cd.values[cd.rowpointers[r]]) < 1E-6){
-                                        break;
-                                    }
+                                                                    cd.columns.begin() + cd.rowpointers[r + 1]);
 
-                                    for (int col : rowouter_cols) {
-                                        if(col < rowouter){
-                                            continue;
-                                        }
-                                        if (current_row_cols.find(col) == current_row_cols.end()) {
-                                            missing_cols.push_back(col);
-                                            if(!begin_check && col == rowouter){
-                                                begin_check = true;
-                                            }
-                                        }
-                                    }
+                                    int num_inserted = 0;
+                                    int row_start = cd.rowpointers[r];
+                                    int row_end   = cd.rowpointers[r + 1];
                                 
-                                    if (!missing_cols.empty()) {
-                                        int insert_pos = begin_check ? cd.rowpointers[r] : cd.rowpointers[r + 1];
-                                    
-                                        // Sort missing columns if needed
-                                        if (begin_check) {
-                                            std::sort(missing_cols.begin(), missing_cols.end());
-                                        }
-                                    
-                                        // Pre-allocate space in the vectors
-                                        cd.columns.resize(cd.columns.size() + missing_cols.size());
-                                        cd.values.resize(cd.values.size() + missing_cols.size());
+                                    for (int col : rowouter_cols) {
+                                        if (current_row_cols.find(col) == current_row_cols.end()) {
+                                            auto row_begin = cd.columns.begin() + row_start;
+                                            auto row_finish = cd.columns.begin() + row_end + num_inserted;
 
-                                        // Fill in the missing columns and their corresponding values directly
-                                        for (int col : missing_cols) {
-                                            cd.columns[insert_pos] = col; // Directly assign column value
-                                            cd.values[insert_pos] = 0.0;  // Directly assign value (assuming initial value is 0)
-                                            ++insert_pos;
+                                            auto insert_iter = std::upper_bound(row_begin, row_finish, col);
+                                            int insert_pos = insert_iter - cd.columns.begin();
+
+                                            cd.columns.insert(insert_iter, col);
+                                            cd.values.insert(cd.values.begin() + insert_pos, 0.0);
+
+                                            ++num_inserted;
+
+                                            // if(rowouter >= N - 2) std::cout << "col : " << col << "insert_pos : " << insert_pos << " " << ", row_end : " << row_end << "\n";
                                         }
-                                        // Update row pointers
-                                        for (int rowp = r + 1; rowp <= N; ++rowp) {
-                                            cd.rowpointers[rowp] += missing_cols.size();
+                                    }
+                                    if (num_inserted != 0){
+                                        for (int i = r + 1; i < cd.rowpointers.size(); ++i) {
+                                            cd.rowpointers[i] += num_inserted;
+                                            // if(rowouter >= N - 2) std::cout << rowouter << std::endl;
                                         }
                                     } 
-                                    
                                 }
                                 // print_time();
                                 // std::cout << "Inserting 0s finished\n";
@@ -250,7 +234,7 @@ class CLBuffer{
                                 err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
-                                // print_time();
+                                print_time();
                                 // std::cout << "Kernel finished\n";
                                 
                                 cd.values = copyCL_offset<float>(queue, RHS.operandvalues, 
