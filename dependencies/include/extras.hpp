@@ -51,13 +51,11 @@ std::vector<U> copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U>
         Lap.insert(Lap.end(), offset + N - Lap.size(), 0.0); 
         
     }
-    size_t offset_size = sizeof(U) * offset;
-    // std::memcpy(Lap, memC, N * sizeof(float));
-    //err = clEnqueueUnmapMemObject(queue, memC, values_ptr, 0, nullptr, event6);
-                                                 
+    size_t offset_size = sizeof(U) * offset;     
     clEnqueueReadBuffer(queue, memC, CL_TRUE, offset_size,
                         sizeof(U) * N, Lap.data() + offset, 0, NULL, event6);
-    clFinish(queue);
+    
+    clWaitForEvents(1, event6);
     return Lap;
 }
 void printCL(cl_mem memC, int N, int type);
