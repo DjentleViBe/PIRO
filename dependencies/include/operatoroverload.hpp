@@ -157,13 +157,11 @@ class CLBuffer{
 
                                         ++num_inserted;
 
-                                        // if(rowouter >= N - 2) std::cout << "col : " << col << "insert_pos : " << insert_pos << " " << ", row_end : " << row_end << "\n";
                                     }
                                 }
                                 if (num_inserted != 0){
                                     for (int i = r + 1; i < Lap_rowptr_V.size(); ++i) {
                                         Lap_rowptr_V[i] += num_inserted;
-                                        // if(rowouter >= N - 2) std::cout << rowouter << std::endl;
                                     }
                                 }
                             }
@@ -173,7 +171,6 @@ class CLBuffer{
                             int* ind_ptr = (int*)clEnqueueMapBuffer(queue, Lap_ind.buffer , CL_TRUE, CL_MAP_WRITE, sizeof(int) * Lap_rowptr_V[rowouter], sizeof(int) * (N * N - Lap_rowptr_V[rowouter]), 0, nullptr, nullptr, &err);
                             float* values_ptr = (float*)clEnqueueMapBuffer(queue, LFvalues.buffer, CL_TRUE, CL_MAP_WRITE, sizeof(float) * Lap_rowptr_V[rowouter], sizeof(float) * (N * N - Lap_rowptr_V[rowouter]), 0, nullptr, nullptr, &err);
                         
-                            // std::cout << Lap_val_V.size() << ", " << Lap_ind_V.size() << std::endl;
                             std::memcpy(rowptr_ptr, Lap_rowptr_V.data() + rowouter, sizeof(int) *  N + 1 - rowouter);
                             std::memcpy(ind_ptr, Lap_ind_V.data() + Lap_rowptr_V[rowouter], sizeof(int) * (Lap_ind_V.size() - Lap_rowptr_V[rowouter]));
                             std::memcpy(values_ptr, Lap_val_V.data() + Lap_rowptr_V[rowouter], sizeof(float) *  (Lap_val_V.size() - Lap_rowptr_V[rowouter]));
@@ -191,8 +188,6 @@ class CLBuffer{
                                 globalWorkSize[0] = nnz;
                             }
                             localWorkSize[0] = local;
-                            // std::cout << "after Write buffer : ";
-                            // std::cout << "Launching kernel" << std::endl;
                             err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                             clFinish(queue);
