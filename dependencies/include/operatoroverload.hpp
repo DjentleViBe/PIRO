@@ -131,7 +131,7 @@ class CLBuffer{
                             
                             std::unordered_set<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
                                                             Lap_ind_V.begin() + Lap_rowptr_V[rowouter + 1]);
-                            // printVector(Lap_rowptr_V);
+                            printVector(Lap_rowptr_V);
                             // printVector(Lap_ind_V);
                             
                             for (int r = rowouter + 1; r < N; ++r) {
@@ -167,6 +167,7 @@ class CLBuffer{
                                     }
                                 }
                             }
+                            printVector(Lap_rowptr_V);
                             clFinish(queue);
                             int* rowptr_ptr = (int*)clEnqueueMapBuffer(queue, Lap_rowptr.buffer, CL_TRUE, CL_MAP_WRITE, sizeof(int) * rowouter, sizeof(int) * (N + 1 - rowouter), 0, nullptr, nullptr, &err);
                             int* ind_ptr = (int*)clEnqueueMapBuffer(queue, Lap_ind.buffer , CL_TRUE, CL_MAP_WRITE, sizeof(int) * Lap_rowptr_V[rowouter], sizeof(int) * (N * N - Lap_rowptr_V[rowouter]), 0, nullptr, nullptr, &err);
@@ -181,7 +182,7 @@ class CLBuffer{
                             err = clEnqueueUnmapMemObject(queue, Lap_ind.buffer, ind_ptr, 0, nullptr, &event2);
                             err = clEnqueueUnmapMemObject(queue, LFvalues.buffer, values_ptr, 0, nullptr, &event3);
                             clWaitForEvents(3, (cl_event[]){event1, event2, event3});
-                         
+                            std::cout << "buffer copy finish" << std::endl;
                             size_t nnz = (size_t)Lap_rowptr_V[N];
                             size_t local = 2; // or whatever max workgroup size your device supports
                             if (nnz % local != 0) {
@@ -195,12 +196,12 @@ class CLBuffer{
                             err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &rowouter);
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                             clFinish(queue);
-
+                            std::cout << "kernel finish" << std::endl;
                             Lap_val_V = copyCL_offset<float>(queue, LFvalues.buffer, Lap_val_V, 
                                                             Lap_rowptr_V[rowouter], 
                                                             N * N - Lap_rowptr_V[rowouter], &event4);
                             
-                            // std::cout << "Copy finish" << std::endl;
+                            std::cout << "Copy finish" << std::endl;
                             std::vector<int> new_rowptr;
                             std::vector<int> new_colind;
                             std::vector<float> new_values;
@@ -222,6 +223,7 @@ class CLBuffer{
                             Lap_rowptr_V = std::move(new_rowptr);
                             Lap_ind_V = std::move(new_colind);
                             Lap_val_V = std::move(new_values);
+                            std::cout << "remove" << std::endl;
                             // csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
                         }
                         print_time();
