@@ -212,24 +212,25 @@ class CLBuffer{
                             // printVector(Lap_val_V);
                             // printVector(Lap_ind_V);
 
-                            std::vector<int> new_rowptr;
-                            std::vector<int> new_colind;
-                            std::vector<int> new_rowind;
-                            std::vector<float> new_values;
-                            new_rowptr.push_back(0);
-    
+                            std::vector<int> new_rowptr(N + 1);
+                            std::vector<int> new_colind(N * N);
+                            std::vector<int> new_rowind(N * N);
+                            std::vector<float> new_values(N * N);
+                            new_rowptr[0] = 0.0;
+                            int index = 0;
                             for (int i = 0; i < N; ++i) {
                                 int row_start = Lap_rowptr_V[i];
                                 int row_end = Lap_rowptr_V[i + 1];
                                 
                                 for (int j = row_start; j < row_end; ++j) {
                                     if (std::abs(Lap_val_V[j]) > 1E-6) {
-                                        new_rowind.push_back(Lap_col_V[j]);
-                                        new_colind.push_back(Lap_ind_V[j]);
-                                        new_values.push_back(Lap_val_V[j]);
+                                        new_rowind[index] = Lap_col_V[j];
+                                        new_colind[index] = Lap_ind_V[j];
+                                        new_values[index] = Lap_val_V[j];
+                                        index++;
                                     }
                                 }
-                                new_rowptr.push_back(static_cast<int>(new_values.size()));
+                                new_rowptr[i + 1] = index;
                             }
 
                             Lap_rowptr_V = std::move(new_rowptr);
