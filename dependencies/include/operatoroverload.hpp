@@ -14,6 +14,7 @@
 #include <iostream>
 #include <unordered_set>
 #include <algorithm>
+#include <set>
 
 class CLBuffer{
     public:
@@ -135,33 +136,57 @@ class CLBuffer{
                             // printVector(Lap_ind_V);
                             
                             for (int r = rowouter + 1; r < N; ++r) {
-                                // if(rowouter >= N - 1) printVector(Lap_rowptr_V);
-                                // if(rowouter >= N - 1) printVector(Lap_ind_V);
-                                std::unordered_set<int> current_row_cols(Lap_ind_V.begin() + Lap_rowptr_V[r],
-                                                                    Lap_ind_V.begin() + Lap_rowptr_V[r + 1]);
-
-                                int num_inserted = 0;
+                                // First, determine which columns need to be added and where
+                                std::vector<std::pair<int, double>> to_insert;
                                 int row_start = Lap_rowptr_V[r];
-                                int row_end   = Lap_rowptr_V[r + 1];
+                                int row_end = Lap_rowptr_V[r + 1];
                                 
+                                // Create a sorted set of existing columns for this row
+                                std::set<int> current_row_cols(Lap_ind_V.begin() + row_start, 
+                                                               Lap_ind_V.begin() + row_end);
+                                
+                                // Find columns that need to be inserted
                                 for (int col : rowouter_cols) {
                                     if (current_row_cols.find(col) == current_row_cols.end()) {
-                                        auto row_begin = Lap_ind_V.begin() + row_start;
-                                        auto row_finish = Lap_ind_V.begin() + row_end + num_inserted;
-
-                                        auto insert_iter = std::upper_bound(row_begin, row_finish, col);
-                                        int insert_pos = insert_iter - Lap_ind_V.begin();
-
-                                        Lap_ind_V.insert(insert_iter, col);
-                                        Lap_val_V.insert(Lap_val_V.begin() + insert_pos, 0.0);
-
-                                        ++num_inserted;
-
+                                        to_insert.push_back({col, 0.0});
                                     }
                                 }
-                                if (num_inserted != 0){
+                                
+                                if (!to_insert.empty()) {
+                                    // Collect all values for the new row
+                                    std::vector<std::pair<int, double>> new_row;
+                                    new_row.reserve((row_end - row_start) + to_insert.size());
+                                    
+                                    // Add existing entries
+                                    for (int i = row_start; i < row_end; i++) {
+                                        new_row.push_back({Lap_ind_V[i], Lap_val_V[i]});
+                                    }
+                                    
+                                    // Add new entries
+                                    for (const auto& entry : to_insert) {
+                                        new_row.push_back(entry);
+                                    }
+                                    
+                                    // Sort the combined row by column index
+                                    std::sort(new_row.begin(), new_row.end());
+                                    
+                                    // Calculate the shift for subsequent rows
+                                    int shift = to_insert.size();
+                                    
+                                    // Update the CSR data structure in one go
+                                    Lap_ind_V.erase(Lap_ind_V.begin() + row_start, Lap_ind_V.begin() + row_end);
+                                    Lap_val_V.erase(Lap_val_V.begin() + row_start, Lap_val_V.begin() + row_end);
+                                    
+                                    // Insert all at once
+                                    for (const auto& entry : new_row) {
+                                        Lap_ind_V.insert(Lap_ind_V.begin() + row_start, entry.first);
+                                        Lap_val_V.insert(Lap_val_V.begin() + row_start, entry.second);
+                                        row_start++;
+                                    }
+                                    
+                                    // Update row pointers
                                     for (int i = r + 1; i < Lap_rowptr_V.size(); ++i) {
-                                        Lap_rowptr_V[i] += num_inserted;
+                                        Lap_rowptr_V[i] += shift;
                                     }
                                 }
                             }
