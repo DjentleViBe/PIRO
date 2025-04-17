@@ -390,7 +390,7 @@ void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     // Print the dense matrix
     for (const auto& row : dense_matrix) {
         for (float val : row) {
-            std::cout << std::fixed << std::setprecision(1) << val << "\t";
+            std::cout << std::fixed << std::setprecision(2) << val << "\t";
         }
     std::cout << "\n";
     }
