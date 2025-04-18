@@ -53,7 +53,7 @@ std::vector<U> copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U>
     }
     size_t offset_size = sizeof(U) * offset;     
     clEnqueueReadBuffer(queue, memC, CL_FALSE, offset_size,
-                        sizeof(U) * N, Lap.data() + offset, 0, NULL, event6);
+                        sizeof(U) * (N - offset), Lap.data() + offset, 0, NULL, event6);
     
     clWaitForEvents(1, event6);
     return Lap;
