@@ -190,6 +190,7 @@ class CLBuffer{
                                                                 cd.columns.begin() + cd.rowpointers[rowouter + 1]);
                                 
                                 for (int r = rowouter + 1; r < N; ++r) {
+                                    // if(cd.columns[cd.rowpointers[r]] != rowouter) continue;
                                     std::unordered_set<int> current_row_cols(cd.columns.begin() + cd.rowpointers[r],
                                                                         cd.columns.begin() + cd.rowpointers[r + 1]);
                                     std::vector<int> missing_cols;
