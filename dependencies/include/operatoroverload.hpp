@@ -84,8 +84,8 @@ class CLBuffer{
                         std::cout << "RHS_INIT begin, sparse count : " << RHS.sparsecount << std::endl;
                         if(RHS_INIT == false){
                             cl_event event0, event1, event2, event3, event4, event7, event8, event9;
-                            print_time();
-                            std::cout << "Buffer creation begin" << std::endl;
+                            // print_time();
+                            // std::cout << "Buffer creation begin" << std::endl;
                             // calculate remaining memory
                             // std::cout << "Total variable count : " << MP.scalarnum + MP.vectornum << std::endl;
                             // std::cout << "Total memory : " << globalMemSize << std::endl;
@@ -179,7 +179,7 @@ class CLBuffer{
                             std::vector<int> new_colind(N * N);
                             std::vector<int> new_rowind(N * N);
                             std::vector<float> new_values(N * N);
-                            for (int rowouter = 0; rowouter < 1; rowouter++){
+                            for (int rowouter = 0; rowouter < N; rowouter++){
                                 print_time();
                                 std::cout << "rowouter : " << rowouter << std::endl;
                                 auto columns_begin = cd.columns.begin();
@@ -215,8 +215,8 @@ class CLBuffer{
                                     //std::cout << skip << r << std::endl;
                                     //printVector(cd.rowpointers);
                                 }                           
-                                print_time();
-                                std::cout << "Inserting 0s finished\n";
+                                // print_time();
+                                // std::cout << "Inserting 0s finished\n";
                                 err = clEnqueueWriteBuffer(queue, RHS.operandrowptr, CL_FALSE, 
                                                             sizeof(int) * rowouter, 
                                                             sizeof(int) * (N + 1 - rowouter),
@@ -243,8 +243,8 @@ class CLBuffer{
                                 
                                 // Wait for all transfers to complete
                                 clWaitForEvents(4, (cl_event[]){event0, event1, event2, event3});
-                                print_time();
-                                std::cout << "Map memory object finished\n";
+                                // print_time();
+                                // std::cout << "Map memory object finished\n";
                                 // std::cout << cd.rowpointers[N] << std::endl;
                                 size_t nnz = (size_t)cd.rowpointers[N];
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
@@ -259,15 +259,15 @@ class CLBuffer{
                                 err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &rowouter);
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
-                                print_time();
-                                std::cout << "Kernel finished\n";
+                                // print_time();
+                                // std::cout << "Kernel finished\n";
                                 
                                 cd.values = copyCL_offset<float>(queue, RHS.operandvalues, 
                                                                                 cd.values, 
                                                                                 cd.rowpointers[rowouter], 
                                                                                 N * N - cd.rowpointers[rowouter], &event4);
-                                print_time();
-                                std::cout << "CopyCL\n";
+                                // print_time();
+                                // std::cout << "CopyCL\n";
 
                                 
                                 new_rowptr[0] = 0.0;
@@ -291,8 +291,8 @@ class CLBuffer{
                                 cd.columns = std::move(new_colind);
                                 cd.rows = std::move(new_rowind);
                                 cd.values = std::move(new_values);
-                                print_time();
-                                std::cout << "Values erased\n";
+                                // print_time();
+                                // std::cout << "Values erased\n";
                             }
                             print_time();
                             std::cout << "loop end" << std::endl;
