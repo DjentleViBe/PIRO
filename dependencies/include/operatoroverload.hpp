@@ -83,7 +83,7 @@ class CLBuffer{
                         print_time();
                         std::cout << "RHS_INIT begin, sparse count : " << RHS.sparsecount << std::endl;
                         if(RHS_INIT == false){
-                            cl_event event1, event2, event3, event4, event7, event8, event9, event10, event11, event12, event13;
+                            cl_event event0, event1, event2, event3, event4, event7, event8, event9;
                             print_time();
                             std::cout << "Buffer creation begin" << std::endl;
                             // calculate remaining memory
@@ -175,29 +175,34 @@ class CLBuffer{
                             auto& cd = MP.AMR[0].CD[index];
                             print_time();
                             std::cout << "Loop begin" << std::endl;
+                            std::vector<int> new_rowptr(N + 1);
+                            std::vector<int> new_colind(N * N);
+                            std::vector<int> new_rowind(N * N);
+                            std::vector<float> new_values(N * N);
                             for (int rowouter = 0; rowouter < 1; rowouter++){
                                 print_time();
                                 std::cout << "rowouter : " << rowouter << std::endl;
-                                std::unordered_set<int> rowouter_cols(cd.columns.begin() + cd.rowpointers[rowouter],
-                                                              cd.columns.begin() + cd.rowpointers[rowouter + 1]);
-                            
+                                auto columns_begin = cd.columns.begin();
+                                std::vector<int> rowouter_cols_sorted(columns_begin + cd.rowpointers[rowouter],
+                                                                    columns_begin + cd.rowpointers[rowouter + 1]);
+                                std::sort(rowouter_cols_sorted.begin(), rowouter_cols_sorted.end());
                                 for (int r = rowouter + 1; r < N; ++r) {
                                     //printVector(cd.rowpointers);
-                                    std::unordered_set<int> current_row_cols(cd.columns.begin() + cd.rowpointers[r],
-                                                                        cd.columns.begin() + cd.rowpointers[r + 1]);
+                                    std::vector<int> current_row_sorted(columns_begin + cd.rowpointers[r],
+                                                                            columns_begin + cd.rowpointers[r + 1]);
+                                    std::sort(current_row_sorted.begin(), current_row_sorted.end());
                                     std::vector<int> missing_cols;
                                     
-                                    for (int col : rowouter_cols) {
-                                        if (current_row_cols.find(col) == current_row_cols.end()) {
-                                            missing_cols.push_back(col);
-                                        }
-                                    }
+                                    missing_cols.reserve(rowouter_cols_sorted.size());
+                                    std::set_difference(rowouter_cols_sorted.begin(), rowouter_cols_sorted.end(),
+                                                        current_row_sorted.begin(), current_row_sorted.end(),
+                                                        std::back_inserter(missing_cols));
                                 
                                     int insert_pos = 0;
                                     insert_pos = cd.rowpointers[r];
                                     
                                     for (int col : missing_cols) {
-                                        cd.columns.insert(cd.columns.begin() + insert_pos, col);
+                                        cd.columns.insert(columns_begin + insert_pos, col);
                                         cd.rows.insert(cd.rows.begin() + insert_pos, r);
                                         cd.values.insert(cd.values.begin() + insert_pos, 0.0);
                                         ++insert_pos;
@@ -209,26 +214,35 @@ class CLBuffer{
                                     
                                     //std::cout << skip << r << std::endl;
                                     //printVector(cd.rowpointers);
-                                }
+                                }                           
                                 print_time();
                                 std::cout << "Inserting 0s finished\n";
-                                int* rowptr_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandrowptr, CL_FALSE, CL_MAP_WRITE, sizeof(int) * rowouter, sizeof(int) * (N + 1 - rowouter), 0, nullptr, &event10, &err);
-                                int* ind_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandcolumns, CL_FALSE, CL_MAP_WRITE, sizeof(int) * cd.rowpointers[rowouter], sizeof(int) * (N * N - cd.rowpointers[rowouter]), 0, nullptr, &event11, &err);
-                                int* col_ptr = (int*)clEnqueueMapBuffer(queue, RHS.operandrows , CL_FALSE, CL_MAP_WRITE, sizeof(int) * cd.rowpointers[rowouter], sizeof(int) * (N * N - cd.rowpointers[rowouter]), 0, nullptr, &event13, &err);
-                                float* values_ptr = (float*)clEnqueueMapBuffer(queue, RHS.operandvalues, CL_FALSE, CL_MAP_WRITE, sizeof(float) * cd.rowpointers[rowouter], sizeof(float) * (N * N - cd.rowpointers[rowouter]), 0, nullptr, &event12, &err);
-                                clWaitForEvents(4, (cl_event[]){event10, event11, event12, event13});
+                                err = clEnqueueWriteBuffer(queue, RHS.operandrowptr, CL_FALSE, 
+                                                            sizeof(int) * rowouter, 
+                                                            sizeof(int) * (N + 1 - rowouter),
+                                                            cd.rowpointers.data() + rowouter, 
+                                                            0, nullptr, &event0);
+          
+                                err = clEnqueueWriteBuffer(queue, RHS.operandcolumns, CL_FALSE, 
+                                                            sizeof(int) * cd.rowpointers[rowouter], 
+                                                            sizeof(int) * (cd.columns.size() - cd.rowpointers[rowouter]),
+                                                            cd.columns.data() + cd.rowpointers[rowouter], 
+                                                            0, nullptr, &event1);
                                 
-                                std::memcpy(rowptr_ptr, cd.rowpointers.data() + rowouter, sizeof(int) *  N + 1 - rowouter);
-                                std::memcpy(ind_ptr, cd.columns.data() + cd.rowpointers[rowouter], sizeof(int) * (cd.columns.size() - cd.rowpointers[rowouter]));
-                                std::memcpy(col_ptr, cd.rows.data() + cd.rowpointers[rowouter], sizeof(int) * (cd.rows.size() - cd.rowpointers[rowouter]));
-                                std::memcpy(values_ptr, cd.values.data() + cd.rowpointers[rowouter], sizeof(float) *  (cd.values.size() - cd.rowpointers[rowouter]));
-    
-                                err = clEnqueueUnmapMemObject(queue, RHS.operandrowptr, rowptr_ptr, 0, nullptr, &event1);
-                                err = clEnqueueUnmapMemObject(queue, RHS.operandcolumns, ind_ptr, 0, nullptr, &event2);
-                                err = clEnqueueUnmapMemObject(queue, RHS.operandrows, col_ptr, 0, nullptr, &event2);
-                                err = clEnqueueUnmapMemObject(queue, RHS.operandvalues, values_ptr, 0, nullptr, &event3);
-                            
-                                clWaitForEvents(3, (cl_event[]){event1, event2, event3});
+                                err = clEnqueueWriteBuffer(queue, RHS.operandrows, CL_FALSE, 
+                                                            sizeof(int) * cd.rowpointers[rowouter], 
+                                                            sizeof(int) * (cd.rows.size() - cd.rowpointers[rowouter]),
+                                                            cd.rows.data() + cd.rowpointers[rowouter], 
+                                                            0, nullptr, &event2);
+                                
+                                err = clEnqueueWriteBuffer(queue, RHS.operandvalues, CL_FALSE, 
+                                                            sizeof(float) * cd.rowpointers[rowouter], 
+                                                            sizeof(float) * (cd.values.size() - cd.rowpointers[rowouter]),
+                                                            cd.values.data() + cd.rowpointers[rowouter], 
+                                                            0, nullptr, &event3);
+                                
+                                // Wait for all transfers to complete
+                                clWaitForEvents(4, (cl_event[]){event0, event1, event2, event3});
                                 print_time();
                                 std::cout << "Map memory object finished\n";
                                 // std::cout << cd.rowpointers[N] << std::endl;
@@ -255,24 +269,22 @@ class CLBuffer{
                                 print_time();
                                 std::cout << "CopyCL\n";
 
-                                std::vector<int> new_rowptr;
-                                std::vector<int> new_colind;
-                                std::vector<int> new_rowind;
-                                std::vector<float> new_values;
-                                new_rowptr.push_back(0);
-        
+                                
+                                new_rowptr[0] = 0.0;
+                                int index = 0;
                                 for (int i = 0; i < N; ++i) {
                                     int row_start = cd.rowpointers[i];
                                     int row_end = cd.rowpointers[i + 1];
                                     
                                     for (int j = row_start; j < row_end; ++j) {
                                         if (std::abs(cd.values[j]) > 1E-6) {
-                                            new_rowind.push_back(cd.rows[j]);
-                                            new_colind.push_back(cd.columns[j]);
-                                            new_values.push_back(cd.values[j]);
+                                            new_rowind[index] = cd.rows[j];
+                                            new_colind[index] = cd.columns[j];
+                                            new_values[index] = cd.values[j];
+                                            index++;
                                         }
                                     }
-                                    new_rowptr.push_back(static_cast<int>(new_values.size()));
+                                    new_rowptr[i + 1] = index;
                                 }
 
                                 cd.rowpointers = std::move(new_rowptr);
