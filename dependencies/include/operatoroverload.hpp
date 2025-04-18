@@ -193,6 +193,10 @@ class CLBuffer{
                                     // if(cd.columns[cd.rowpointers[r]] != rowouter) continue;
                                     std::unordered_set<int> current_row_cols(cd.columns.begin() + cd.rowpointers[r],
                                                                         cd.columns.begin() + cd.rowpointers[r + 1]);
+                                    if (current_row_cols.find(rowouter) == current_row_cols.end()) {
+                                        // std::cout << "skip : " << r << std::endl; 
+                                        continue;
+                                    }
                                     std::vector<int> missing_cols;
                                     int num_inserted = 0;
                                     int insert_pos = cd.rowpointers[r];
@@ -249,7 +253,7 @@ class CLBuffer{
                                 print_time();
                                 std::cout << "Map memory object finished\n";
                                 // std::cout << cd.rowpointers[N] << std::endl;
-                                size_t nnz = (size_t)cd.rowpointers[N];
+                                size_t nnz = (size_t)(cd.rowpointers[N] + 1);
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
                                 if (nnz % local != 0) {
                                     globalWorkSize[0] = ((nnz + local - 1) / local) * local;
@@ -301,9 +305,9 @@ class CLBuffer{
                             std::cout << "loop end" << std::endl;
                             // printVector(MP.AMR[0].CD[index].values);
                             // printVector(MP.AMR[0].CD[index].rowpointers);
-                            // csr_to_dense_and_print(MP.AMR[0].CD[index].rowpointers,
-                            //                         MP.AMR[0].CD[index].columns, 
-                            //                         MP.AMR[0].CD[index].values, N);
+                            // csr_to_dense_and_print(cd.rowpointers,
+                            //                         cd.columns, 
+                            //                        cd.values, N);
                             RHS_INIT = true;
                         }
                         print_time();
