@@ -460,7 +460,7 @@ const char *filter_array = R"CLC(
         // Get the global ID for this work item
         const int gid = get_global_id(0);
 
-        if(gid >= inputrowptr[N]){
+        if(gid > inputrowptr[N]){
             return;
         }
         
