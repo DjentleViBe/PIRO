@@ -179,42 +179,44 @@ class CLBuffer{
                             std::vector<int> new_colind(N * N);
                             std::vector<int> new_rowind(N * N);
                             std::vector<float> new_values(N * N);
+                            cd.rows.resize(N * N);
+                            cd.columns.resize(N * N);
+                            cd.values.resize(N * N);
                             for (int rowouter = 0; rowouter < 1; rowouter++){
                                 print_time();
                                 std::cout << "rowouter : " << rowouter << std::endl;
-                                auto columns_begin = cd.columns.begin();
-                                std::vector<int> rowouter_cols_sorted(columns_begin + cd.rowpointers[rowouter],
-                                                                    columns_begin + cd.rowpointers[rowouter + 1]);
-                                std::sort(rowouter_cols_sorted.begin(), rowouter_cols_sorted.end());
-                                for (int r = rowouter + 1; r < N; ++r) {
-                                    //printVector(cd.rowpointers);
-                                    std::vector<int> current_row_sorted(columns_begin + cd.rowpointers[r],
-                                                                            columns_begin + cd.rowpointers[r + 1]);
-                                    std::sort(current_row_sorted.begin(), current_row_sorted.end());
-                                    std::vector<int> missing_cols;
-                                    
-                                    missing_cols.reserve(rowouter_cols_sorted.size());
-                                    std::set_difference(rowouter_cols_sorted.begin(), rowouter_cols_sorted.end(),
-                                                        current_row_sorted.begin(), current_row_sorted.end(),
-                                                        std::back_inserter(missing_cols));
                                 
-                                    int insert_pos = 0;
-                                    insert_pos = cd.rowpointers[r];
-                                    
-                                    for (int col : missing_cols) {
-                                        cd.columns.insert(columns_begin + insert_pos, col);
-                                        cd.rows.insert(cd.rows.begin() + insert_pos, r);
-                                        cd.values.insert(cd.values.begin() + insert_pos, 0.0);
-                                        ++insert_pos;
+                                std::unordered_set<int> rowouter_cols(cd.columns.begin() + cd.rowpointers[rowouter],
+                                                                cd.columns.begin() + cd.rowpointers[rowouter + 1]);
+                                
+                                for (int r = rowouter + 1; r < N; ++r) {
+                                    std::unordered_set<int> current_row_cols(cd.columns.begin() + cd.rowpointers[r],
+                                                                        cd.columns.begin() + cd.rowpointers[r + 1]);
+                                    std::vector<int> missing_cols;
+                                    int num_inserted = 0;
+                                    int insert_pos = cd.rowpointers[r];
+                                    for (int col : rowouter_cols) {
+                                        if(col < rowouter) continue;
+                                        if (current_row_cols.find(col) == current_row_cols.end()) {
+                                            missing_cols.push_back(col);
+                                            num_inserted++;
+                                        }
                                     }
-                                    // Update row pointers
-                                    for (int rowp = r + 1; rowp <= N; ++rowp) {
-                                        cd.rowpointers[rowp] += missing_cols.size();
-                                    }  
-                                    
-                                    //std::cout << skip << r << std::endl;
-                                    //printVector(cd.rowpointers);
-                                }                           
+                                    if (num_inserted != 0){
+                                        std::vector<int> new_rows(num_inserted, r);
+                                        std::vector<float> new_values(num_inserted, 0.0);
+                                        cd.rows.insert(cd.rows.begin() + insert_pos, new_rows.begin(), new_rows.end());
+                                        cd.columns.insert(cd.columns.begin() + insert_pos, missing_cols.begin(), missing_cols.end());
+                                        cd.values.insert(cd.values.begin() + insert_pos, new_values.begin(), new_values.end());
+
+                                        for (int i = r + 1; i <= cd.rowpointers.size(); ++i) {
+                                            cd.rowpointers[i] += num_inserted;
+                                        }
+                                    }
+                                }
+                                cd.rows.resize(N * N);
+                                cd.columns.resize(N * N);
+                                cd.values.resize(N * N);                          
                                 print_time();
                                 std::cout << "Inserting 0s finished\n";
                                 err = clEnqueueWriteBuffer(queue, RHS.operandrowptr, CL_FALSE, 
