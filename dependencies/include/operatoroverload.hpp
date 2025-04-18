@@ -143,31 +143,27 @@ class CLBuffer{
                         printVector(Lap_ind_V);
                         for (int rowouter = 0; rowouter < N; rowouter++){
                             print_time();
-                            std::cout << "rowouter : " << rowouter << std::endl;
-                            
-                            std::unordered_set<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
-                                                            Lap_ind_V.begin() + Lap_rowptr_V[rowouter + 1]);
-                            printVector(Lap_rowptr_V);
-                            // printVector(Lap_ind_V);
-                            
-                            for (int r = rowouter + 1; r < N; ++r) {
-                                // if(rowouter >= N - 1) printVector(Lap_rowptr_V);
-                                // if(rowouter >= N - 1) printVector(Lap_ind_V);
-                                std::unordered_set<int> current_row_cols(Lap_ind_V.begin() + Lap_rowptr_V[r],
-                                                                    Lap_ind_V.begin() + Lap_rowptr_V[r + 1]);
-
-                                int num_inserted = 0;
-                                int row_start = Lap_rowptr_V[r];
-                                int row_end   = Lap_rowptr_V[r + 1];
+                                std::cout << "rowouter : " << rowouter << std::endl;
+                                auto columns_begin = Lap_ind_V.begin();
+                                std::vector<int> rowouter_cols_sorted(columns_begin + Lap_rowptr_V[rowouter],
+                                                                    columns_begin + Lap_rowptr_V[rowouter + 1]);
+                                std::sort(rowouter_cols_sorted.begin(), rowouter_cols_sorted.end());
+                                for (int r = rowouter + 1; r < N; ++r) {
+                                    //printVector(Lap_rowwptr_V);
+                                    std::vector<int> current_row_sorted(columns_begin + Lap_rowptr_V[r],
+                                                                            columns_begin + Lap_rowptr_V[r + 1]);
+                                    std::sort(current_row_sorted.begin(), current_row_sorted.end());
+                                    std::vector<int> missing_cols;
+                                    
+                                    missing_cols.reserve(rowouter_cols_sorted.size());
+                                    std::set_difference(rowouter_cols_sorted.begin(), rowouter_cols_sorted.end(),
+                                                        current_row_sorted.begin(), current_row_sorted.end(),
+                                                        std::back_inserter(missing_cols));
                                 
-                                for (int col : rowouter_cols) {
-                                    if (current_row_cols.find(col) == current_row_cols.end()) {
-                                        auto row_begin = Lap_ind_V.begin() + row_start;
-                                        auto row_finish = Lap_ind_V.begin() + row_end + num_inserted;
-
-                                        auto insert_iter = std::upper_bound(row_begin, row_finish, col);
-                                        int insert_pos = insert_iter - Lap_ind_V.begin();
-
+                                    int insert_pos = 0;
+                                    insert_pos = Lap_rowptr_V[r];
+                                    
+                                    for (int col : missing_cols) {
                                         for (int i = Lap_ind_V.size() - 1; i > insert_pos; --i){
                                             Lap_ind_V[i] = Lap_ind_V[i - 1];
                                             Lap_val_V[i] = Lap_val_V[i - 1];
@@ -178,23 +174,16 @@ class CLBuffer{
                                         Lap_col_V[insert_pos] = r;
                                         Lap_ind_V[insert_pos] = col;
                                         Lap_val_V[insert_pos] = 0.0;
-                                        //Lap_col_V.insert(insert_iter, r);
-                                        //Lap_ind_V.insert(insert_iter, col);
-                                        //Lap_val_V.insert(Lap_val_V.begin() + insert_pos, 0.0);
-
-                                        ++num_inserted;
-
                                     }
-                                }
-                                if (num_inserted != 0){
-                                    for (int i = r + 1; i <= Lap_rowptr_V.size(); ++i) {
-                                        Lap_rowptr_V[i] += num_inserted;
-                                    }
-                                }
-                                
-                                //std::cout << skip << r << std::endl;
-                                //printVector(Lap_rowwptr_V);
-                            } 
+                                    // Update row pointers
+                                    for (int rowp = r + 1; rowp <= N; ++rowp) {
+                                        Lap_rowptr_V[rowp] += missing_cols.size();
+                                    }  
+                                    
+                                    //std::cout << skip << r << std::endl;
+                                    //printVector(Lap_rowwptr_V);
+                                }                           
+                            print_time();
                             printVector(Lap_col_V);
                             printVector(Lap_ind_V);
                             printVector(Lap_val_V);
