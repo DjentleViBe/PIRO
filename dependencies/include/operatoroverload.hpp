@@ -287,10 +287,10 @@ class CLBuffer{
                                     new_rowptr[i + 1] = index;
                                 }
 
-                                cd.rowpointers = std::move(new_rowptr);
-                                cd.columns = std::move(new_colind);
-                                cd.rows = std::move(new_rowind);
-                                cd.values = std::move(new_values);
+                                cd.rowpointers = new_rowptr;
+                                cd.columns = new_colind;
+                                cd.rows = new_rowind;
+                                cd.values = new_values;
                                 print_time();
                                 std::cout << "Values erased\n";
                             }
