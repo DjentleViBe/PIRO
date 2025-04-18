@@ -468,6 +468,7 @@ const char *filter_array = R"CLC(
         float piv = 0.0f;
         float factor = 0.0f;
         bool found_minus = false;
+        bool found_plus = false;
         int factor_ind;
 
         for(int k = inputrowptr[rowouter]; k < inputrowptr[rowouter + 1]; k++){
@@ -501,12 +502,18 @@ const char *filter_array = R"CLC(
                     }
                     if(inputArraycol[l] == rowouter){
                         factor_ind = l;
+                        found_plus = true;
                         break;
                     }
                 }
             }
+            if(!found_plus && !found_minus){
+                factor = 0.0;
+            }
+            else{
+                factor = ValueArray[factor_ind];
+            }
             
-            factor = ValueArray[factor_ind];
             // printf("%d, factor = %f, pivot = %f, currentrow = %d, factor_ind = %d\n", gid, factor, piv, currentrow, factor_ind);
             if(factor != 0) ValueArray[gid] = ValueArray[gid] - (factor / piv) * val0;
             // printf("%d  factor_ind = %d factor = %f value = %f\n", gid, factor_ind, factor, ValueArray[gid]);
