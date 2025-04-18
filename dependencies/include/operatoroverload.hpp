@@ -176,7 +176,7 @@ class CLBuffer{
                                     Lap_ind_V.insert(Lap_ind_V.begin() + insert_pos, missing_cols.begin(), missing_cols.end());
                                     Lap_val_V.insert(Lap_val_V.begin() + insert_pos, new_values.begin(), new_values.end());
 
-                                    for (int i = r + 1; i <= Lap_rowptr_V.size(); ++i) {
+                                    for (int i = r + 1; i <= Lap_rowptr_V.size(); i++) {
                                         Lap_rowptr_V[i] += num_inserted;
                                     }
                                 }
@@ -219,7 +219,7 @@ class CLBuffer{
                             clWaitForEvents(4, (cl_event[]){event0, event1, event2, event3});
                             std::cout << "write buffer lap_rowptr\n";
                             
-                            size_t nnz = (size_t)Lap_rowptr_V[N];
+                            size_t nnz = (size_t)(Lap_rowptr_V[N] + 1);
                             size_t local = 2; // or whatever max workgroup size your device supports
                             if (nnz % local != 0) {
                                 globalWorkSize[0] = ((nnz + local - 1) / local) * local;
@@ -265,7 +265,7 @@ class CLBuffer{
                             Lap_val_V = new_values; 
                             // std::cout << "" << std::endl;
                             // printVector(Lap_val_V);
-                            //csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
+                            csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
@@ -277,6 +277,7 @@ class CLBuffer{
                         clReleaseMemObject(LFvalues.buffer);
                         clReleaseMemObject(Lap_ind.buffer);
                         clReleaseMemObject(Lap_rowptr.buffer);
+
                         // printVector(Lap_val_V);
 
                     }
