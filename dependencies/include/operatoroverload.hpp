@@ -194,7 +194,7 @@ class CLBuffer{
                                 }
                             }
                             
-                            for (int rowouter = 0; rowouter < 1; rowouter++){
+                            for (int rowouter = 0; rowouter < N - 1; rowouter++){
                                 print_time();
                                 std::cout << "rowouter : " << rowouter << std::endl;
 
@@ -225,8 +225,8 @@ class CLBuffer{
                                         }
                                     }
                                 }                       
-                                print_time();
-                                std::cout << "Inserting 0s finished\n";
+                                // print_time();
+                                // std::cout << "Inserting 0s finished\n";
                                 err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
                                                             0, 
                                                             sizeof(int) * TABLE_SIZE,
@@ -242,8 +242,8 @@ class CLBuffer{
         
                                 // Wait for all transfers to complete
                                 clWaitForEvents(2, (cl_event[]){event0, event1});
-                                print_time();
-                                std::cout << "Map memory object finished\n";
+                                // print_time();
+                                // std::cout << "Map memory object finished\n";
                                 // std::cout << cd.rowpointers[N] << std::endl;
                                 size_t nnz = (size_t)((N - rowouter - 1) * (N - rowouter));
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
@@ -255,16 +255,16 @@ class CLBuffer{
                                 err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
-                                print_time();
-                                std::cout << "Kernel finished\n";
+                                // print_time();
+                                // std::cout << "Kernel finished\n";
                                 
                                 Hash_val_V = copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
                                 Hash_keys_V = copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
-                                print_time();
-                                std::cout << "CopyCL\n";
+                                // print_time();
+                                // std::cout << "CopyCL\n";
                                 
-                                print_time();
-                                std::cout << "Values erased\n";
+                                // print_time();
+                                // std::cout << "Values erased\n";
                             }
                             print_time();
                             std::cout << "loop end" << std::endl;
