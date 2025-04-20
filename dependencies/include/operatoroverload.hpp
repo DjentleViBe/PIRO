@@ -75,6 +75,28 @@ class CLBuffer{
                         std::vector<float> Lap_val_V = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
                         std::vector<int> Lap_ind_V = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
                         std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
+                        float load = 0.7;
+                        int TABLE_SIZE = nextPowerOf2(Lap_ind_V.size() / load);
+                        std::cout << "table size : " << TABLE_SIZE << std::endl;
+                        std::vector<float> Hash_val_V(TABLE_SIZE);
+                        std::vector<int> Hash_keys_V(TABLE_SIZE, -1);
+                        int ind;
+                        /////////////////////////////////////// Generate hash tables ///////////////////////////////////////////
+                        for (int i = 0; i < N; i++){
+                            int start = Lap_rowptr_V[i];
+                            int end = Lap_rowptr_V[i + 1];
+                            for(int j = start; j < end; j++){
+                                int col = Lap_ind_V[j];
+                                int row = i;
+
+                                ind = row * N + col;
+                                sethash(ind, Lap_val_V[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
+                            }
+                        }
+                        std::cout << "hash keys : ";
+                        printVector(Hash_keys_V);
+                        std::cout << "hash val : ";
+                        printVector(Hash_val_V);
                         std::vector<float> sorted_vals;
                         std::vector<int> sorted_indices;
                         std::vector<int> Lap_col_V(Lap_ind_V.size());
@@ -83,6 +105,7 @@ class CLBuffer{
                         std::vector<int> new_colind(N * N);
                         std::vector<int> new_rowind(N * N);
                         std::vector<float> new_values(N * N);
+                        
                         // Loop through each row
                         for (int row = 0; row < Lap_rowptr_V.size() - 1; ++row) {
                             int start = Lap_rowptr_V[row];
@@ -118,108 +141,81 @@ class CLBuffer{
                         }
                         /////////////////////////////////////////////////////////////////////////////////////////
                         
-                        CLBuffer LFvalues, Lap_ind, Lap_rowptr, Lap_col;
-                        cl_event event0, event1, event2, event3, event4;
+                        CLBuffer LFvalues, LFkeys;
+                        cl_event event0, event1, event4;
                         // cl_event event4;
-                        LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * N * N, nullptr, &err);
-                        Lap_ind.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY , sizeof(int) * N * N, nullptr, &err);
-                        Lap_col.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY , sizeof(int) * N * N, nullptr, &err);
-                        Lap_rowptr.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY , sizeof(int) * (N + 1), nullptr, &err);
-                        err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &Lap_rowptr.buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &Lap_col.buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &Lap_ind.buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &LFvalues.buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &N);
-                        
+                        LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
+                        LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
+                        err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &LFkeys.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &LFvalues.buffer);
+                        err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_int), &N);
+                        err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &TABLE_SIZE);
                         print_time();
                         std::cout << "Loop begin" << std::endl;
                         //std::cout << "before Write buffer : ";
                         //printVector(Lap_val_V);
                         size_t globalWorkSize[1];
                         size_t localWorkSize[1];
-                        Lap_ind_V.resize(N * N , 0);
-                        Lap_val_V.resize(N * N , 0.0);
-                        Lap_col_V.resize(N * N , 0);
                         // printVector(Lap_ind_V);
-                        for (int rowouter = 0; rowouter < N - 1; rowouter++){
+                        for (int rowouter = 0; rowouter < 1; rowouter++){
                             print_time();
                             std::cout << "rowouter : " << rowouter << std::endl;
-                            printVector(Lap_ind_V);
-                            printVector(Lap_rowptr_V);
-                            std::unordered_set<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
+
+                            std::vector<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
                                                             Lap_ind_V.begin() + Lap_rowptr_V[rowouter + 1]);
                             
                             for (int r = rowouter + 1; r < N; ++r) {
-                                std::unordered_set<int> current_row_cols(Lap_ind_V.begin() + Lap_rowptr_V[r],
-                                                                    Lap_ind_V.begin() + Lap_rowptr_V[r + 1]);
-                                
-                                if (current_row_cols.find(rowouter) == current_row_cols.end()) {
-                                    std::cout << "skip : " << r << std::endl; 
+                                if(lookup(r, 0, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == -1){
                                     continue;
                                 }
-                                std::vector<int> missing_cols;
+                                std::vector<int> current_row_cols(Lap_ind_V.begin() + Lap_rowptr_V[r],
+                                                                    Lap_ind_V.begin() + Lap_rowptr_V[r + 1]);
+                                
                                 int num_inserted = 0;
                                 for (int col : rowouter_cols) {
                                     if(col < rowouter) continue;
-                                    if (current_row_cols.find(col) == current_row_cols.end()) {
-                                        missing_cols.push_back(col);
+                                    if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == -1){
+                                        // set the col in the hash table directly
+                                        ind = r * N + col;
+                                        sethash(ind, 0.0f, TABLE_SIZE, Hash_keys_V, Hash_val_V);
+                                        std::cout << col << ", ";
                                         num_inserted++;
                                     }
                                 }
-                                int insert_pos = Lap_rowptr_V[r] + rowouter;
-                                std::cout << "row : " << r << ", Missing cols : ";
-                                printVector(missing_cols);
+                                std::cout << "\n";
+                                
                                 if (num_inserted != 0){
-                                    std::vector<int> new_rows(num_inserted, r);
-                                    std::vector<float> new_values(num_inserted, 0.0);
-                                    Lap_col_V.insert(Lap_col_V.begin() + insert_pos, new_rows.begin(), new_rows.end());
-                                    Lap_ind_V.insert(Lap_ind_V.begin() + insert_pos, missing_cols.begin(), missing_cols.end());
-                                    Lap_val_V.insert(Lap_val_V.begin() + insert_pos, new_values.begin(), new_values.end());
-
                                     for (int i = r + 1; i <= Lap_rowptr_V.size(); i++) {
                                         Lap_rowptr_V[i] += num_inserted;
                                     }
                                 }
                             }
-                            Lap_col_V.resize(N * N);
-                            Lap_ind_V.resize(N * N);
-                            Lap_val_V.resize(N * N);                
+                                           
                             print_time();
-                            printVector(Lap_col_V);
-                            printVector(Lap_ind_V);
-                            printVector(Lap_val_V);
+                            printVector(Hash_keys_V);
+                            printVector(Hash_val_V);
                             printVector(Lap_rowptr_V);
+                            std::cout << "write buffer start\n";
                             // clFinish(queue);
                             // std::cout << "rowouter = " << rowouter << ", Lap_rowptr_V.size() = " << Lap_rowptr_V.size() << std::endl;
-                            err = clEnqueueWriteBuffer(queue, Lap_rowptr.buffer, CL_FALSE, 
-                                                        sizeof(int) * rowouter, 
-                                                        sizeof(int) * (N + 1 - rowouter),
-                                                        Lap_rowptr_V.data() + rowouter, 
+                            err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
+                                                        0, 
+                                                        sizeof(int) * TABLE_SIZE,
+                                                        Hash_keys_V.data(), 
                                                         0, nullptr, &event0);
                             // assert(Lap_rowptr_V.data() + rowouter != nullptr);
-                            err = clEnqueueWriteBuffer(queue, Lap_ind.buffer, CL_FALSE, 
-                                                        sizeof(int) * Lap_rowptr_V[rowouter], 
-                                                        sizeof(int) * (N * N - Lap_rowptr_V[rowouter]),
-                                                        Lap_ind_V.data() + Lap_rowptr_V[rowouter], 
-                                                        0, nullptr, &event1);
-                            
-                            err = clEnqueueWriteBuffer(queue, Lap_col.buffer, CL_FALSE, 
-                                                        sizeof(int) * Lap_rowptr_V[rowouter], 
-                                                        sizeof(int) * (N * N - Lap_rowptr_V[rowouter]),
-                                                        Lap_col_V.data() + Lap_rowptr_V[rowouter], 
-                                                        0, nullptr, &event2);
                             
                             err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 
-                                                        sizeof(float) * Lap_rowptr_V[rowouter], 
-                                                        sizeof(float) * (N * N - Lap_rowptr_V[rowouter]),
-                                                        Lap_val_V.data() + Lap_rowptr_V[rowouter], 
-                                                        0, nullptr, &event3);
+                                                        0, 
+                                                        sizeof(float) * TABLE_SIZE,
+                                                        Hash_val_V.data(), 
+                                                        0, nullptr, &event1);
                             
                             // Wait for all transfers to complete
-                            clWaitForEvents(4, (cl_event[]){event0, event1, event2, event3});
-                            std::cout << "write buffer lap_rowptr\n";
+                            clWaitForEvents(2, (cl_event[]){event0, event1});
+                            std::cout << "write buffer end\n";
                             
-                            size_t nnz = (size_t)(Lap_rowptr_V[N] + 1);
+                            size_t nnz = (size_t)((N - rowouter - 1) * (N - rowouter));
                             size_t local = 2; // or whatever max workgroup size your device supports
                             if (nnz % local != 0) {
                                 globalWorkSize[0] = ((nnz + local - 1) / local) * local;
@@ -230,18 +226,16 @@ class CLBuffer{
                             // std::cout << "after Write buffer : ";
                             
                             // std::cout << "Launching kernel" << std::endl;
-                            err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &rowouter);
+                            err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                             clFinish(queue);
                             
-                            Lap_val_V = copyCL_offset<float>(queue, LFvalues.buffer, Lap_val_V, 
-                                                            Lap_rowptr_V[rowouter], 
-                                                            N * N - Lap_rowptr_V[rowouter], &event4);
-                            
+                            Hash_val_V = copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
+                            printVector(Hash_val_V);
                             // std::cout << "Copy finish" << std::endl;
                             // printVector(Lap_val_V);
                             // printVector(Lap_ind_V);
-
+                            /*
                             new_rowptr[0] = 0.0;
                             int index = 0;
                             for (int i = 0; i < N; i++) {
@@ -262,21 +256,20 @@ class CLBuffer{
                             Lap_rowptr_V = new_rowptr;
                             Lap_ind_V = new_colind;
                             Lap_col_V = new_rowind;
-                            Lap_val_V = new_values; 
+                            Lap_val_V = new_values; */
                             // std::cout << "" << std::endl;
                             // printVector(Lap_val_V);
-                            csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
+                            // csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
-                        printVector(Lap_val_V);
-                        printVector(Lap_ind_V);
-                        printVector(Lap_col_V);
-                        printVector(Lap_rowptr_V);
-                        csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
+                        printVector(Hash_keys_V);
+                        printVector(Hash_val_V);
+                        // printVector(Lap_col_V);
+                        // printVector(Lap_rowptr_V);
+                        // csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
                         clReleaseMemObject(LFvalues.buffer);
-                        clReleaseMemObject(Lap_ind.buffer);
-                        clReleaseMemObject(Lap_rowptr.buffer);
+                        clReleaseMemObject(LFkeys.buffer);
 
                         // printVector(Lap_val_V);
 

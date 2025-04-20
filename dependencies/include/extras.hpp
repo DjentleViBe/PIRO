@@ -46,11 +46,6 @@ std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *even
 }
 template <typename U>
 std::vector<U> copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U> Lap, int offset, int N, cl_event *event6) {
-    if(Lap.size() < offset + N){
-        std::cout << "inserting extra : " <<  Lap.size() << ", N = " << N << ", offset : " << offset << std::endl;
-        Lap.insert(Lap.end(), offset + N - Lap.size(), 0.0); 
-        
-    }
     size_t offset_size = sizeof(U) * offset;     
     clEnqueueReadBuffer(queue, memC, CL_FALSE, offset_size,
                         sizeof(U) * (N - offset), Lap.data() + offset, 0, NULL, event6);
@@ -65,4 +60,30 @@ void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     const std::vector<float>& values,
     int N);
 uint64_t nextPowerOf2(uint64_t N);
+inline int lookup(int row, int col, int N, std::vector<int> Hash_keys_V, std::vector<float>Hash_val_V, int TABLE_SIZE) {
+    int index = row * N + col;
+    int hash_index = index % TABLE_SIZE;
+
+    // Linear probing to find the key
+    while (Hash_keys_V[hash_index] != -1) {
+        if (Hash_keys_V[hash_index] == index) {
+            return Hash_val_V[hash_index]; // key found
+        }
+        hash_index = (hash_index + 1) % TABLE_SIZE;
+    }
+
+    // Key not found
+    return -1; // or some sentinel value for "not found"
+}
+inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V){
+    int hash_index = index % TABLE_SIZE;
+    // Linear probing
+    while (Hash_keys_V[hash_index] != -1 && Hash_keys_V[hash_index] != index) {
+        hash_index = (hash_index + 1) % TABLE_SIZE;
+    }
+
+    Hash_keys_V[hash_index] = index;
+    Hash_val_V[hash_index] = val;
+    return 0;
+}
 #endif

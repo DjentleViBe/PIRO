@@ -450,73 +450,38 @@ const char *lu_decompose_sparse = R"CLC(
         
 const char *filter_array = R"CLC(
     __kernel void filter_array(
-        __global const int* inputrowptr,
-        __global const int* inputArrayrow,
-        __global const int* inputArraycol,
-        __global float* ValueArray,
+        __global int* hashkey,
+        __global float* hashvalue,
         const int N,
-        const int rowouter
+        const int rowouter,
+        const int TABLE_SIZE
     ) {
         // Get the global ID for this work item
         const int gid = get_global_id(0);
+        printf("%d\n", gid);
+        int current_row = (gid / N) + rowouter + 1;
+        int current_col = (gid % N) + rowouter;
+        int index_current = current_row * N + current_col;
+        int index_0 = rowouter * N + current_col;
+        int index_piv = rowouter * N + rowouter;
+        int index_factor = current_row * N + rowouter;
 
-        if(gid >= inputrowptr[N]){
-            return;
-        }
-        
-        float val0 = 0.0f;
-        float piv = 0.0f;
-        float factor = 0.0f;
-        bool found_minus = false;
-        bool found_plus = false;
-        int factor_ind;
+        int hash_index_current = index_current % TABLE_SIZE;
+        int hash_index_0 = index_0 % TABLE_SIZE;
+        int hash_index_piv = index_piv % TABLE_SIZE;
+        int hash_index_factor = index_factor % TABLE_SIZE;
 
-        for(int k = inputrowptr[rowouter]; k < inputrowptr[rowouter + 1]; k++){
-            if(inputArraycol[gid] == inputArraycol[k]){
-                val0 = ValueArray[k];
-            }
-            if(inputArraycol[k] == rowouter){
-                piv = ValueArray[k];
-            }
+        float val = hashvalue[hash_index_current];
+        float val_0 = hashvalue[hash_index_0];
+        float piv = hashvalue[hash_index_piv];
+        float factor = hashvalue[hash_index_factor];
+
+        val = val - (factor / piv) * val_0;
+        if(val == 0){
+            hashkey[hash_index_current] = -1;
         }
-       
-        if(gid >= inputrowptr[rowouter + 1]){
-            // printf("gid = %d, rowptr = %d\n", gid, inputrowptr[rowouter + 1]);
-            int currentrow = inputArrayrow[gid];
-            // move left until previous row is encountered
-            for(int l = gid; l > gid - N && l >= 0; l--){
-                if(inputArrayrow[l] != currentrow){
-                    break;
-                }
-                if(inputArraycol[l] == rowouter){
-                    found_minus = true;
-                    factor_ind = l;
-                    break;
-                }
-            }
-            if(!found_minus){
-                // move right until next row is encountered
-                for(int l = gid; l < gid + N; l++){
-                    if(inputArrayrow[l] != currentrow){
-                        break;
-                    }
-                    if(inputArraycol[l] == rowouter){
-                        factor_ind = l;
-                        found_plus = true;
-                        break;
-                    }
-                }
-            }
-            if(!found_plus && !found_minus){
-                factor = 0.0;
-            }
-            else{
-                factor = ValueArray[factor_ind];
-            }
-            
-            // printf("%d, factor = %f, pivot = %f, currentrow = %d, factor_ind = %d\n", gid, factor, piv, currentrow, factor_ind);
-            if(factor != 0) ValueArray[gid] = ValueArray[gid] - (factor / piv) * val0;
-            // printf("%d  factor_ind = %d factor = %f value = %f\n", gid, factor_ind, factor, ValueArray[gid]);
+        else{
+            hashvalue[hash_index_current] = val;
         }
     }
 )CLC";
