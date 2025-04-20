@@ -205,8 +205,7 @@ class CLBuffer{
                                     if(lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == -1){
                                         continue;
                                     }
-                                    
-                                    int num_inserted = 0;
+
                                     for (int col : rowouter_cols) {
                                         // std::cout << col << ", ";
                                         // if(col < rowouter) continue;
@@ -215,15 +214,10 @@ class CLBuffer{
                                             ind = r * N + col;
                                             sethash(ind, 0.0f, TABLE_SIZE, Hash_keys_V, Hash_val_V);
                                             // std::cout << col << ", ";
-                                            num_inserted++;
+                                           
                                         }
                                     }
-                                    
-                                    if (num_inserted != 0){
-                                        for (int i = r + 1; i <= cd.rowpointers.size(); i++) {
-                                            cd.rowpointers[i] += num_inserted;
-                                        }
-                                    }
+
                                 }                       
                                 // print_time();
                                 // std::cout << "Inserting 0s finished\n";
