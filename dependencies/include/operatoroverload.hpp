@@ -83,7 +83,7 @@ class CLBuffer{
                         print_time();
                         std::cout << "RHS_INIT begin, sparse count : " << RHS.sparsecount << std::endl;
                         if(RHS_INIT == false){
-                            cl_event event0, event1, event2, event3, event4, event7, event8, event9;
+                            cl_event event0, event1, event4, event5, event7, event8, event9;
                             print_time();
                             std::cout << "Buffer creation begin" << std::endl;
                             // calculate remaining memory
@@ -102,26 +102,26 @@ class CLBuffer{
                                 }
                             }
                                   
-                            float fillValue = 0.0f;
-                            int fillValue_int = 0;
-                            RHS.operandrowptr = clCreateBuffer(context, CL_MEM_READ_WRITE  | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * (N + 1), nullptr, &err);
-                            RHS.operandcolumns = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * N * N, nullptr, &err);
-                            RHS.operandvalues = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(float) * N * N, nullptr, &err);
-                            RHS.operandrows = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * N * N, nullptr, &err);
+                            // float fillValue = 0.0f;
+                            // int fillValue_int = 0;
+                            // RHS.operandrowptr = clCreateBuffer(context, CL_MEM_READ_WRITE  | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * (N + 1), nullptr, &err);
+                            // RHS.operandcolumns = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * N * N, nullptr, &err);
+                            // RHS.operandvalues = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(float) * N * N, nullptr, &err);
+                            // RHS.operandrows = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * N * N, nullptr, &err);
                             
-                            clEnqueueFillBuffer(queue, RHS.operandvalues, &fillValue, sizeof(float), 0, sizeof(float) * N * N, 0, nullptr, nullptr);
-                            clEnqueueFillBuffer(queue, RHS.operandcolumns, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
-                            clEnqueueFillBuffer(queue, RHS.operandrowptr, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
-                            clEnqueueFillBuffer(queue, RHS.operandrows, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
-                            clFinish(queue);
-                            clEnqueueCopyBuffer(queue, other[2].buffer, RHS.operandvalues, 0, 0, sizeof(float) * RHS.sparsecount, 0, NULL, NULL);
-                            clEnqueueCopyBuffer(queue, other[1].buffer, RHS.operandcolumns, 0, 0, sizeof(int) * RHS.sparsecount, 0, NULL, NULL);
-                            clEnqueueCopyBuffer(queue, other[0].buffer, RHS.operandrowptr, 0, 0, sizeof(int) * (N + 1), 0, NULL, NULL);
-                            clFinish(queue);
+                            // clEnqueueFillBuffer(queue, RHS.operandvalues, &fillValue, sizeof(float), 0, sizeof(float) * N * N, 0, nullptr, nullptr);
+                            // clEnqueueFillBuffer(queue, RHS.operandcolumns, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
+                            // clEnqueueFillBuffer(queue, RHS.operandrowptr, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
+                            // clEnqueueFillBuffer(queue, RHS.operandrows, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
+                            // clFinish(queue);
+                            // clEnqueueCopyBuffer(queue, other[2].buffer, RHS.operandvalues, 0, 0, sizeof(float) * RHS.sparsecount, 0, NULL, NULL);
+                            // clEnqueueCopyBuffer(queue, other[1].buffer, RHS.operandcolumns, 0, 0, sizeof(int) * RHS.sparsecount, 0, NULL, NULL);
+                            // clEnqueueCopyBuffer(queue, other[0].buffer, RHS.operandrowptr, 0, 0, sizeof(int) * (N + 1), 0, NULL, NULL);
+                            // clFinish(queue);
                             
-                            MP.AMR[0].CD[index].rowpointers = copyCL<int>(queue, RHS.operandrowptr, N + 1, &event7);
-                            MP.AMR[0].CD[index].columns = copyCL<int>(queue, RHS.operandcolumns, N * N, &event8);
-                            MP.AMR[0].CD[index].values = copyCL<float>(queue, RHS.operandvalues, N * N, &event9);
+                            MP.AMR[0].CD[index].rowpointers = copyCL<int>(queue, other[0].buffer, N + 1, &event7);
+                            MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, N * N, &event8);
+                            MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, N * N, &event9);
 
                             print_time();
                             std::cout << "Buffer creation end" << std::endl;
@@ -162,142 +162,107 @@ class CLBuffer{
                                 }
                             }   
                             /////////////////////////////////////////////////////////////////////////////////////////
-                            
-                            err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &RHS.operandrowptr);
-                            err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &RHS.operandrows);
-                            err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_mem), &RHS.operandcolumns);
-                            err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_mem), &RHS.operandvalues);
-                            err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &N);
+                            auto& cd = MP.AMR[0].CD[index];
+                            CLBuffer LFvalues, LFkeys;
+                            float load = 0.7;
+                            int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
+                            LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
+                            LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
+                            err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &LFkeys.buffer);
+                            err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &LFvalues.buffer);
+                            err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_int), &N);
+                            err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &TABLE_SIZE);
 
                             size_t globalWorkSize[1];
                             size_t localWorkSize[1];
-                            // csr_to_dense_and_print(MP.AMR[0].CD[index].rowpointers, MP.AMR[0].CD[index].columns, MP.AMR[0].CD[index].values, N);
-                            auto& cd = MP.AMR[0].CD[index];
+                            int ind;
                             print_time();
                             std::cout << "Loop begin" << std::endl;
-                            std::vector<int> new_rowptr(N + 1);
-                            std::vector<int> new_colind(N * N);
-                            std::vector<int> new_rowind(N * N);
-                            std::vector<float> new_values(N * N);
-                            cd.rows.resize(N * N);
-                            cd.columns.resize(N * N);
-                            cd.values.resize(N * N);
+                            
+                            std::vector<float> Hash_val_V(TABLE_SIZE);
+                            std::vector<int> Hash_keys_V(TABLE_SIZE, -1);
+                            /////////////////////////////////////// Generate hash tables ///////////////////////////////////////////
+                            for (int i = 0; i < N; i++){
+                                int start = cd.rowpointers[i];
+                                int end = cd.rowpointers[i + 1];
+                                for(int j = start; j < end; j++){
+                                    int col = cd.columns[j];
+                                    int row = i;
+
+                                    ind = row * N + col;
+                                    sethash(ind, cd.values[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
+                                }
+                            }
+                            
                             for (int rowouter = 0; rowouter < 1; rowouter++){
                                 print_time();
                                 std::cout << "rowouter : " << rowouter << std::endl;
-                                
-                                std::unordered_set<int> rowouter_cols(cd.columns.begin() + cd.rowpointers[rowouter],
+
+                                std::vector<int> rowouter_cols(cd.columns.begin() + cd.rowpointers[rowouter],
                                                                 cd.columns.begin() + cd.rowpointers[rowouter + 1]);
                                 
                                 for (int r = rowouter + 1; r < N; ++r) {
-                                    // if(cd.columns[cd.rowpointers[r]] != rowouter) continue;
-                                    std::unordered_set<int> current_row_cols(cd.columns.begin() + cd.rowpointers[r],
-                                                                        cd.columns.begin() + cd.rowpointers[r + 1]);
-                                    if (current_row_cols.find(rowouter) == current_row_cols.end()) {
-                                        // std::cout << "skip : " << r << std::endl; 
+                                    if(lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == -1){
                                         continue;
                                     }
-                                    std::vector<int> missing_cols;
+                                    
                                     int num_inserted = 0;
-                                    int insert_pos = cd.rowpointers[r];
                                     for (int col : rowouter_cols) {
-                                        if(col < rowouter) continue;
-                                        if (current_row_cols.find(col) == current_row_cols.end()) {
-                                            missing_cols.push_back(col);
+                                        // std::cout << col << ", ";
+                                        // if(col < rowouter) continue;
+                                        if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == -1){
+                                            // set the col in the hash table directly
+                                            ind = r * N + col;
+                                            sethash(ind, 0.0f, TABLE_SIZE, Hash_keys_V, Hash_val_V);
+                                            // std::cout << col << ", ";
                                             num_inserted++;
                                         }
                                     }
+                                    
                                     if (num_inserted != 0){
-                                        std::vector<int> new_rows(num_inserted, r);
-                                        std::vector<float> new_values(num_inserted, 0.0);
-                                        cd.rows.insert(cd.rows.begin() + insert_pos, new_rows.begin(), new_rows.end());
-                                        cd.columns.insert(cd.columns.begin() + insert_pos, missing_cols.begin(), missing_cols.end());
-                                        cd.values.insert(cd.values.begin() + insert_pos, new_values.begin(), new_values.end());
-
-                                        for (int i = r + 1; i <= cd.rowpointers.size(); ++i) {
+                                        for (int i = r + 1; i <= cd.rowpointers.size(); i++) {
                                             cd.rowpointers[i] += num_inserted;
                                         }
                                     }
-                                }
-                                cd.rows.resize(N * N);
-                                cd.columns.resize(N * N);
-                                cd.values.resize(N * N);                          
+                                }                       
                                 print_time();
                                 std::cout << "Inserting 0s finished\n";
-                                err = clEnqueueWriteBuffer(queue, RHS.operandrowptr, CL_FALSE, 
-                                                            sizeof(int) * rowouter, 
-                                                            sizeof(int) * (N + 1 - rowouter),
-                                                            cd.rowpointers.data() + rowouter, 
+                                err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
+                                                            0, 
+                                                            sizeof(int) * TABLE_SIZE,
+                                                            Hash_keys_V.data(), 
                                                             0, nullptr, &event0);
-          
-                                err = clEnqueueWriteBuffer(queue, RHS.operandcolumns, CL_FALSE, 
-                                                            sizeof(int) * cd.rowpointers[rowouter], 
-                                                            sizeof(int) * (cd.columns.size() - cd.rowpointers[rowouter]),
-                                                            cd.columns.data() + cd.rowpointers[rowouter], 
+                                // assert(Lap_rowptr_V.data() + rowouter != nullptr);
+                                
+                                err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 
+                                                            0, 
+                                                            sizeof(float) * TABLE_SIZE,
+                                                            Hash_val_V.data(), 
                                                             0, nullptr, &event1);
-                                
-                                err = clEnqueueWriteBuffer(queue, RHS.operandrows, CL_FALSE, 
-                                                            sizeof(int) * cd.rowpointers[rowouter], 
-                                                            sizeof(int) * (cd.rows.size() - cd.rowpointers[rowouter]),
-                                                            cd.rows.data() + cd.rowpointers[rowouter], 
-                                                            0, nullptr, &event2);
-                                
-                                err = clEnqueueWriteBuffer(queue, RHS.operandvalues, CL_FALSE, 
-                                                            sizeof(float) * cd.rowpointers[rowouter], 
-                                                            sizeof(float) * (cd.values.size() - cd.rowpointers[rowouter]),
-                                                            cd.values.data() + cd.rowpointers[rowouter], 
-                                                            0, nullptr, &event3);
-                                
+        
                                 // Wait for all transfers to complete
-                                clWaitForEvents(4, (cl_event[]){event0, event1, event2, event3});
+                                clWaitForEvents(2, (cl_event[]){event0, event1});
                                 print_time();
                                 std::cout << "Map memory object finished\n";
                                 // std::cout << cd.rowpointers[N] << std::endl;
-                                size_t nnz = (size_t)(cd.rowpointers[N] + 1);
+                                size_t nnz = (size_t)((N - rowouter - 1) * (N - rowouter));
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
-                                if (nnz % local != 0) {
-                                    globalWorkSize[0] = ((nnz + local - 1) / local) * local;
-                                } else {
-                                    globalWorkSize[0] = nnz;
-                                }
+                                
+                                globalWorkSize[0] = nnz;
                                 localWorkSize[0] = local;
                                 // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
                                 
-                                err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &rowouter);
+                                err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
                                 print_time();
                                 std::cout << "Kernel finished\n";
                                 
-                                cd.values = copyCL_offset<float>(queue, RHS.operandvalues, 
-                                                                                cd.values, 
-                                                                                cd.rowpointers[rowouter], 
-                                                                                N * N - cd.rowpointers[rowouter], &event4);
+                                Hash_val_V = copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
+                                Hash_keys_V = copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
                                 print_time();
                                 std::cout << "CopyCL\n";
-
                                 
-                                new_rowptr[0] = 0.0;
-                                int index = 0;
-                                for (int i = 0; i < N; ++i) {
-                                    int row_start = cd.rowpointers[i];
-                                    int row_end = cd.rowpointers[i + 1];
-                                    
-                                    for (int j = row_start; j < row_end; ++j) {
-                                        if (std::abs(cd.values[j]) > 1E-6) {
-                                            new_rowind[index] = cd.rows[j];
-                                            new_colind[index] = cd.columns[j];
-                                            new_values[index] = cd.values[j];
-                                            index++;
-                                        }
-                                    }
-                                    new_rowptr[i + 1] = index;
-                                }
-
-                                cd.rowpointers = new_rowptr;
-                                cd.columns = new_colind;
-                                cd.rows = new_rowind;
-                                cd.values = new_values;
                                 print_time();
                                 std::cout << "Values erased\n";
                             }
@@ -309,6 +274,7 @@ class CLBuffer{
                             //                         cd.columns, 
                             //                        cd.values, N);
                             RHS_INIT = true;
+                            // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
                         }
                         print_time();
                         std::cout << "RHS_INIT end" << std::endl;
