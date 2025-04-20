@@ -479,6 +479,7 @@ const char *filter_array = R"CLC(
         val = val - (factor / piv) * val_0;
         if(val == 0){
             hashkey[hash_index_current] = -1;
+            hashvalue[hash_index_current] = val;
         }
         else{
             hashvalue[hash_index_current] = val;
