@@ -458,7 +458,7 @@ const char *filter_array = R"CLC(
     ) {
         // Get the global ID for this work item
         const int gid = get_global_id(0);
-        printf("%d\n", gid);
+        // printf("%d\n", gid);
         int current_row = (gid / N) + rowouter + 1;
         int current_col = (gid % N) + rowouter;
         int index_current = current_row * N + current_col;

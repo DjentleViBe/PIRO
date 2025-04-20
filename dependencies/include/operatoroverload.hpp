@@ -231,7 +231,9 @@ class CLBuffer{
                             clFinish(queue);
                             
                             Hash_val_V = copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
-                            printVector(Hash_val_V);
+                            Hash_keys_V = copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event4);
+                            // printVector(Hash_val_V);
+                            hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
                             // std::cout << "Copy finish" << std::endl;
                             // printVector(Lap_val_V);
                             // printVector(Lap_ind_V);
