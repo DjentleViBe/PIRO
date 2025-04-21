@@ -252,8 +252,8 @@ class CLBuffer{
                                 // print_time();
                                 // std::cout << "Kernel finished\n";
                                 
-                                Hash_val_V = copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
-                                Hash_keys_V = copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
+                                copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
+                                copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
                                 // print_time();
                                 // std::cout << "CopyCL\n";
                                 

@@ -45,13 +45,13 @@ std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *even
     return hostValues;
 }
 template <typename U>
-std::vector<U> copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U> Lap, int offset, int N, cl_event *event6) {
+int copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U>& Lap, int offset, int N, cl_event *event6) {
     size_t offset_size = sizeof(U) * offset;     
     clEnqueueReadBuffer(queue, memC, CL_FALSE, offset_size,
                         sizeof(U) * (N - offset), Lap.data() + offset, 0, NULL, event6);
     
     clWaitForEvents(1, event6);
-    return Lap;
+    return 0;
 }
 void printCL(cl_mem memC, int N, int type);
 void printCLArray(cl_mem memC, int N, int type);
