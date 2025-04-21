@@ -393,5 +393,176 @@ __kernel void divideVectors_constant(__global float *A,
 }
 )CLC";
 
+const char *lu_decompose_dense = R"CLC(
+__kernel void lu_decompose_dense(__global float* A, 
+                        __global float* L,
+                        int N) {
+    // Get the global row index
+    unsigned int i = get_global_id(0);
+    unsigned int j = get_global_id(1);
 
+   if (i < N && j < N) {
+        // Forward elimination
+        for (int k = 0; k < N - 1; k++) {
+            float pivot = A[k * N + k];                             // Pivot element at A[k, k]
+            float factor = A[i * N + k] / pivot;                    // Calculate factor to eliminate
+            if (factor != 0){
+                if (i > k && j < N) {                               // Only update rows below the diagonal
+                    if (i > k) {                                    // Process rows below the diagonal
+                        A[i * N + j] -= factor * A[k * N + j];      // Subtract row k from row i
+                    }
+                }
+            }
+        }
+        barrier(CLK_GLOBAL_MEM_FENCE);                              // Ensure all threads are synchronized for the next iteration
+    }
+}
+)CLC";
+
+const char *lu_decompose_sparse = R"CLC(
+    __kernel void lu_decompose_sparse(__global float* A, 
+                            __global float* L,
+                            int N,
+                            __global float* Avalues,
+                            __global int* Aind,
+                            __global int* Arowptr) {
+        // Get the global row index
+        unsigned int i = get_global_id(0);
+        unsigned int j = get_global_id(1);
+    
+       if (i < N && j < N) {
+            // Forward elimination
+            for (int k = 0; k < N - 1; k++) {
+                float pivot = A[k * N + k];                             // Pivot element at A[k, k]
+                float factor = A[i * N + k] / pivot;                    // Calculate factor to eliminate
+                if (factor != 0){
+                    if (i > k && j < N) {                               // Only update rows below the diagonal
+                        if (i > k) {                                    // Process rows below the diagonal
+                            A[i * N + j] -= factor * A[k * N + j];      // Subtract row k from row i
+                        }
+                    }
+                }
+            }
+            barrier(CLK_GLOBAL_MEM_FENCE);                              // Ensure all threads are synchronized for the next iteration
+        }
+    }
+    )CLC";
+        
+const char *filter_array = R"CLC(
+    __kernel void filter_array(
+        __global int* hashkey,
+        __global float* hashvalue,
+        const int N,
+        const int rowouter,
+        const int TABLE_SIZE
+    ) {
+        // Get the global ID for this work item
+        const int gid = get_global_id(0);
+        // printf("%d ", gid);
+        int current_row = (gid / (N - rowouter)) + rowouter + 1;
+        int current_col = (gid % (N - rowouter)) + rowouter;
+        int index_current = current_row * N + current_col;
+        int index_0 = rowouter * N + current_col;
+        int index_piv = rowouter * N + rowouter;
+        int index_factor = current_row * N + rowouter;
+
+        int hash_index_current = index_current % TABLE_SIZE;
+        int hash_index_0 = index_0 % TABLE_SIZE;
+        int hash_index_piv = index_piv % TABLE_SIZE;
+        int hash_index_factor = index_factor % TABLE_SIZE;
+
+        float val = hashvalue[hash_index_current];
+        float val_0 = hashvalue[hash_index_0];
+        float piv = hashvalue[hash_index_piv];
+        float factor = hashvalue[hash_index_factor];
+
+        val = val - (factor / piv) * val_0;
+        if(val == 0){
+            hashkey[hash_index_current] = -1;
+            hashvalue[hash_index_current] = val;
+        }
+        else{
+            hashvalue[hash_index_current] = val;
+        }
+    }
+)CLC";
+
+const char *filter_row = R"CLC(
+    __kernel void filter_row(
+        __global const float* zeroArray,
+        __global float* outputArray,
+        __global float* rowArray,
+        const int n,
+        __global float* pivot,
+        const int row
+    ) {
+        int gid = get_global_id(0);
+        if(gid < n){
+            outputArray[gid] = (zeroArray[gid] * rowArray[row]) / pivot[0];
+        }
+    }
+)CLC";
+
+const char *forward_substitution_csr = R"CLC(
+    __kernel void forward_substitution_csr(
+        __global const int* L_row_ptr,
+        __global const int* L_col_idx,
+        __global const float* L_values,
+        __global float* y,
+        __global const float* b,
+        int N
+    ) {
+        int i = get_global_id(0);
+    
+        if (i < N) {
+            float sum = b[i];
+            for (int j = L_row_ptr[i]; j < L_row_ptr[i + 1]; j++) {
+                int col = L_col_idx[j];
+                if (col < i) {
+                    sum -= L_values[j] * y[col];
+                }
+            }
+            y[i] = sum;  // L is lower triangular, diagonal assumed to be 1
+            
+            // Ensure all threads complete before the next iteration
+            barrier(CLK_GLOBAL_MEM_FENCE);
+        }
+    }
+)CLC";
+
+const char *backward_substitution_csr = R"CLC(
+    __kernel void backward_substitution_csr(
+        __global const int* U_row_ptr,
+        __global const int* U_col_idx,
+        __global const float* U_values,
+        __global float* x,
+        __global const float* y,
+        int N
+    ) {
+        int i = get_global_id(0);
+    
+        if (i < N) {
+            int row = N - 1 - i; // Process from last row to first
+            if (y[row] != 0.0f) { // Only compute if y[row] is non-zero
+                float sum = y[row];
+                // printf("y[%u] = %f\n", row, y[row]);
+                // Compute summation term for backward substitution
+                for (int j = U_row_ptr[row]; j < U_row_ptr[row + 1]; j++) {
+                    
+                    int col = U_col_idx[j];
+                    if (col > row) {
+                        sum -= U_values[j] * x[col];
+                        // printf("x[%u] = %f\n", col, x[col]);
+                    } else if (col == row) {
+                        x[row] = sum / U_values[j]; // Store result when we reach the diagonal element
+                        break;
+                    }
+                }
+                
+                // Debug output to check the sum and x values
+                // printf("Row: %d, sum: %f, x[%d]: %f\n", row, sum, row, x[row]);
+            }
+        }
+    }
+    )CLC";
 #endif // KERNEL_CL_H
