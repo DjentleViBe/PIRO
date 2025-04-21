@@ -61,7 +61,7 @@ void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     int N);
 void hash_to_dense_and_print(std::vector<int> Hashkeys, std::vector<float> HashValues, int N, int TABLE_SIZE);
 uint64_t nextPowerOf2(uint64_t N);
-inline int lookup(int row, int col, int N, std::vector<int> Hash_keys_V, std::vector<float>Hash_val_V, int TABLE_SIZE) {
+inline int lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
     int index = row * N + col;
     int hash_index = index % TABLE_SIZE;
 
