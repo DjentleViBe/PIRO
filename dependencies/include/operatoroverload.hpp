@@ -101,10 +101,6 @@ class CLBuffer{
                         std::vector<int> sorted_indices;
                         std::vector<int> Lap_col_V(Lap_ind_V.size());
                         std::cout << "Loop begin" << std::endl;
-                        std::vector<int> new_rowptr(N + 1);
-                        std::vector<int> new_colind(N * N);
-                        std::vector<int> new_rowind(N * N);
-                        std::vector<float> new_values(N * N);
                         
                         // Loop through each row
                         for (int row = 0; row < Lap_rowptr_V.size() - 1; ++row) {
@@ -156,70 +152,39 @@ class CLBuffer{
                         //printVector(Lap_val_V);
                         size_t globalWorkSize[1];
                         size_t localWorkSize[1];
+                        std::cout << "write buffer start\n";
+                        // clFinish(queue);
+                        // std::cout << "rowouter = " << rowouter << ", Lap_rowptr_V.size() = " << Lap_rowptr_V.size() << std::endl;
+                        err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
+                                                    0, 
+                                                    sizeof(int) * TABLE_SIZE,
+                                                    Hash_keys_V.data(), 
+                                                    0, nullptr, &event0);
+                        // assert(Lap_rowptr_V.data() + rowouter != nullptr);
+                        
+                        err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 
+                                                    0, 
+                                                    sizeof(float) * TABLE_SIZE,
+                                                    Hash_val_V.data(), 
+                                                    0, nullptr, &event1);
+                        
+                        // Wait for all transfers to complete
+                        clWaitForEvents(2, (cl_event[]){event0, event1});
+                        std::cout << "write buffer end\n";
                         // printVector(Lap_ind_V);
                         for (int rowouter = 0; rowouter < N - 1; rowouter++){
                             print_time();
                             std::cout << "rowouter : " << rowouter << std::endl;
-
-                            std::vector<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
-                                                            Lap_ind_V.begin() + Lap_rowptr_V[rowouter + 1]);
-                            
-                            for (int r = rowouter + 1; r < N; ++r) {
-                                if(lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == -1){
-                                    continue;
-                                }
-                                //std::vector<int> current_row_cols(Lap_ind_V.begin() + Lap_rowptr_V[r],
-                                //                                    Lap_ind_V.begin() + Lap_rowptr_V[r + 1]);
-                                
-                                int num_inserted = 0;
-                                for (int col : rowouter_cols) {
-                                    if(col < rowouter) continue;
-                                    if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == -1){
-                                        // set the col in the hash table directly
-                                        ind = r * N + col;
-                                        sethash(ind, 0.0f, TABLE_SIZE, Hash_keys_V, Hash_val_V);
-                                        std::cout << col << ", ";
-                                        num_inserted++;
-                                    }
-                                }
-                                // std::cout << "\n";
-                                
-                                if (num_inserted != 0){
-                                    for (int i = r + 1; i <= Lap_rowptr_V.size(); i++) {
-                                        Lap_rowptr_V[i] += num_inserted;
-                                    }
-                                }
-                            }
                                            
                             print_time();
                             printVector(Hash_keys_V);
                             printVector(Hash_val_V);
                             printVector(Lap_rowptr_V);
-                            std::cout << "write buffer start\n";
-                            // clFinish(queue);
-                            // std::cout << "rowouter = " << rowouter << ", Lap_rowptr_V.size() = " << Lap_rowptr_V.size() << std::endl;
-                            err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
-                                                        0, 
-                                                        sizeof(int) * TABLE_SIZE,
-                                                        Hash_keys_V.data(), 
-                                                        0, nullptr, &event0);
-                            // assert(Lap_rowptr_V.data() + rowouter != nullptr);
-                            
-                            err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 
-                                                        0, 
-                                                        sizeof(float) * TABLE_SIZE,
-                                                        Hash_val_V.data(), 
-                                                        0, nullptr, &event1);
-                            
-                            // Wait for all transfers to complete
-                            clWaitForEvents(2, (cl_event[]){event0, event1});
-                            std::cout << "write buffer end\n";
                             
                             size_t nnz = (size_t)((N - rowouter - 1) * (N - rowouter));
                             size_t local = 2; // or whatever max workgroup size your device supports
 
                             globalWorkSize[0] = nnz;
-                            
                             localWorkSize[0] = local;
                             // std::cout << "after Write buffer : ";
                             
@@ -227,42 +192,13 @@ class CLBuffer{
                             err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                             clFinish(queue);
-                            
-                            copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
-                            copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
-                            // printVector(Hash_val_V);
-                            // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
-                            // std::cout << "Copy finish" << std::endl;
-                            // printVector(Lap_val_V);
-                            // printVector(Lap_ind_V);
-                            /*
-                            new_rowptr[0] = 0.0;
-                            int index = 0;
-                            for (int i = 0; i < N; i++) {
-                                int row_start = Lap_rowptr_V[i];
-                                int row_end = Lap_rowptr_V[i + 1];
-                                
-                                for (int j = row_start; j < row_end; j++) {
-                                    if (std::abs(Lap_val_V[j]) > 1E-6) {
-                                        new_rowind[index] = Lap_col_V[j];
-                                        new_colind[index] = Lap_ind_V[j];
-                                        new_values[index] = Lap_val_V[j];
-                                        index++;
-                                    }
-                                }
-                                new_rowptr[i + 1] = index;
-                            }
-
-                            Lap_rowptr_V = new_rowptr;
-                            Lap_ind_V = new_colind;
-                            Lap_col_V = new_rowind;
-                            Lap_val_V = new_values; */
-                            // std::cout << "" << std::endl;
-                            // printVector(Lap_val_V);
-                            // csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
+                          
                         }
                         print_time();
                         std::cout << "loop end" << std::endl;
+                        copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
+                        copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
+                        
                         printVector(Hash_keys_V);
                         printVector(Hash_val_V);
                         hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
