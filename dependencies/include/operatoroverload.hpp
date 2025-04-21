@@ -228,8 +228,8 @@ class CLBuffer{
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                             clFinish(queue);
                             
-                            Hash_val_V = copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
-                            Hash_keys_V = copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
+                            copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
+                            copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
                             // printVector(Hash_val_V);
                             // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
                             // std::cout << "Copy finish" << std::endl;
