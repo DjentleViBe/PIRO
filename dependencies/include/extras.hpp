@@ -79,7 +79,7 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
 inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V){
     int hash_index = index % TABLE_SIZE;
     // Linear probing
-    while (Hash_keys_V[hash_index] != -1 && Hash_keys_V[hash_index] != index) {
+    while (Hash_keys_V[hash_index] > -1 && Hash_keys_V[hash_index] != index) {
         hash_index = (hash_index + 1) % TABLE_SIZE;
     }
 

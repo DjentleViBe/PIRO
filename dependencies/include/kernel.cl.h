@@ -487,7 +487,7 @@ const char *filter_array = R"CLC(
         lookup(index_0, &val_0, &hash_index_0, hashvalue, hashkey, TABLE_SIZE);
         lookup(index_piv, &piv, &hash_index_piv, hashvalue, hashkey, TABLE_SIZE);
         lookup(index_factor, &factor, &hash_index_factor, hashvalue, hashkey, TABLE_SIZE);
-        printf("gid = %d , val = %f, val_0 = %f, index = %d, hash_index_current = %d, piv = %f, factor = %d, %f\n", gid, val, val_0, index_current, hash_index_current, piv, hash_index_factor, factor);
+        // printf("gid = %d , val = %f, val_0 = %f, index = %d, hash_index_current = %d, piv = %f, factor = %d, %f\n", gid, val, val_0, index_current, hash_index_current, piv, hash_index_factor, factor);
 
         val = val - (factor / piv) * val_0;
         if(val == 0){

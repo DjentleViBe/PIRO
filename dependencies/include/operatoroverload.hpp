@@ -137,11 +137,17 @@ class CLBuffer{
                         clWaitForEvents(2, (cl_event[]){event0, event1});
                         std::cout << "write buffer end\n";
                         // printVector(Lap_ind_V);
-                        for (int rowouter = 0; rowouter < 1; rowouter++){
+                        for (int rowouter = 0; rowouter < N - 1; rowouter++){
                             print_time();
                             std::cout << "rowouter : " << rowouter << std::endl;
-                            std::vector<int> rowouter_cols(Lap_ind_V.begin() + Lap_rowptr_V[rowouter],
-                                                            Lap_ind_V.begin() + Lap_rowptr_V[rowouter + 1]);
+                            std::vector<int> rowouter_cols;
+                            // extract rowouter
+                            for(int co = 0; co < N; co++){
+                                float valofrow = lookup(rowouter, co, N, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                if(valofrow != 0){
+                                    rowouter_cols.push_back(co);
+                                }
+                            }
                             
                             for (int r = rowouter + 1; r < N; ++r) {
                                 if(lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
