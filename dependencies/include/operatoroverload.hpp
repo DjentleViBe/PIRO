@@ -111,13 +111,12 @@ class CLBuffer{
                         err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &LFvalues.buffer);
                         err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_int), &N);
                         err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &TABLE_SIZE);
-                        print_time();
-                        std::cout << "Loop begin" << std::endl;
+                        Logger::info("Loop begin");
                         //std::cout << "before Write buffer : ";
                         //printVector(Lap_val_V);
                         size_t globalWorkSize[1];
                         size_t localWorkSize[1];
-                        std::cout << "write buffer start\n";
+                        Logger::info("write buffer start");
                         // clFinish(queue);
                         // std::cout << "rowouter = " << rowouter << ", Lap_rowptr_V.size() = " << Lap_rowptr_V.size() << std::endl;
                         err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
@@ -135,11 +134,10 @@ class CLBuffer{
                         
                         // Wait for all transfers to complete
                         clWaitForEvents(2, (cl_event[]){event0, event1});
-                        std::cout << "write buffer end\n";
+                        Logger::info("write buffer end");
                         // printVector(Lap_ind_V);
                         for (int rowouter = 0; rowouter < N - 1; rowouter++){
-                            print_time();
-                            std::cout << "rowouter : " << rowouter << std::endl;
+                            Logger::info("rowouter :", rowouter);
                             std::vector<int> rowouter_cols;
                             // extract rowouter
                             for(int co = 0; co < N; co++){
@@ -187,8 +185,7 @@ class CLBuffer{
 
                             // Wait for all transfers to complete
                             clWaitForEvents(2, (cl_event[]){event0, event1});
-
-                                                    
+                       
                             size_t nnz = (size_t)((N - rowouter - 1) * (N - rowouter));
                             size_t local = 2; // or whatever max workgroup size your device supports
 
@@ -207,8 +204,7 @@ class CLBuffer{
                         
                           
                         }
-                        print_time();
-                        std::cout << "loop end" << std::endl;
+                        Logger::info("loop end");
                         // copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
                         // copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
                         
