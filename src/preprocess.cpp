@@ -10,6 +10,7 @@
 #include "../dependencies/include/solve.hpp"
 #include "../dependencies/include/ic.hpp"
 #include "../dependencies/include/bc.hpp"
+#include "../dependencies/include/operatoroverload.hpp"
 
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
@@ -23,9 +24,12 @@ Giro::MeshParams MP;
 Giro::SolveParams SP;
 Giro::DeviceParams DP;
 Giro::CellDataGPU CDGPU;
+Giro::Equation RHS;
 CLBuffer CD_GPU;
+cl_mem RHSterms;
 int debuginfo;
 bool LAP_INIT = false;
+bool RHS_INIT = false;
 int ts = 0;
 
 // Function to map 3D indices to 1D
@@ -65,7 +69,6 @@ int preprocess(const std::string& name) {
     MP.vectorlist = splitString(reader.get("Simulation", "Vectors", "default_value"), ' ');
     MP.meshtype = std::stoi(reader.get("Mesh", "MeshType", "default_value"));
     MP.levels = std::stoi(reader.get("Mesh", "levels", "default_value"));
-
     debuginfo = std::stoi(reader.get("Debug", "Verbose", "default_value"));
 
     MP.n[0] += 2;
@@ -159,6 +162,10 @@ bool isBoundaryPoint(int x, int y, int z) {
     return false;
 }
 
+bool isValidIndex(int index){
+    return (index >= 0 && index < MP.n[0] * MP.n[1] * MP.n[2]);
+    }
+
 int laplacian_CSR_init(){
     int N = MP.n[0] * MP.n[1] * MP.n[2];
     Giro::CellData CD;
@@ -199,33 +206,37 @@ int laplacian_CSR_init(){
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
                     
                 }
-                if (y < MP.n[1] - 1) {
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y+1, z, MP.n[0], MP.n[1]));
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
-                    
-                }
+                    if (y < MP.n[1] - 1) {
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y+1, z, MP.n[0], MP.n[1]));
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
+                        
+                    }
 
-                // Neighbors in the z-direction (z±1)
-                if (z > 0) {
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y, z-1, MP.n[0], MP.n[1]));
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
-                    
-                }
-                if (z < MP.n[2] - 1) {
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y, z+1, MP.n[0], MP.n[1]));
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
-                    
-                }
+                    // Neighbors in the z-direction (z±1)
+                    if (z > 0) {
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y, z-1, MP.n[0], MP.n[1]));
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
+                        
+                    }
+                    if (z < MP.n[2] - 1) {
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y, z+1, MP.n[0], MP.n[1]));
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
+                    }
                 
-                if (isBoundaryPoint(x, y, z)) {
-                    // Set the corresponding row in the sparse matrix to enforce the BC
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(i); // for diagonal entry
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0); // large value to enforce the BC
-                
-                    // Set other neighbors to zero or adjust according to the BC
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(i + 1); // for a neighbor
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(0.0); // zero for Dirichlet BC
-                }
+                    if (isBoundaryPoint(x, y, z)) {
+                        auto it = std::find(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.begin(),
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.end(), i);
+        
+                        if (it == MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.end()) {
+                            // Add the boundary point if not already in the matrix.
+                            MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(i); // for diagonal entry
+                            MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(10.0); // large value to enforce the BC
+                        }
+                        else{
+                            size_t index = std::distance(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.begin(), it);
+                            MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values[index] = 10.0;
+                        }
+                    }
 
                 MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers[i + 1] = MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.size();
             }
@@ -243,6 +254,7 @@ int laplacian_CSR_init(){
         sizeof(float) *  MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size(), MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.data(), &err);
     
     LAP_INIT = true;
+    RHS.sparsecount += MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size();
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers);
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns);
     // printVector(MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values);

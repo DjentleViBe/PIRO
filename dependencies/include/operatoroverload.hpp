@@ -12,9 +12,25 @@
 #include "preprocess.hpp"
 #include <vector>
 #include <iostream>
+#include <algorithm>
+#include <unordered_map>
+#include <set>
 #include <unordered_set>
 #include <algorithm>
-#include <cassert>
+
+namespace Giro{
+    class Equation{
+        public:
+            cl_mem operandvalues;
+            cl_mem operandcolumns;
+            cl_mem operandrowptr;
+            cl_mem operandrows;
+            int sparsecount;
+    };
+};
+
+extern Giro::Equation RHS;
+const float EPSILON = 1E-6;
 
 class CLBuffer{
     public:
@@ -61,113 +77,80 @@ class CLBuffer{
             else if(SP.timescheme == 12){
                 std::cout << "Backward Euler" << std::endl;
                     if(SP.solverscheme == 17){
-                        std::cout << "LU Decomposition" << std::endl;
-                        std::vector<float> Lap_full = {-6.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0,
-                                                        1.0,-6.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0,
-                                                        1.0, 0.0,-6.0, 1.0, 0.0, 0.0, 1.0, 0.0,
-                                                        0.0, 1.0, 1.0,-6.0, 0.0, 0.0, 0.0, 1.0,
-                                                        1.0, 0.0, 0.0, 0.0,-6.0, 1.0, 1.0, 0.0,
-                                                        0.0, 1.0, 0.0, 0.0, 1.0,-6.0, 0.0, 1.0,
-                                                        0.0, 0.0, 1.0, 0.0, 1.0, 0.0,-6.0, 1.0,
-                                                        0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0,-6.0};
-                        
-                        int N = 8;
-                        std::vector<float> Lap_val_V = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
-                        std::vector<int> Lap_ind_V = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
-                        std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
-                        float load = 0.7;
-                        // int TABLE_SIZE = nextPowerOf2(Lap_ind_V.size() / load);
-                        int TABLE_SIZE = Lap_ind_V.size() / load;
-                        std::cout << "table size : " << TABLE_SIZE << std::endl;
-                        std::vector<float> Hash_val_V(TABLE_SIZE);
-                        std::vector<int> Hash_keys_V(TABLE_SIZE, -1);
-                        int ind;
-                        /////////////////////////////////////// Generate hash tables ///////////////////////////////////////////
-                        for (int i = 0; i < N; i++){
-                            int start = Lap_rowptr_V[i];
-                            int end = Lap_rowptr_V[i + 1];
-                            for(int j = start; j < end; j++){
-                                int col = Lap_ind_V[j];
-                                int row = i;
+                        Logger::info("LU Decomposition");
+                        int N = MP.n[0] * MP.n[1] * MP.n[2];
+                        int index = MP.vectornum + MP.scalarnum;
+                        Logger::debug("RHS_INIT begin, sparse count : ", RHS.sparsecount);
+                        if(RHS_INIT == false){
+                            cl_event event0, event1, event4, event5, event7, event8, event9;
+                            Logger::debug("Buffer creation begin");
 
-                                ind = row * N + col;
-                                sethash(ind, Lap_val_V[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
-                            }
-                        }
-                        std::cout << "hash keys : ";
-                        printVector(Hash_keys_V);
-                        std::cout << "hash val : ";
-                        printVector(Hash_val_V);
-                        std::cout << "Loop begin" << std::endl;
-                        
-                        /////////////////////////////////////////////////////////////////////////////////////////
-                        
-                        CLBuffer LFvalues, LFkeys;
-                        cl_event event0, event1, event4, event5;
-                        // cl_event event4;
-                        LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
-                        LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
-                        err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &LFkeys.buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &LFvalues.buffer);
-                        err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_int), &N);
-                        err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &TABLE_SIZE);
-                        Logger::info("Loop begin");
-                        //std::cout << "before Write buffer : ";
-                        //printVector(Lap_val_V);
-                        size_t globalWorkSize[1];
-                        size_t localWorkSize[1];
-                        Logger::info("write buffer start");
-                        // clFinish(queue);
-                        // std::cout << "rowouter = " << rowouter << ", Lap_rowptr_V.size() = " << Lap_rowptr_V.size() << std::endl;
-                        err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE,
-                                                    0, sizeof(int) * TABLE_SIZE,
-                                                    Hash_keys_V.data(), 
-                                                    0, nullptr, &event0);
-
-                        err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE,
-                                                    0, sizeof(float) * TABLE_SIZE,
-                                                    Hash_val_V.data(), 
-                                                    0, nullptr, &event1);
-                        
-                        // Wait for all transfers to complete
-                        clWaitForEvents(2, (cl_event[]){event0, event1});
-                        Logger::info("write buffer end");
-                        for (int rowouter = 0; rowouter < N - 1; rowouter++){
-                            Logger::info("rowouter :", rowouter);
-                            std::vector<int> rowouter_cols;
-                            // extract rowouter
-                            for(int co = 0; co < N; co++){
-                                float valofrow = lookup(rowouter, co, N, Hash_keys_V, Hash_val_V, TABLE_SIZE);
-                                if(valofrow != 0){
-                                    rowouter_cols.push_back(co);
-                                }
-                            }
+                            // calculate remaining memory
+                            // std::cout << "Total variable count : " << MP.scalarnum + MP.vectornum << std::endl;
+                            // std::cout << "Total memory : " << globalMemSize << std::endl;
+                            // std::cout << "Max alloc : " << maxAllocSize << std::endl;
+                                  
+                            // float fillValue = 0.0f;
+                            // int fillValue_int = 0;
+                            // RHS.operandrowptr = clCreateBuffer(context, CL_MEM_READ_WRITE  | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * (N + 1), nullptr, &err);
+                            // RHS.operandcolumns = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * N * N, nullptr, &err);
+                            // RHS.operandvalues = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(float) * N * N, nullptr, &err);
+                            // RHS.operandrows = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * N * N, nullptr, &err);
                             
-                            for (int r = rowouter + 1; r < N; ++r) {
-                                if(lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
-                                    continue;
-                                }
+                            // clEnqueueFillBuffer(queue, RHS.operandvalues, &fillValue, sizeof(float), 0, sizeof(float) * N * N, 0, nullptr, nullptr);
+                            // clEnqueueFillBuffer(queue, RHS.operandcolumns, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
+                            // clEnqueueFillBuffer(queue, RHS.operandrowptr, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
+                            // clEnqueueFillBuffer(queue, RHS.operandrows, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
+                            // clFinish(queue);
+                            // clEnqueueCopyBuffer(queue, other[2].buffer, RHS.operandvalues, 0, 0, sizeof(float) * RHS.sparsecount, 0, NULL, NULL);
+                            // clEnqueueCopyBuffer(queue, other[1].buffer, RHS.operandcolumns, 0, 0, sizeof(int) * RHS.sparsecount, 0, NULL, NULL);
+                            // clEnqueueCopyBuffer(queue, other[0].buffer, RHS.operandrowptr, 0, 0, sizeof(int) * (N + 1), 0, NULL, NULL);
+                            // clFinish(queue);
+                            
+                            MP.AMR[0].CD[index].rowpointers = copyCL<int>(queue, other[0].buffer, N + 1, &event7);
+                            MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, N * N, &event8);
+                            MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, N * N, &event9);
 
-                                for (int col : rowouter_cols) {
-                                    if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
-                                        // set the col in the hash table directly
-                                        ind = r * N + col;
-                                        sethash(ind, 0.0f, TABLE_SIZE, Hash_keys_V, Hash_val_V);
-                                    }
+                            Logger::debug("Buffer creation end");
+                            /////////////////////////////////////////////////////////////////////////////////////////
+                            auto& cd = MP.AMR[0].CD[index];
+                            CLBuffer LFvalues, LFkeys;
+                            float load = 0.7;
+                            // int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
+                            int TABLE_SIZE = cd.columns.size() / load;
+                            LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
+                            LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
+                            err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &LFkeys.buffer);
+                            err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &LFvalues.buffer);
+                            err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_int), &N);
+                            err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &TABLE_SIZE);
+
+                            size_t globalWorkSize[1];
+                            size_t localWorkSize[1];
+                            int ind;
+                            Logger::debug("Loop begin");
+                            
+                            std::vector<float> Hash_val_V(TABLE_SIZE);
+                            std::vector<int> Hash_keys_V(TABLE_SIZE, -1);
+                            /////////////////////////////////////// Generate hash tables ///////////////////////////////////////////
+                            for (int i = 0; i < N; i++){
+                                int start = cd.rowpointers[i];
+                                int end = cd.rowpointers[i + 1];
+                                for(int j = start; j < end; j++){
+                                    int col = cd.columns[j];
+                                    int row = i;
+
+                                    ind = row * N + col;
+                                    sethash(ind, cd.values[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
                                 }
-                            }                                   
-                            // print_time();
-                            Logger::warning("hash keys : ", Hash_keys_V);
-                            // printVector(Hash_keys_V);
-                            // printVector(Hash_val_V);
-                            // printVector(Lap_rowptr_V);
+                            }
                             err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
                                                         0, 
                                                         sizeof(int) * TABLE_SIZE,
                                                         Hash_keys_V.data(), 
                                                         0, nullptr, &event0);
                             // assert(Lap_rowptr_V.data() + rowouter != nullptr);
-    
+                            
                             err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 
                                                         0, 
                                                         sizeof(float) * TABLE_SIZE,
@@ -176,42 +159,87 @@ class CLBuffer{
 
                             // Wait for all transfers to complete
                             clWaitForEvents(2, (cl_event[]){event0, event1});
-                       
-                            size_t nnz = (size_t)((N - rowouter - 1) * (N - rowouter));
-                            size_t local = 2; // or whatever max workgroup size your device supports
-
-                            globalWorkSize[0] = nnz;
-                            localWorkSize[0] = local;
-                            // std::cout << "after Write buffer : ";
                             
-                            // std::cout << "Launching kernel" << std::endl;
-                            err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
-                            err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
-                            clFinish(queue);
-                            //Hash_val_V.resize(TABLE_SIZE);
-                            //Hash_keys_V.resize(TABLE_SIZE);
-                            copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
-                            copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
-                        
-                          
+                            for (int rowouter = 0; rowouter < 1; rowouter++){
+                                Logger::info("rowouter : ", rowouter);
+                                std::vector<int> rowouter_cols;
+                                // extract rowouter
+                                for(int co = 0; co < N; co++){
+                                    float valofrow = lookup(rowouter, co, N, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                    if(valofrow != 0){
+                                        rowouter_cols.push_back(co);
+                                    }
+                                }
+                                
+                                for (int r = rowouter + 1; r < N; ++r) {
+                                    if(lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
+                                        continue;
+                                    }
+        
+                                    for (int col : rowouter_cols) {
+                                        // std::cout << col << ", ";
+                                        // if(col < rowouter) continue;
+                                        if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
+                                            // set the col in the hash table directly
+                                            ind = r * N + col;
+                                            // std::cout << "ind = " << ind << std::endl;
+                                            sethash(ind, 0.0f, TABLE_SIZE, Hash_keys_V, Hash_val_V);
+                                            // std::cout << col << ", ";
+                                            
+                                        }
+                                    }
+    
+                                }
+                                Logger::debug("Inserting 0s finished");
+                                err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
+                                                            0, 
+                                                            sizeof(int) * TABLE_SIZE,
+                                                            Hash_keys_V.data(), 
+                                                            0, nullptr, &event0);
+                                // assert(Lap_rowptr_V.data() + rowouter != nullptr);
+
+                                err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 
+                                                            0, 
+                                                            sizeof(float) * TABLE_SIZE,
+                                                            Hash_val_V.data(), 
+                                                            0, nullptr, &event1);
+
+                                // Wait for all transfers to complete
+                                clWaitForEvents(2, (cl_event[]){event0, event1});
+                                Logger::debug("Map memory object finished");
+                                // std::cout << cd.rowpointers[N] << std::endl;
+                                size_t nnz = (size_t)((N - rowouter - 1) * (N - rowouter));
+                                size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
+                            
+                                globalWorkSize[0] = nnz;
+                                localWorkSize[0] = local;
+                                // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
+                                
+                                err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
+                                err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
+                                clFinish(queue);
+                                Logger::debug("Kernel finished");
+                                copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
+                                copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
+                                Logger::debug("CopyCL");
+                                Logger::debug("Erased");
+                                
+                            }
+                            // copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
+                            // copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);    
+                            Logger::debug("loop end");
+                            // printVector(MP.AMR[0].CD[index].values);
+                            // printVector(MP.AMR[0].CD[index].rowpointers);
+                            // csr_to_dense_and_print(cd.rowpointers,
+                            //                         cd.columns, 
+                            //                        cd.values, N);
+                            RHS_INIT = true;
+                            // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
                         }
-                        Logger::info("loop end");
-                        // copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
-                        // copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
-                        
-                        printVector(Hash_keys_V);
-                        printVector(Hash_val_V);
-                        hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
-                        // printVector(Lap_col_V);
-                        // printVector(Lap_rowptr_V);
-                        // csr_to_dense_and_print(Lap_rowptr_V, Lap_ind_V, Lap_val_V, N);
-                        clReleaseMemObject(LFvalues.buffer);
-                        clReleaseMemObject(LFkeys.buffer);
-
-                        // printVector(Lap_val_V);
-
+                        Logger::debug("RHS_INIT end" );
+                        // csr_to_dense_and_print(MP.AMR[0].CD[index].rowpointers, MP.AMR[0].CD[index].columns, MP.AMR[0].CD[index].values, N);
+                        // printVector(MP.AMR[0].CD[index].values);
                     }
-
             }
 
             return partD;
@@ -377,6 +405,7 @@ namespace Giro{
         public:
             std::vector<CLBuffer> values_gpu;
             std::vector<CLBuffer> laplacian_csr;
+            std::vector<CLBuffer> gradient;
     };
 };
 

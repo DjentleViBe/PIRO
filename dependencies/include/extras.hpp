@@ -39,8 +39,8 @@ class Logger {
         }
 
         template<typename... Args>
-        static void warning(const Args&... args) {
-            if(debuginfo >= 2){
+        static void debug(const Args&... args) {
+            if(debuginfo >= 1){
                 print_time();
                 ((std::cout << args << " "), ...);
                 std::cout << "" << std::endl;
@@ -63,8 +63,8 @@ class Logger {
 
         // Variadic template version for multiple arguments
         template<typename T, typename... Args>
-        static void debug(const T& first, const Args&... args) {
-            if(debuginfo >= 1){
+        static void warning(const T& first, const Args&... args) {
+            if(debuginfo >= 2){
                 print_time();
                 info_debug(first);  // Handle the first argument
                 info_debug(args...); // Recursive call for remaining arguments
