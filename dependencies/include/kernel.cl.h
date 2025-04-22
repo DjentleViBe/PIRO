@@ -449,6 +449,22 @@ const char *lu_decompose_sparse = R"CLC(
     )CLC";
         
 const char *filter_array = R"CLC(
+    void lookup(int index, __private float* val, __private int* hk, __global float* Hash_val_V, __global int* Hash_Keys_V, int TABLE_SIZE){
+        int hash_index = index % TABLE_SIZE;
+        while (Hash_Keys_V[hash_index] != -1) {
+            if (Hash_Keys_V[hash_index] == index) {
+                *val = Hash_val_V[hash_index]; // key found
+                *hk = hash_index;
+                // printf("key : %d, value : %f", &hk, &val);
+                return;
+            }
+            hash_index = (hash_index + 1) % TABLE_SIZE;
+        }
+        //*val = 0.0;
+        //*hk = -1;
+        // printf("key not found\n");
+    }
+
     __kernel void filter_array(
         __global int* hashkey,
         __global float* hashvalue,
@@ -466,15 +482,14 @@ const char *filter_array = R"CLC(
         int index_piv = rowouter * N + rowouter;
         int index_factor = current_row * N + rowouter;
 
-        int hash_index_current = index_current % TABLE_SIZE;
-        int hash_index_0 = index_0 % TABLE_SIZE;
-        int hash_index_piv = index_piv % TABLE_SIZE;
-        int hash_index_factor = index_factor % TABLE_SIZE;
+        int hash_index_current, hash_index_0, hash_index_piv, hash_index_factor;
+        float val, val_0, piv, factor;
 
-        float val = hashvalue[hash_index_current];
-        float val_0 = hashvalue[hash_index_0];
-        float piv = hashvalue[hash_index_piv];
-        float factor = hashvalue[hash_index_factor];
+        lookup(index_current, &val, &hash_index_current, hashvalue, hashkey, TABLE_SIZE);
+        lookup(index_0, &val_0, &hash_index_0, hashvalue, hashkey, TABLE_SIZE);
+        lookup(index_piv, &piv, &hash_index_piv, hashvalue, hashkey, TABLE_SIZE);
+        lookup(index_factor, &val, &hash_index_factor, hashvalue, hashkey, TABLE_SIZE);
+        // printf("gid = %d , val = %f, hash_index_current = %d\n", gid, val, hash_index_current);
 
         val = val - (factor / piv) * val_0;
         if(val == 0){
