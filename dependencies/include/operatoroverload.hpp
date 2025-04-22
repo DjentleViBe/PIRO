@@ -137,7 +137,7 @@ class CLBuffer{
                         clWaitForEvents(2, (cl_event[]){event0, event1});
                         std::cout << "write buffer end\n";
                         // printVector(Lap_ind_V);
-                        for (int rowouter = 0; rowouter < 1; rowouter++){
+                        for (int rowouter = 0; rowouter < N; rowouter++){
                             print_time();
                             std::cout << "rowouter : " << rowouter << std::endl;
                                            
@@ -157,6 +157,9 @@ class CLBuffer{
                             err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
                             err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                             clFinish(queue);
+                            copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
+                            copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
+                        
                           
                         }
                         print_time();

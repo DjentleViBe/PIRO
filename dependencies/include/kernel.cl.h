@@ -449,20 +449,18 @@ const char *lu_decompose_sparse = R"CLC(
     )CLC";
         
 const char *filter_array = R"CLC(
-    void lookup(int index, __private float* val, __private int* hk, __global float* Hash_val_V, __global int* Hash_Keys_V, int TABLE_SIZE){
+    void lookup(int index, float* val, int* hk, __global float* Hash_val_V, __global int* Hash_Keys_V, int TABLE_SIZE){
         int hash_index = index % TABLE_SIZE;
         while (Hash_Keys_V[hash_index] != -1) {
             if (Hash_Keys_V[hash_index] == index) {
                 *val = Hash_val_V[hash_index]; // key found
                 *hk = hash_index;
-                // printf("key : %d, value : %f", &hk, &val);
                 return;
             }
             hash_index = (hash_index + 1) % TABLE_SIZE;
         }
-        //*val = 0.0;
-        //*hk = -1;
-        // printf("key not found\n");
+        *val = 0.0;
+        *hk = hash_index;
     }
 
     __kernel void filter_array(
@@ -488,8 +486,8 @@ const char *filter_array = R"CLC(
         lookup(index_current, &val, &hash_index_current, hashvalue, hashkey, TABLE_SIZE);
         lookup(index_0, &val_0, &hash_index_0, hashvalue, hashkey, TABLE_SIZE);
         lookup(index_piv, &piv, &hash_index_piv, hashvalue, hashkey, TABLE_SIZE);
-        lookup(index_factor, &val, &hash_index_factor, hashvalue, hashkey, TABLE_SIZE);
-        // printf("gid = %d , val = %f, hash_index_current = %d\n", gid, val, hash_index_current);
+        lookup(index_factor, &factor, &hash_index_factor, hashvalue, hashkey, TABLE_SIZE);
+        //printf("gid = %d , val = %f, val_0 = %f, hash_index_current = %d, piv = %f, factor = %d, %f\n", gid, val, val_0, hash_index_current, piv, hash_index_factor, factor);
 
         val = val - (factor / piv) * val_0;
         if(val == 0){
@@ -498,7 +496,9 @@ const char *filter_array = R"CLC(
         }
         else{
             hashvalue[hash_index_current] = val;
+            hashkey[hash_index_current] = hash_index_current;
         }
+        
     }
 )CLC";
 
