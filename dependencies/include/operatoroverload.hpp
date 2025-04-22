@@ -75,8 +75,9 @@ class CLBuffer{
                         std::vector<float> Lap_val_V = {-6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1, -6, 1, 1, 1};
                         std::vector<int> Lap_ind_V = {0, 1, 2, 4, 1, 0, 3, 5, 2, 3, 0, 6, 3, 2, 1, 7, 4, 5, 6, 0, 5, 4, 7, 1, 6, 7, 4, 2, 7, 6, 5, 3};
                         std::vector<int> Lap_rowptr_V = {0, 4, 8, 12, 16, 20, 24, 28, 32};
-                        float load = 0.7;
+                        float load = 0.8;
                         int TABLE_SIZE = nextPowerOf2(Lap_ind_V.size() / load);
+                        // int TABLE_SIZE = Lap_ind_V.size() / load;
                         std::cout << "table size : " << TABLE_SIZE << std::endl;
                         std::vector<float> Hash_val_V(TABLE_SIZE);
                         std::vector<int> Hash_keys_V(TABLE_SIZE, -1);
@@ -97,44 +98,8 @@ class CLBuffer{
                         printVector(Hash_keys_V);
                         std::cout << "hash val : ";
                         printVector(Hash_val_V);
-                        std::vector<float> sorted_vals;
-                        std::vector<int> sorted_indices;
-                        std::vector<int> Lap_col_V(Lap_ind_V.size());
                         std::cout << "Loop begin" << std::endl;
                         
-                        // Loop through each row
-                        for (int row = 0; row < Lap_rowptr_V.size() - 1; ++row) {
-                            int start = Lap_rowptr_V[row];
-                            int end = Lap_rowptr_V[row + 1];
-                    
-                            // Extract the elements of the current row
-                            std::vector<int> row_indices(Lap_ind_V.begin() + start, Lap_ind_V.begin() + end);
-                            std::vector<float> row_values(Lap_val_V.begin() + start, Lap_val_V.begin() + end);
-                    
-                            // Sort the row by column indices
-                            std::vector<std::pair<int, float>> row_data;
-                            for (size_t i = 0; i < row_indices.size(); ++i) {
-                                row_data.push_back({row_indices[i], row_values[i]});
-                            }
-                    
-                            std::sort(row_data.begin(), row_data.end());  // Sort by column index
-                    
-                            // Update sorted_vals and sorted_indices
-                            for (const auto& pair : row_data) {
-                                sorted_indices.push_back(pair.first);
-                                sorted_vals.push_back(pair.second);
-                            }
-                        }
-                    
-                        // Now we have the sorted values and indices
-                        Lap_val_V = sorted_vals;
-                        Lap_ind_V = sorted_indices;
-                        // populate lap_col_V
-                        for (int row = 0; row < Lap_rowptr_V.size() - 1; ++row) {
-                            for (int i = Lap_rowptr_V[row]; i < Lap_rowptr_V[row + 1]; ++i) {
-                                Lap_col_V[i] = row;
-                            }
-                        }
                         /////////////////////////////////////////////////////////////////////////////////////////
                         
                         CLBuffer LFvalues, LFkeys;
@@ -172,7 +137,7 @@ class CLBuffer{
                         clWaitForEvents(2, (cl_event[]){event0, event1});
                         std::cout << "write buffer end\n";
                         // printVector(Lap_ind_V);
-                        for (int rowouter = 0; rowouter < N - 1; rowouter++){
+                        for (int rowouter = 0; rowouter < 1; rowouter++){
                             print_time();
                             std::cout << "rowouter : " << rowouter << std::endl;
                                            
