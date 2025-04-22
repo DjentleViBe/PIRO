@@ -30,15 +30,6 @@ class Logger {
         }
         
         template<typename... Args>
-        static void debug(const Args&... args) {
-            if(debuginfo >= 1){
-                print_time();
-                ((std::cout << args << " "), ...);
-                std::cout << "" << std::endl;
-            }
-        }
-        
-        template<typename... Args>
         static void error(const Args&... args) {
             if(debuginfo >= 3){
                 print_time();
@@ -54,6 +45,32 @@ class Logger {
                 ((std::cout << args << " "), ...);
                 std::cout << "" << std::endl;
             }
+        }
+
+        // Basic case with a single argument
+        template<typename T>
+        static void info_debug(const T& arg) {
+            std::cout << arg;
+        }
+        
+        // Specialization for vectors
+        template<typename T>
+        static void info_debug(const std::vector<T>& vec) {
+            for (const auto& item : vec) {
+                std::cout << item << " ";
+            }
+        }
+
+        // Variadic template version for multiple arguments
+        template<typename T, typename... Args>
+        static void debug(const T& first, const Args&... args) {
+            if(debuginfo >= 1){
+                print_time();
+                info_debug(first);  // Handle the first argument
+                info_debug(args...); // Recursive call for remaining arguments
+                std::cout << "" << std::endl;
+            }
+            
         }
     };
 int writefile(std::string file_path, std::string line_to_write);

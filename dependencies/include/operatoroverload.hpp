@@ -166,10 +166,11 @@ class CLBuffer{
                                 }
 
                             }                                   
-                            print_time();
-                            printVector(Hash_keys_V);
-                            printVector(Hash_val_V);
-                            printVector(Lap_rowptr_V);
+                            // print_time();
+                            Logger::debug("hash keys : ", Hash_keys_V);
+                            // printVector(Hash_keys_V);
+                            // printVector(Hash_val_V);
+                            // printVector(Lap_rowptr_V);
                             err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
                                                         0, 
                                                         sizeof(int) * TABLE_SIZE,
