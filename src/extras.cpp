@@ -376,9 +376,7 @@ void printCLArray(cl_mem memC, int N, int type){
 void hash_to_dense_and_print(std::vector<int> Hashkeys, std::vector<float> HashValues, int N, int TABLE_SIZE){
     for (int i = 0; i < N; i++){
         for (int j = 0; j < N; j++){
-            int index = i * N + j;
-            int hash_index = index % TABLE_SIZE;
-            float val = HashValues[hash_index];
+            float val = lookup(i, j, N, Hashkeys, HashValues, TABLE_SIZE);
             std::cout << std::fixed << std::setprecision(2) << val << "\t";
         }
         std::cout << "" << std::endl;
