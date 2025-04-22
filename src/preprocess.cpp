@@ -24,6 +24,7 @@ Giro::SolveParams SP;
 Giro::DeviceParams DP;
 Giro::CellDataGPU CDGPU;
 CLBuffer CD_GPU;
+int debuginfo;
 bool LAP_INIT = false;
 int ts = 0;
 
@@ -64,6 +65,8 @@ int preprocess(const std::string& name) {
     MP.vectorlist = splitString(reader.get("Simulation", "Vectors", "default_value"), ' ');
     MP.meshtype = std::stoi(reader.get("Mesh", "MeshType", "default_value"));
     MP.levels = std::stoi(reader.get("Mesh", "levels", "default_value"));
+
+    debuginfo = std::stoi(reader.get("Debug", "Verbose", "default_value"));
 
     MP.n[0] += 2;
     MP.n[1] += 2;

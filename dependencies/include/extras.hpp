@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "datatypes.hpp"
+#include "preprocess.hpp"
 #ifdef __APPLE__
     #include <mach-o/dyld.h>
     #include <OpenCL/opencl.h>
@@ -15,6 +16,46 @@
     #include "windows.h"
     #include "./CL/opencl.h"
 #endif
+extern int debuginfo;
+void print_time();
+class Logger {
+    public:
+        template<typename... Args>
+        static void info(const Args&... args) {
+            if(debuginfo >= 0){
+                print_time();
+                ((std::cout << args << " "), ...);
+                std::cout << "" << std::endl;
+            }
+        }
+        
+        template<typename... Args>
+        static void debug(const Args&... args) {
+            if(debuginfo >= 1){
+                print_time();
+                ((std::cout << args << " "), ...);
+                std::cout << "" << std::endl;
+            }
+        }
+        
+        template<typename... Args>
+        static void error(const Args&... args) {
+            if(debuginfo >= 3){
+                print_time();
+                ((std::cout << args << " "), ...);
+                std::cout << "" << std::endl;
+            }
+        }
+
+        template<typename... Args>
+        static void warning(const Args&... args) {
+            if(debuginfo >= 2){
+                print_time();
+                ((std::cout << args << " "), ...);
+                std::cout << "" << std::endl;
+            }
+        }
+    };
 int writefile(std::string file_path, std::string line_to_write);
 int create_directory(std::string directoryname);
 int delete_directory(std::string folderPath);
@@ -34,7 +75,6 @@ void printVector(const std::vector<float>& vec);
 void printVector(const std::vector<int>& vec);
 void printArray(float* array, uint size);
 std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector);
-void print_time();
 int countWords(const std::string& str);
 template <typename T>
 std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *event6) {
