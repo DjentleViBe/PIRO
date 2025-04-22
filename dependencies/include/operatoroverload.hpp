@@ -119,23 +119,19 @@ class CLBuffer{
                         Logger::info("write buffer start");
                         // clFinish(queue);
                         // std::cout << "rowouter = " << rowouter << ", Lap_rowptr_V.size() = " << Lap_rowptr_V.size() << std::endl;
-                        err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
-                                                    0, 
-                                                    sizeof(int) * TABLE_SIZE,
+                        err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE,
+                                                    0, sizeof(int) * TABLE_SIZE,
                                                     Hash_keys_V.data(), 
                                                     0, nullptr, &event0);
-                        // assert(Lap_rowptr_V.data() + rowouter != nullptr);
-                        
-                        err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 
-                                                    0, 
-                                                    sizeof(float) * TABLE_SIZE,
+
+                        err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE,
+                                                    0, sizeof(float) * TABLE_SIZE,
                                                     Hash_val_V.data(), 
                                                     0, nullptr, &event1);
                         
                         // Wait for all transfers to complete
                         clWaitForEvents(2, (cl_event[]){event0, event1});
                         Logger::info("write buffer end");
-                        // printVector(Lap_ind_V);
                         for (int rowouter = 0; rowouter < N - 1; rowouter++){
                             Logger::info("rowouter :", rowouter);
                             std::vector<int> rowouter_cols;
@@ -153,21 +149,15 @@ class CLBuffer{
                                 }
 
                                 for (int col : rowouter_cols) {
-                                    // std::cout << col << ", ";
-                                    // if(col < rowouter) continue;
                                     if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
                                         // set the col in the hash table directly
                                         ind = r * N + col;
-                                        // std::cout << "ind = " << ind << std::endl;
                                         sethash(ind, 0.0f, TABLE_SIZE, Hash_keys_V, Hash_val_V);
-                                        // std::cout << col << ", ";
-                                        
                                     }
                                 }
-
                             }                                   
                             // print_time();
-                            Logger::debug("hash keys : ", Hash_keys_V);
+                            Logger::warning("hash keys : ", Hash_keys_V);
                             // printVector(Hash_keys_V);
                             // printVector(Hash_val_V);
                             // printVector(Lap_rowptr_V);
