@@ -132,7 +132,7 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
         hash_index = (hash_index + 1) % TABLE_SIZE;
         attempts++;
         if (attempts >= TABLE_SIZE) {
-            Logger::info("Error: Hash table is full. Try reducing LoadFactor inside hashtable.ini. Aborting program");
+            Logger::info("Error - sethash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
             // Table is full, handle appropriately
             std::exit(1);
             return -1; // Return error code
@@ -147,9 +147,11 @@ inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_
     int attempts = hash_index;
     // Linear probing
     while (Hash_keys_V[hash_index] > -1 && Hash_keys_V[hash_index] != index) {
+        hash_index = (hash_index + 1) % TABLE_SIZE;
         attempts++;
         if (attempts >= TABLE_SIZE) {
-            Logger::info("Error: Hash table is full. Try reducing LoadFactor inside hashtable.ini. Aborting program");
+            Logger::info("Error - sethash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
+            // Logger::warning("hashkeys : ", Hash_keys_V);
             // Table is full, handle appropriately
             std::exit(1);
             return -1; // Return error code
@@ -159,5 +161,20 @@ inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_
     Hash_keys_V[hash_index] = index;
     Hash_val_V[hash_index] = val;
     return 0;
+}
+inline bool is_prime(int n) {
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+    if (n % 2 == 0 || n % 3 == 0) return false;
+    for (int i = 5; i * i <= n; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0)
+            return false;
+    }
+    return true;
+}
+
+inline int next_prime(int n) {
+    while (!is_prime(n)) ++n;
+    return n;
 }
 #endif

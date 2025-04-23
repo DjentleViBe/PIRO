@@ -94,7 +94,8 @@ class CLBuffer{
                             CLBuffer LFvalues, LFkeys;
                             float load = SP.loadfactor;
                             // int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
-                            int TABLE_SIZE = cd.columns.size() / load;
+                            int raw_size = cd.columns.size() / load;
+                            int TABLE_SIZE = next_prime(raw_size);
                             Logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE);
                             LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
                             LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
@@ -138,8 +139,8 @@ class CLBuffer{
                             // Wait for all transfers to complete
                             clWaitForEvents(2, (cl_event[]){event0, event1});
                             
-                            for (int rowouter = 0; rowouter < 1; rowouter++){
-                                Logger::info("rowouter : ", rowouter);
+                            for (int rowouter = 0; rowouter < N - 1; rowouter++){
+                                Logger::info("rowouter :", rowouter, ", HashTable size :", TABLE_SIZE);
                                 std::vector<int> rowouter_cols;
                                 // extract rowouter
                                 for(int co = 0; co < N; co++){
