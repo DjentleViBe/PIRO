@@ -41,3 +41,4 @@ logs
 *.png
 *.pdf
 *.DS_Store
+bin
