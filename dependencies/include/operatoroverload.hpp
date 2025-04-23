@@ -84,38 +84,16 @@ class CLBuffer{
                         if(RHS_INIT == false){
                             cl_event event0, event1, event4, event5, event7, event8, event9;
                             Logger::debug("Buffer creation begin");
-
-                            // calculate remaining memory
-                            // std::cout << "Total variable count : " << MP.scalarnum + MP.vectornum << std::endl;
-                            // std::cout << "Total memory : " << globalMemSize << std::endl;
-                            // std::cout << "Max alloc : " << maxAllocSize << std::endl;
-                                  
-                            // float fillValue = 0.0f;
-                            // int fillValue_int = 0;
-                            // RHS.operandrowptr = clCreateBuffer(context, CL_MEM_READ_WRITE  | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * (N + 1), nullptr, &err);
-                            // RHS.operandcolumns = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * N * N, nullptr, &err);
-                            // RHS.operandvalues = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(float) * N * N, nullptr, &err);
-                            // RHS.operandrows = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * N * N, nullptr, &err);
-                            
-                            // clEnqueueFillBuffer(queue, RHS.operandvalues, &fillValue, sizeof(float), 0, sizeof(float) * N * N, 0, nullptr, nullptr);
-                            // clEnqueueFillBuffer(queue, RHS.operandcolumns, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
-                            // clEnqueueFillBuffer(queue, RHS.operandrowptr, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
-                            // clEnqueueFillBuffer(queue, RHS.operandrows, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
-                            // clFinish(queue);
-                            // clEnqueueCopyBuffer(queue, other[2].buffer, RHS.operandvalues, 0, 0, sizeof(float) * RHS.sparsecount, 0, NULL, NULL);
-                            // clEnqueueCopyBuffer(queue, other[1].buffer, RHS.operandcolumns, 0, 0, sizeof(int) * RHS.sparsecount, 0, NULL, NULL);
-                            // clEnqueueCopyBuffer(queue, other[0].buffer, RHS.operandrowptr, 0, 0, sizeof(int) * (N + 1), 0, NULL, NULL);
-                            // clFinish(queue);
                             
                             MP.AMR[0].CD[index].rowpointers = copyCL<int>(queue, other[0].buffer, N + 1, &event7);
-                            MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, N * N, &event8);
-                            MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, N * N, &event9);
+                            MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, RHS.sparsecount, &event8);
+                            MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, RHS.sparsecount, &event9);
 
                             Logger::debug("Buffer creation end");
                             /////////////////////////////////////////////////////////////////////////////////////////
                             auto& cd = MP.AMR[0].CD[index];
                             CLBuffer LFvalues, LFkeys;
-                            float load = 0.7;
+                            float load = SP.loadfactor;
                             // int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
                             int TABLE_SIZE = cd.columns.size() / load;
                             LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
@@ -129,6 +107,7 @@ class CLBuffer{
                             size_t localWorkSize[1];
                             int ind;
                             Logger::debug("Loop begin");
+                            Logger::debug("Table size :" , TABLE_SIZE);
                             
                             std::vector<float> Hash_val_V(TABLE_SIZE);
                             std::vector<int> Hash_keys_V(TABLE_SIZE, -1);

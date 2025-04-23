@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdlib>
 #include "datatypes.hpp"
 #include "preprocess.hpp"
 #ifdef __APPLE__
@@ -121,6 +122,7 @@ uint64_t nextPowerOf2(uint64_t N);
 inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
     int index = row * N + col;
     int hash_index = index % TABLE_SIZE;
+    int attempts = hash_index;
 
     // Linear probing to find the key
     while (Hash_keys_V[hash_index] != -1) {
@@ -128,6 +130,13 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
             return Hash_val_V[hash_index]; // key found
         }
         hash_index = (hash_index + 1) % TABLE_SIZE;
+        attempts++;
+        if (attempts >= TABLE_SIZE) {
+            Logger::info("Error: Hash table is full. Try reducing LoadFactor inside hashtable.ini. Aborting program");
+            // Table is full, handle appropriately
+            std::exit(1);
+            return -1; // Return error code
+        }
     }
 
     // Key not found
@@ -135,9 +144,16 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
 }
 inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V){
     int hash_index = index % TABLE_SIZE;
+    int attempts = hash_index;
     // Linear probing
     while (Hash_keys_V[hash_index] > -1 && Hash_keys_V[hash_index] != index) {
-        hash_index = (hash_index + 1) % TABLE_SIZE;
+        attempts++;
+        if (attempts >= TABLE_SIZE) {
+            Logger::info("Error: Hash table is full. Try reducing LoadFactor inside hashtable.ini. Aborting program");
+            // Table is full, handle appropriately
+            std::exit(1);
+            return -1; // Return error code
+        }
     }
 
     Hash_keys_V[hash_index] = index;

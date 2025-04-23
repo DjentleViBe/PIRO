@@ -147,8 +147,14 @@ int preprocess(const std::string& name) {
     SP.timestep = std::stof(reader.get("Solve", "Timestep", "default_value"));
     SP.totaltime = std::stof(reader.get("Solve", "TotalTime", "default_value"));
     SP.save = std::stoi(reader.get("Solve", "Save", "default_value"));
+    SP.datatype = std::stoi(reader.get("Solve", "Data", "default_value"));
     SP.totaltimesteps = SP.totaltime / SP.timestep;
     
+    if(SP.datatype == 2){
+        IniReader reader_data(current_path.string() + "/assets/Data/hashtable.ini");
+        SP.probing = std::stoi(reader_data.get("Table", "Probing", "default_value"));
+        SP.loadfactor = std::stof(reader_data.get("Table", "LoadFactor", "default_value"));
+    }
     readbc();
 
     return 0;
