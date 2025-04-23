@@ -122,7 +122,7 @@ uint64_t nextPowerOf2(uint64_t N);
 inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
     int index = row * N + col;
     int hash_index = index % TABLE_SIZE;
-    int attempts = hash_index;
+    int attempts = 0;
 
     // Linear probing to find the key
     while (Hash_keys_V[hash_index] != -1) {
@@ -132,10 +132,10 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
         hash_index = (hash_index + 1) % TABLE_SIZE;
         attempts++;
         if (attempts >= TABLE_SIZE) {
-            Logger::info("Error - sethash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
+            // Logger::info("Error - sethash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
             // Table is full, handle appropriately
-            std::exit(1);
-            return -1; // Return error code
+            // std::exit(1);
+            return 0.0; // Return error code
         }
     }
 
@@ -144,13 +144,13 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
 }
 inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V){
     int hash_index = index % TABLE_SIZE;
-    int attempts = hash_index;
+    int attempts = 0;
     // Linear probing
     while (Hash_keys_V[hash_index] > -1 && Hash_keys_V[hash_index] != index) {
         hash_index = (hash_index + 1) % TABLE_SIZE;
         attempts++;
         if (attempts >= TABLE_SIZE) {
-            Logger::info("Error - sethash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
+            Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
             // Logger::warning("hashkeys : ", Hash_keys_V);
             // Table is full, handle appropriately
             std::exit(1);
