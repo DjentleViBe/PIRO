@@ -80,7 +80,6 @@ class CLBuffer{
                         Logger::info("LU Decomposition");
                         int N = MP.n[0] * MP.n[1] * MP.n[2];
                         int index = MP.vectornum + MP.scalarnum;
-                        Logger::debug("RHS_INIT begin, sparse count : ", RHS.sparsecount);
                         if(RHS_INIT == false){
                             cl_event event0, event1, event4, event5, event7, event8, event9;
                             Logger::debug("Buffer creation begin");
@@ -89,25 +88,25 @@ class CLBuffer{
                             MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, RHS.sparsecount, &event8);
                             MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, RHS.sparsecount, &event9);
 
-                            Logger::debug("Buffer creation end");
+                            
                             /////////////////////////////////////////////////////////////////////////////////////////
                             auto& cd = MP.AMR[0].CD[index];
                             CLBuffer LFvalues, LFkeys;
                             float load = SP.loadfactor;
                             // int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
                             int TABLE_SIZE = cd.columns.size() / load;
+                            Logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE);
                             LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
                             LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
                             err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &LFkeys.buffer);
                             err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &LFvalues.buffer);
                             err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_int), &N);
                             err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &TABLE_SIZE);
-
+                            Logger::debug("Buffer creation end");
                             size_t globalWorkSize[1];
                             size_t localWorkSize[1];
                             int ind;
                             Logger::debug("Loop begin");
-                            Logger::debug("Table size :" , TABLE_SIZE);
                             
                             std::vector<float> Hash_val_V(TABLE_SIZE);
                             std::vector<int> Hash_keys_V(TABLE_SIZE, -1);
