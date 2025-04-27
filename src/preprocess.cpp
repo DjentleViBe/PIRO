@@ -154,6 +154,9 @@ int preprocess(const std::string& name) {
         IniReader reader_data(current_path.string() + "/assets/Data/hashtable.ini");
         SP.probing = std::stoi(reader_data.get("Table", "Probing", "default_value"));
         SP.loadfactor = std::stof(reader_data.get("Table", "LoadFactor", "default_value"));
+        SP.a = std::stof(reader_data.get("Table", "a", "default_value"));
+        SP.b = std::stof(reader_data.get("Table", "b", "default_value"));
+        SP.c = std::stof(reader_data.get("Table", "c", "default_value"));
     }
     readbc();
 

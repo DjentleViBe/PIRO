@@ -92,11 +92,12 @@ class CLBuffer{
                             /////////////////////////////////////////////////////////////////////////////////////////
                             auto& cd = MP.AMR[0].CD[index];
                             CLBuffer LFvalues, LFkeys;
-                            float load = SP.loadfactor;
+                            SP.loadfactor = SP.a * pow(N, SP.b) + SP.c;
                             // int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
-                            int raw_size = cd.columns.size() / load;
-                            int TABLE_SIZE = next_prime(raw_size);
-                            Logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE);
+                            // int raw_size = cd.columns.size() / load;
+                            // int TABLE_SIZE = next_prime(raw_size);
+                            int TABLE_SIZE = RHS.sparsecount / SP.loadfactor;
+                            Logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", SP.a);
                             LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
                             LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
                             err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &LFkeys.buffer);

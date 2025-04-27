@@ -79,6 +79,9 @@ namespace Giro{
             int datatype;
             int probing;
             float loadfactor;
+            float a;
+            float b;
+            float c;
     };
     
     class DeviceParams{
