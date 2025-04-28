@@ -112,7 +112,7 @@ class CLBuffer{
                             int ind;
                             Logger::debug("Loop begin");
                             
-                            std::vector<float> Hash_val_V(TABLE_SIZE);
+                            std::vector<float> Hash_val_V(TABLE_SIZE, 0.0);
                             std::vector<int> Hash_keys_V(TABLE_SIZE, -1);
                             /////////////////////////////////////// Generate hash tables ///////////////////////////////////////////
                             for (int i = 0; i < N; i++){
@@ -192,9 +192,10 @@ class CLBuffer{
                                 Logger::debug("Map memory object finished");
                                 // std::cout << cd.rowpointers[N] << std::endl;
                                 limit = (N - rowouter - 1) * (N - rowouter);
+                                // int mws = static_cast<int>(maxWorkGroupSize);
                                 size_t nnz = (size_t)limit;
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
-                                Logger::warning("nnz :", nnz);
+                                // Logger::debug("nnz :", nnz, "local :", mws);
                                 globalWorkSize[0] = ((nnz + local - 1) / local) * local;
                                 localWorkSize[0] = local;
                                 // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
@@ -220,6 +221,8 @@ class CLBuffer{
                             //                        cd.values, N);
                             RHS_INIT = true;
                             hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
+                            Logger::warning("Hashkeys:", Hash_keys_V);
+                            Logger::warning("Hashvalues:", Hash_val_V);
                         }
                         Logger::debug("RHS_INIT end" );
                         // csr_to_dense_and_print(MP.AMR[0].CD[index].rowpointers, MP.AMR[0].CD[index].columns, MP.AMR[0].CD[index].values, N);

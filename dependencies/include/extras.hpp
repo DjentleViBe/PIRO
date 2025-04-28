@@ -47,6 +47,13 @@ class Logger {
                 std::cout << "" << std::endl;
             }
         }
+        template<typename... Args>
+        static void debug_print(const Args&... args) {
+            if(debuginfo >= 1){
+                ((std::cout << args << " "), ...);
+                // std::cout << "" << std::endl;
+            }
+        }
 
         // Basic case with a single argument
         template<typename T>
@@ -132,7 +139,7 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
         hash_index = (hash_index + 1) % TABLE_SIZE;
         attempts++;
         if (attempts >= TABLE_SIZE) {
-            // Logger::info("Error - sethash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
+            // Logger::info("Error - lookhash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". \n\t\t\t\t\t\t\t");
             // Table is full, handle appropriately
             // std::exit(1);
             return 0.0; // Return error code
@@ -151,7 +158,9 @@ inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_
         attempts++;
         if (attempts >= TABLE_SIZE) {
             Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
-            // Logger::warning("hashkeys : ", Hash_keys_V);
+            Logger::warning("hashkeys : ", Hash_keys_V);
+            Logger::warning("hashvalues : ", Hash_val_V);
+            hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
             // Table is full, handle appropriately
             std::exit(1);
             return -1; // Return error code

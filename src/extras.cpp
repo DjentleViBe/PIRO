@@ -377,9 +377,10 @@ void hash_to_dense_and_print(std::vector<int> Hashkeys, std::vector<float> HashV
     for (int i = 0; i < N; i++){
         for (int j = 0; j < N; j++){
             float val = lookup(i, j, N, Hashkeys, HashValues, TABLE_SIZE);
-            std::cout << std::fixed << std::setprecision(2) << val << "\t";
+            Logger::debug_print(std::round(val * 100.0f) / 100.0f, "\t");
+            // std::cout << std::fixed << std::setprecision(2) << val << "\t";
         }
-        std::cout << "" << std::endl;
+        Logger::debug_print("\n");
     }
 }
 
