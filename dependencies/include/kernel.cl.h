@@ -468,10 +468,14 @@ const char *filter_array = R"CLC(
         __global float* hashvalue,
         const int N,
         const int rowouter,
-        const int TABLE_SIZE
+        const int TABLE_SIZE,
+        const int limit
     ) {
         // Get the global ID for this work item
         const int gid = get_global_id(0);
+        if(gid > limit){
+            return;
+        }
         // printf("%d ", gid);
         int current_row = (gid / (N - rowouter)) + rowouter + 1;
         int current_col = (gid % (N - rowouter)) + rowouter;

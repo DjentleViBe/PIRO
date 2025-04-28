@@ -125,7 +125,7 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
     int attempts = 0;
 
     // Linear probing to find the key
-    while (Hash_keys_V[hash_index] != -1) {
+    while (Hash_keys_V[hash_index] > -1) {
         if (Hash_keys_V[hash_index] == index) {
             return Hash_val_V[hash_index]; // key found
         }

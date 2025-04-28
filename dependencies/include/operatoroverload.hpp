@@ -98,7 +98,7 @@ class CLBuffer{
                             // int TABLE_SIZE = next_prime(raw_size);
                             int TABLE_SIZE = RHS.sparsecount / (load * SP.loadfactor);
                             Logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", load * SP.loadfactor);
-                            Logger::debug("N * N :", N*N);
+                            Logger::warning("N * N :", N*N);
                             
                             LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
                             LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
@@ -126,6 +126,7 @@ class CLBuffer{
                                     sethash(ind, cd.values[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
                                 }
                             }
+                            // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
                             err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
                                                         0, 
                                                         sizeof(int) * TABLE_SIZE,
@@ -141,8 +142,8 @@ class CLBuffer{
 
                             // Wait for all transfers to complete
                             clWaitForEvents(2, (cl_event[]){event0, event1});
-                            
-                            for (int rowouter = 0; rowouter < N - 1; rowouter++){
+                            int limit;
+                            for (int rowouter = 0; rowouter < N; rowouter++){
                                 Logger::info("rowouter :", rowouter, ", HashTable size :", TABLE_SIZE);
                                 std::vector<int> rowouter_cols;
                                 // extract rowouter
@@ -190,13 +191,14 @@ class CLBuffer{
                                 clWaitForEvents(2, (cl_event[]){event0, event1});
                                 Logger::debug("Map memory object finished");
                                 // std::cout << cd.rowpointers[N] << std::endl;
-                                size_t nnz = (size_t)((N - rowouter - 1) * (N - rowouter));
+                                limit = (N - rowouter - 1) * (N - rowouter);
+                                size_t nnz = (size_t)limit;
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
-                            
-                                globalWorkSize[0] = nnz;
+                                Logger::warning("nnz :", nnz);
+                                globalWorkSize[0] = ((nnz + local - 1) / local) * local;
                                 localWorkSize[0] = local;
                                 // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
-                                
+                                err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &limit);
                                 err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
@@ -205,6 +207,7 @@ class CLBuffer{
                                 copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
                                 Logger::debug("CopyCL");
                                 Logger::debug("Erased");
+                                // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
                                 
                             }
                             // copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
