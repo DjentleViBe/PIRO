@@ -92,12 +92,14 @@ class CLBuffer{
                             /////////////////////////////////////////////////////////////////////////////////////////
                             auto& cd = MP.AMR[0].CD[index];
                             CLBuffer LFvalues, LFkeys;
-                            SP.loadfactor = SP.a * pow(N, SP.b) + SP.c;
+                            float load = SP.a * pow(N, SP.b) + SP.c;
                             // int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
                             // int raw_size = cd.columns.size() / load;
                             // int TABLE_SIZE = next_prime(raw_size);
-                            int TABLE_SIZE = RHS.sparsecount / SP.loadfactor;
-                            Logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", SP.a);
+                            int TABLE_SIZE = RHS.sparsecount / (load * SP.loadfactor);
+                            Logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", load * SP.loadfactor);
+                            Logger::debug("N * N :", N*N);
+                            
                             LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
                             LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
                             err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &LFkeys.buffer);
@@ -214,7 +216,7 @@ class CLBuffer{
                             //                         cd.columns, 
                             //                        cd.values, N);
                             RHS_INIT = true;
-                            // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
+                            hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
                         }
                         Logger::debug("RHS_INIT end" );
                         // csr_to_dense_and_print(MP.AMR[0].CD[index].rowpointers, MP.AMR[0].CD[index].columns, MP.AMR[0].CD[index].values, N);
