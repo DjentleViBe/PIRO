@@ -130,12 +130,12 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
     int index = row * N + col;
     int hash_index = index % TABLE_SIZE;
     int attempts = 0;
-
+    int first_deleted = -1;
     // Linear probing to find the key
-    while (Hash_keys_V[hash_index] > -1) {
-        if (Hash_keys_V[hash_index] == index) {
-            return Hash_val_V[hash_index]; // key found
-        }
+    while (Hash_keys_V[hash_index] != -1 && Hash_keys_V[hash_index] != index) {
+        if (Hash_keys_V[hash_index] == -2 && first_deleted == -1) {
+            first_deleted = hash_index;  // Remember the first deleted slot
+        } 
         hash_index = (hash_index + 1) % TABLE_SIZE;
         attempts++;
         if (attempts >= TABLE_SIZE) {
@@ -146,14 +146,56 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
         }
     }
 
+    if (Hash_keys_V[hash_index] == index) {
+        // Key already exists → update value
+        return Hash_val_V[hash_index];
+    } 
+    else if(Hash_keys_V[hash_index] == -2){
+        // Key does not exist → insert
+        int insert_index = (first_deleted != -1) ? first_deleted : hash_index;
+        return Hash_val_V[insert_index];
+    }
+    else{
+        return 0.0; // or some sentinel value for "not found"
+    }
+    // Key not found
+    
+}
+
+inline float query(int index, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
+    int hash_index = index % TABLE_SIZE;
+    int attempts = 0;
+    
+    // Linear probing to find the key
+    while (Hash_keys_V[hash_index] > -1) {
+        if (Hash_keys_V[hash_index] == index) {
+            std::cout << "Index :" << Hash_keys_V[hash_index] <<  ", hash: "<<hash_index<<", Value = "<< Hash_val_V[hash_index] << std::endl; // key found
+            return 0.0;
+        }
+        hash_index = (hash_index + 1) % TABLE_SIZE;
+        attempts++;
+        if (attempts >= TABLE_SIZE) {
+            // Logger::info("Error - lookhash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". \n\t\t\t\t\t\t\t");
+            // Table is full, handle appropriately
+            // std::exit(1);
+            return 0.0; // Return error code
+        }
+    }
+    std::cout << "key not found" << std::endl;
     // Key not found
     return 0.0; // or some sentinel value for "not found"
 }
+
 inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V){
     int hash_index = index % TABLE_SIZE;
     int attempts = 0;
+    int first_deleted = -1;
     // Linear probing
-    while (Hash_keys_V[hash_index] > -1 && Hash_keys_V[hash_index] != index) {
+    while (Hash_keys_V[hash_index] != -1 && Hash_keys_V[hash_index] != index) {
+        if (Hash_keys_V[hash_index] == -2 && first_deleted == -1) {
+            first_deleted = hash_index;  // Remember the first deleted slot
+        }
+    
         hash_index = (hash_index + 1) % TABLE_SIZE;
         attempts++;
         if (attempts >= TABLE_SIZE) {
@@ -167,8 +209,15 @@ inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_
         }
     }
 
-    Hash_keys_V[hash_index] = index;
-    Hash_val_V[hash_index] = val;
+    if (Hash_keys_V[hash_index] == index) {
+        // Key already exists → update value
+        Hash_val_V[hash_index] = val;
+    } else {
+        // Key does not exist → insert
+        int insert_index = (first_deleted != -1) ? first_deleted : hash_index;
+        Hash_keys_V[insert_index] = index;
+        Hash_val_V[insert_index] = val;
+    }
     return 0;
 }
 inline bool is_prime(int n) {
