@@ -182,7 +182,7 @@ class CLBuffer{
                                 Logger::debug("Inserting 0s finished");
                                 Logger::warning("Hashkeys:", Hash_keys_V);
                                 Logger::warning("Hashvalues:", Hash_val_V);
-                                query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                // query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
                                 hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
                                 Logger::warning("Hashkeys:", Hash_keys_V);
                                 Logger::warning("Hashvalues:", Hash_val_V);
@@ -221,7 +221,7 @@ class CLBuffer{
                                 Logger::debug("CopyCL");
                                 Logger::debug("Erased");
                                 hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
-                                query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                // query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
                                 
                             }
                             // copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
