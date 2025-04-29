@@ -77,109 +77,42 @@ class CLBuffer{
             else if(SP.timescheme == 12){
                 std::cout << "Backward Euler" << std::endl;
                     if(SP.solverscheme == 17){
-                        std::cout << "LU Decomposition" << std::endl;
+                        Logger::info("LU Decomposition");
                         int N = MP.n[0] * MP.n[1] * MP.n[2];
                         int index = MP.vectornum + MP.scalarnum;
-                        print_time();
-                        std::cout << "RHS_INIT begin, sparse count : " << RHS.sparsecount << std::endl;
                         if(RHS_INIT == false){
                             cl_event event0, event1, event4, event5, event7, event8, event9;
-                            print_time();
-                            std::cout << "Buffer creation begin" << std::endl;
-                            // calculate remaining memory
-                            // std::cout << "Total variable count : " << MP.scalarnum + MP.vectornum << std::endl;
-                            // std::cout << "Total memory : " << globalMemSize << std::endl;
-                            // std::cout << "Max alloc : " << maxAllocSize << std::endl;
-
-                            cl_ulong rem = globalMemSize - sizeof(float) * (2 * N + RHS.sparsecount) - sizeof(int) * (2 * N + 1 + RHS.sparsecount);
-                            // std::cout << "remaining : " << rem << std::endl;
-                            cl_ulong check = (sizeof(int) + sizeof(float)) * (N * N);
-                            if( check < rem){
-                                // std::cout << "One pass" << std::endl;
-                                // check if N*N is passing for max alloc
-                                if(check < maxAllocSize){
-                                    // std::cout << "Buffer size within Max Allocoation size" << std::endl;
-                                }
-                            }
-                                  
-                            // float fillValue = 0.0f;
-                            // int fillValue_int = 0;
-                            // RHS.operandrowptr = clCreateBuffer(context, CL_MEM_READ_WRITE  | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * (N + 1), nullptr, &err);
-                            // RHS.operandcolumns = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * N * N, nullptr, &err);
-                            // RHS.operandvalues = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(float) * N * N, nullptr, &err);
-                            // RHS.operandrows = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, sizeof(int) * N * N, nullptr, &err);
-                            
-                            // clEnqueueFillBuffer(queue, RHS.operandvalues, &fillValue, sizeof(float), 0, sizeof(float) * N * N, 0, nullptr, nullptr);
-                            // clEnqueueFillBuffer(queue, RHS.operandcolumns, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
-                            // clEnqueueFillBuffer(queue, RHS.operandrowptr, &fillValue_int, sizeof(int), 0, sizeof(int) * (N + 1), 0, nullptr, nullptr);
-                            // clEnqueueFillBuffer(queue, RHS.operandrows, &fillValue_int, sizeof(int), 0, sizeof(int) * N * N, 0, nullptr, nullptr);
-                            // clFinish(queue);
-                            // clEnqueueCopyBuffer(queue, other[2].buffer, RHS.operandvalues, 0, 0, sizeof(float) * RHS.sparsecount, 0, NULL, NULL);
-                            // clEnqueueCopyBuffer(queue, other[1].buffer, RHS.operandcolumns, 0, 0, sizeof(int) * RHS.sparsecount, 0, NULL, NULL);
-                            // clEnqueueCopyBuffer(queue, other[0].buffer, RHS.operandrowptr, 0, 0, sizeof(int) * (N + 1), 0, NULL, NULL);
-                            // clFinish(queue);
+                            Logger::debug("Buffer creation begin");
                             
                             MP.AMR[0].CD[index].rowpointers = copyCL<int>(queue, other[0].buffer, N + 1, &event7);
-                            MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, N * N, &event8);
-                            MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, N * N, &event9);
+                            MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, RHS.sparsecount, &event8);
+                            MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, RHS.sparsecount, &event9);
 
-                            print_time();
-                            std::cout << "Buffer creation end" << std::endl;
-                            std::vector<float> sorted_vals;
-                            std::vector<int> sorted_indices;
                             
-                            // Loop through each row
-                            for (int row = 0; row < MP.AMR[0].CD[index].rowpointers.size() - 1; ++row) {
-                                int start = MP.AMR[0].CD[index].rowpointers[row];
-                                int end = MP.AMR[0].CD[index].rowpointers[row + 1];
-                        
-                                // Extract the elements of the current row
-                                std::vector<int> row_indices(MP.AMR[0].CD[index].columns.begin() + start, MP.AMR[0].CD[index].columns.begin() + end);
-                                std::vector<float> row_values(MP.AMR[0].CD[index].values.begin() + start, MP.AMR[0].CD[index].values.begin() + end);
-                        
-                                // Sort the row by column indices
-                                std::vector<std::pair<int, float>> row_data;
-                                for (size_t i = 0; i < row_indices.size(); ++i) {
-                                    row_data.push_back({row_indices[i], row_values[i]});
-                                }
-                        
-                                std::sort(row_data.begin(), row_data.end());  // Sort by column index
-                        
-                                // Update sorted_vals and sorted_indices
-                                for (const auto& pair : row_data) {
-                                    sorted_indices.push_back(pair.first);
-                                    sorted_vals.push_back(pair.second);
-                                }
-                            }
-                        
-                            // Now we have the sorted values and indices
-                            MP.AMR[0].CD[index].values = sorted_vals;
-                            MP.AMR[0].CD[index].columns = sorted_indices; 
-                            MP.AMR[0].CD[index].rows.resize(MP.AMR[0].CD[index].columns.size());
-                            for (int row = 0; row < MP.AMR[0].CD[index].rowpointers.size() - 1; ++row) {
-                                for (int i = MP.AMR[0].CD[index].rowpointers[row]; i < MP.AMR[0].CD[index].rowpointers[row + 1]; ++i) {
-                                    MP.AMR[0].CD[index].rows[i] = row;
-                                }
-                            }   
                             /////////////////////////////////////////////////////////////////////////////////////////
                             auto& cd = MP.AMR[0].CD[index];
                             CLBuffer LFvalues, LFkeys;
-                            float load = 0.7;
-                            int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
+                            float load = SP.a * pow(N, SP.b) + SP.c;
+                            // int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
+                            // int raw_size = cd.columns.size() / load;
+                            // int TABLE_SIZE = next_prime(raw_size);
+                            int TABLE_SIZE = RHS.sparsecount / (load * SP.loadfactor);
+                            Logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", load * SP.loadfactor);
+                            Logger::warning("N * N :", N*N);
+                            
                             LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
                             LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
                             err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &LFkeys.buffer);
                             err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &LFvalues.buffer);
                             err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_int), &N);
                             err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &TABLE_SIZE);
-
+                            Logger::debug("Buffer creation end");
                             size_t globalWorkSize[1];
                             size_t localWorkSize[1];
                             int ind;
-                            print_time();
-                            std::cout << "Loop begin" << std::endl;
+                            Logger::debug("Loop begin");
                             
-                            std::vector<float> Hash_val_V(TABLE_SIZE);
+                            std::vector<float> Hash_val_V(TABLE_SIZE, 0.0);
                             std::vector<int> Hash_keys_V(TABLE_SIZE, -1);
                             /////////////////////////////////////// Generate hash tables ///////////////////////////////////////////
                             for (int i = 0; i < N; i++){
@@ -193,75 +126,107 @@ class CLBuffer{
                                     sethash(ind, cd.values[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
                                 }
                             }
+                            // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
+                            err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
+                                                        0, 
+                                                        sizeof(int) * TABLE_SIZE,
+                                                        Hash_keys_V.data(), 
+                                                        0, nullptr, &event0);
+                            // assert(Lap_rowptr_V.data() + rowouter != nullptr);
                             
-                            for (int rowouter = 0; rowouter < N - 1; rowouter++){
-                                print_time();
-                                std::cout << "rowouter : " << rowouter << std::endl;
+                            err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 
+                                                        0, 
+                                                        sizeof(float) * TABLE_SIZE,
+                                                        Hash_val_V.data(), 
+                                                        0, nullptr, &event1);
 
-                                std::vector<int> rowouter_cols(cd.columns.begin() + cd.rowpointers[rowouter],
-                                                                cd.columns.begin() + cd.rowpointers[rowouter + 1]);
+                            // Wait for all transfers to complete
+                            clWaitForEvents(2, (cl_event[]){event0, event1});
+                            int limit;
+                            for (int rowouter = 0; rowouter < N - 1; rowouter++){
+                                Logger::info("rowouter :", rowouter, ", HashTable size :", TABLE_SIZE);
+                                std::vector<int> rowouter_cols;
+                                
+                                //Logger::warning("Hashkeys:", Hash_keys_V);
+                                //Logger::warning("Hashvalues:", Hash_val_V);
+                                // std::cout << Hash_val_V[141] << ", "<< Hash_keys_V[141] <<std::endl;
+                                // extract rowouter
+                                for(int co = rowouter; co < N; co++){
+                                    float valofrow = lookup(rowouter, co, N, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                    if(std::abs(valofrow) > 1E-6){
+                                        rowouter_cols.push_back(co);
+                                    }
+                                }
+                                Logger::warning("row outer", rowouter_cols);
                                 
                                 for (int r = rowouter + 1; r < N; ++r) {
-                                    if(lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == -1){
+                                    if(lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
                                         continue;
                                     }
-
+        
                                     for (int col : rowouter_cols) {
                                         // std::cout << col << ", ";
                                         // if(col < rowouter) continue;
-                                        if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == -1){
+                                        if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
                                             // set the col in the hash table directly
                                             ind = r * N + col;
+                                            // std::cout << "ind = " << ind << std::endl;
                                             sethash(ind, 0.0f, TABLE_SIZE, Hash_keys_V, Hash_val_V);
                                             // std::cout << col << ", ";
-                                           
+                                            
                                         }
                                     }
-
-                                }                       
-                                // print_time();
-                                // std::cout << "Inserting 0s finished\n";
+    
+                                }
+                                
+                                Logger::debug("Inserting 0s finished");
+                                //Logger::warning("Hashkeys:", Hash_keys_V);
+                                //Logger::warning("Hashvalues:", Hash_val_V);
+                                // query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                //hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
+                                //Logger::warning("Hashkeys:", Hash_keys_V);
+                                //Logger::warning("Hashvalues:", Hash_val_V);
                                 err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
                                                             0, 
                                                             sizeof(int) * TABLE_SIZE,
                                                             Hash_keys_V.data(), 
                                                             0, nullptr, &event0);
                                 // assert(Lap_rowptr_V.data() + rowouter != nullptr);
-                                
+
                                 err = clEnqueueWriteBuffer(queue, LFvalues.buffer, CL_FALSE, 
                                                             0, 
                                                             sizeof(float) * TABLE_SIZE,
                                                             Hash_val_V.data(), 
                                                             0, nullptr, &event1);
-        
+
                                 // Wait for all transfers to complete
                                 clWaitForEvents(2, (cl_event[]){event0, event1});
-                                // print_time();
-                                // std::cout << "Map memory object finished\n";
+                                Logger::debug("Map memory object finished");
                                 // std::cout << cd.rowpointers[N] << std::endl;
-                                size_t nnz = (size_t)((N - rowouter - 1) * (N - rowouter));
+                                limit = (N - rowouter - 1) * (N - rowouter);
+                                // int mws = static_cast<int>(maxWorkGroupSize);
+                                size_t nnz = (size_t)limit;
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
-                                
-                                globalWorkSize[0] = nnz;
+                                // Logger::debug("nnz :", nnz, "local :", mws);
+                                globalWorkSize[0] = ((nnz + local - 1) / local) * local;
                                 localWorkSize[0] = local;
                                 // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
-                                
+                                err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &limit);
                                 err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
-                                // print_time();
-                                // std::cout << "Kernel finished\n";
-                                
+                                Logger::debug("Kernel finished");
                                 copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
                                 copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
-                                // print_time();
-                                // std::cout << "CopyCL\n";
+                                Logger::debug("CopyCL");
+                                Logger::debug("Erased");
+                                //hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
+                                // query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
                                 
-                                // print_time();
-                                // std::cout << "Values erased\n";
                             }
-                            print_time();
-                            std::cout << "loop end" << std::endl;
+                            // copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
+                            // copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);    
+                            Logger::debug("loop end");
                             // printVector(MP.AMR[0].CD[index].values);
                             // printVector(MP.AMR[0].CD[index].rowpointers);
                             // csr_to_dense_and_print(cd.rowpointers,
@@ -269,9 +234,10 @@ class CLBuffer{
                             //                        cd.values, N);
                             RHS_INIT = true;
                             // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
+                            // Logger::warning("Hashkeys:", Hash_keys_V);
+                            // Logger::warning("Hashvalues:", Hash_val_V);
                         }
-                        print_time();
-                        std::cout << "RHS_INIT end" << std::endl;
+                        Logger::debug("RHS_INIT end" );
                         // csr_to_dense_and_print(MP.AMR[0].CD[index].rowpointers, MP.AMR[0].CD[index].columns, MP.AMR[0].CD[index].values, N);
                         // printVector(MP.AMR[0].CD[index].values);
                     }

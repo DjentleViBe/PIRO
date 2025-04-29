@@ -27,6 +27,8 @@ Giro::CellDataGPU CDGPU;
 Giro::Equation RHS;
 CLBuffer CD_GPU;
 cl_mem RHSterms;
+int debuginfo;
+
 bool LAP_INIT = false;
 bool RHS_INIT = false;
 int ts = 0;
@@ -68,6 +70,7 @@ int preprocess(const std::string& name) {
     MP.vectorlist = splitString(reader.get("Simulation", "Vectors", "default_value"), ' ');
     MP.meshtype = std::stoi(reader.get("Mesh", "MeshType", "default_value"));
     MP.levels = std::stoi(reader.get("Mesh", "levels", "default_value"));
+    debuginfo = std::stoi(reader.get("Debug", "Verbose", "default_value"));
 
     MP.n[0] += 2;
     MP.n[1] += 2;
@@ -145,8 +148,17 @@ int preprocess(const std::string& name) {
     SP.timestep = std::stof(reader.get("Solve", "Timestep", "default_value"));
     SP.totaltime = std::stof(reader.get("Solve", "TotalTime", "default_value"));
     SP.save = std::stoi(reader.get("Solve", "Save", "default_value"));
+    SP.datatype = std::stoi(reader.get("Solve", "Data", "default_value"));
     SP.totaltimesteps = SP.totaltime / SP.timestep;
     
+    if(SP.datatype == 2){
+        IniReader reader_data(current_path.string() + "/assets/Data/hashtable.ini");
+        SP.probing = std::stoi(reader_data.get("Table", "Probing", "default_value"));
+        SP.loadfactor = std::stof(reader_data.get("Table", "LoadFactor", "default_value"));
+        SP.a = std::stof(reader_data.get("Table", "a", "default_value"));
+        SP.b = std::stof(reader_data.get("Table", "b", "default_value"));
+        SP.c = std::stof(reader_data.get("Table", "c", "default_value"));
+    }
     readbc();
 
     return 0;
