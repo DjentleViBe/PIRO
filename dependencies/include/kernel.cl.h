@@ -451,16 +451,23 @@ const char *lu_decompose_sparse = R"CLC(
 const char *filter_array = R"CLC(
     void lookup(int index, float* val, int* hk, __global float* Hash_val_V, __global int* Hash_Keys_V, int TABLE_SIZE){
         int hash_index = index % TABLE_SIZE;
-        while (Hash_Keys_V[hash_index] > -1 || Hash_Keys_V[hash_index] == -2) {
+        int attempts = 0;
+        while (Hash_Keys_V[hash_index] != -1) {
             if (Hash_Keys_V[hash_index] == index) {
                 *val = Hash_val_V[hash_index]; // key found
                 *hk = hash_index;
                 return;
             }
             hash_index = (hash_index + 1) % TABLE_SIZE;
+            attempts++;
+            if(attempts >= TABLE_SIZE){
+                break;
+            }
         }
-        // *val = 0.0;
-        // *hk = hash_index;
+
+    // Key not found
+    *val = 0.0f;
+    *hk = -1;
     }
 
     __kernel void filter_array(

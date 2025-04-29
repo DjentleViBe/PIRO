@@ -143,12 +143,12 @@ class CLBuffer{
                             // Wait for all transfers to complete
                             clWaitForEvents(2, (cl_event[]){event0, event1});
                             int limit;
-                            for (int rowouter = 0; rowouter < 5; rowouter++){
+                            for (int rowouter = 0; rowouter < N - 1; rowouter++){
                                 Logger::info("rowouter :", rowouter, ", HashTable size :", TABLE_SIZE);
                                 std::vector<int> rowouter_cols;
                                 
-                                Logger::warning("Hashkeys:", Hash_keys_V);
-                                Logger::warning("Hashvalues:", Hash_val_V);
+                                //Logger::warning("Hashkeys:", Hash_keys_V);
+                                //Logger::warning("Hashvalues:", Hash_val_V);
                                 // std::cout << Hash_val_V[141] << ", "<< Hash_keys_V[141] <<std::endl;
                                 // extract rowouter
                                 for(int co = rowouter; co < N; co++){
@@ -180,12 +180,12 @@ class CLBuffer{
                                 }
                                 
                                 Logger::debug("Inserting 0s finished");
-                                Logger::warning("Hashkeys:", Hash_keys_V);
-                                Logger::warning("Hashvalues:", Hash_val_V);
+                                //Logger::warning("Hashkeys:", Hash_keys_V);
+                                //Logger::warning("Hashvalues:", Hash_val_V);
                                 // query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
-                                hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
-                                Logger::warning("Hashkeys:", Hash_keys_V);
-                                Logger::warning("Hashvalues:", Hash_val_V);
+                                //hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
+                                //Logger::warning("Hashkeys:", Hash_keys_V);
+                                //Logger::warning("Hashvalues:", Hash_val_V);
                                 err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
                                                             0, 
                                                             sizeof(int) * TABLE_SIZE,
@@ -220,7 +220,7 @@ class CLBuffer{
                                 copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
                                 Logger::debug("CopyCL");
                                 Logger::debug("Erased");
-                                hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
+                                //hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
                                 // query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
                                 
                             }
