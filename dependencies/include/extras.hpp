@@ -126,6 +126,7 @@ void csr_to_dense_and_print(const std::vector<int>& row_pointer,
     int N);
 void hash_to_dense_and_print(std::vector<int> Hashkeys, std::vector<float> HashValues, int N, int TABLE_SIZE);
 uint64_t nextPowerOf2(uint64_t N);
+
 inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
     int index = row * N + col;
     int hash_index = index % TABLE_SIZE;
@@ -248,5 +249,32 @@ inline bool is_prime(int n) {
 inline int next_prime(int n) {
     while (!is_prime(n)) ++n;
     return n;
+=======
+inline int lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
+    int index = row * N + col;
+    int hash_index = index % TABLE_SIZE;
+
+    // Linear probing to find the key
+    while (Hash_keys_V[hash_index] != -1) {
+        if (Hash_keys_V[hash_index] == index) {
+            return Hash_val_V[hash_index]; // key found
+        }
+        hash_index = (hash_index + 1) % TABLE_SIZE;
+    }
+
+    // Key not found
+    return -1; // or some sentinel value for "not found"
+}
+inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V){
+    int hash_index = index % TABLE_SIZE;
+    // Linear probing
+    while (Hash_keys_V[hash_index] != -1 && Hash_keys_V[hash_index] != index) {
+        hash_index = (hash_index + 1) % TABLE_SIZE;
+    }
+
+    Hash_keys_V[hash_index] = index;
+    Hash_val_V[hash_index] = val;
+    return 0;
+
 }
 #endif

@@ -475,6 +475,7 @@ const char *filter_array = R"CLC(
         __global float* hashvalue,
         const int N,
         const int rowouter,
+
         const int TABLE_SIZE,
         const int limit
     ) {
@@ -483,6 +484,7 @@ const char *filter_array = R"CLC(
         if(gid > limit){
             return;
         }
+
         // printf("%d ", gid);
         int current_row = (gid / (N - rowouter)) + rowouter + 1;
         int current_col = (gid % (N - rowouter)) + rowouter;
@@ -490,6 +492,7 @@ const char *filter_array = R"CLC(
         int index_0 = rowouter * N + current_col;
         int index_piv = rowouter * N + rowouter;
         int index_factor = current_row * N + rowouter;
+
 
         int hash_index_current, hash_index_0, hash_index_piv, hash_index_factor;
         float val, val_0, piv, factor;

@@ -41,4 +41,7 @@ logs
 *.png
 *.pdf
 *.DS_Store
+
 bin
+!pics/*.png
+

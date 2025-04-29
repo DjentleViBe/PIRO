@@ -29,6 +29,7 @@ namespace Giro{
             std::string Scalars;
             std::vector<float> values;
             std::vector<int> columns;
+            std::vector<int> rows;
             std::vector<int> rowpointers;
     };
 

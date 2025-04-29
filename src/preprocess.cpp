@@ -28,6 +28,7 @@ Giro::Equation RHS;
 CLBuffer CD_GPU;
 cl_mem RHSterms;
 int debuginfo;
+
 bool LAP_INIT = false;
 bool RHS_INIT = false;
 int ts = 0;

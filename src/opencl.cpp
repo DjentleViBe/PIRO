@@ -24,7 +24,6 @@ cl_device_id device;
 cl_context context;
 cl_command_queue queue;
 cl_uint maxWorkGroupSize;
-
 // math opertions programs and kernels
 // 0: add
 // 1: subtract
@@ -92,6 +91,8 @@ static void print_device_info(cl_device_id device){
     clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxWorkGroupSize, NULL);
     std::cout << "Compute Units: " << numComputeUnits << std::endl;
     std::cout << "Max Work Group Size: " << maxWorkGroupSize << std::endl;
+    // std::cout << "Max Global Mem Size: " << globalMemSize << " bytes" << std::endl;
+    // std::cout << "Max Alloc Size: " << maxAllocSize << " bytes" << std::endl;
 
 
 }
