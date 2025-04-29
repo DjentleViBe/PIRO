@@ -233,9 +233,9 @@ class CLBuffer{
                             //                         cd.columns, 
                             //                        cd.values, N);
                             RHS_INIT = true;
-                            hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
-                            Logger::warning("Hashkeys:", Hash_keys_V);
-                            Logger::warning("Hashvalues:", Hash_val_V);
+                            // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
+                            // Logger::warning("Hashkeys:", Hash_keys_V);
+                            // Logger::warning("Hashvalues:", Hash_val_V);
                         }
                         Logger::debug("RHS_INIT end" );
                         // csr_to_dense_and_print(MP.AMR[0].CD[index].rowpointers, MP.AMR[0].CD[index].columns, MP.AMR[0].CD[index].values, N);
