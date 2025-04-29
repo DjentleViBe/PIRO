@@ -165,13 +165,13 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
 inline float query(int index, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
     int hash_index = index % TABLE_SIZE;
     int attempts = 0;
-    
+    int first_deleted = -1;
     // Linear probing to find the key
-    while (Hash_keys_V[hash_index] > -1) {
-        if (Hash_keys_V[hash_index] == index) {
-            std::cout << "Index :" << Hash_keys_V[hash_index] <<  ", hash: "<<hash_index<<", Value = "<< Hash_val_V[hash_index] << std::endl; // key found
-            return 0.0;
-        }
+    while (Hash_keys_V[hash_index] != -1 && Hash_keys_V[hash_index] != index) {
+        if (Hash_keys_V[hash_index] == -2 && first_deleted == -1) {
+            first_deleted = hash_index;  // Remember the first deleted slot
+        } 
+        
         hash_index = (hash_index + 1) % TABLE_SIZE;
         attempts++;
         if (attempts >= TABLE_SIZE) {
@@ -181,7 +181,19 @@ inline float query(int index, std::vector<int>& Hash_keys_V, std::vector<float>&
             return 0.0; // Return error code
         }
     }
-    std::cout << "key not found" << std::endl;
+    if (Hash_keys_V[hash_index] == index) {
+        std::cout << "Index :" << Hash_keys_V[hash_index] <<  ", hash: "<<hash_index<<", Value = "<< Hash_val_V[hash_index] << std::endl; // key found
+        return 0.0;
+    }
+    else if(Hash_keys_V[hash_index] == -2){
+        int insert_index = (first_deleted != -1) ? first_deleted : hash_index;
+        std::cout << "Index :" << Hash_keys_V[insert_index] <<  ", hash: "<< insert_index<<", Value = "<< Hash_val_V[hash_index] << std::endl; // key found
+        
+    }
+    else{
+        std::cout << "key not found" << std::endl;
+    }
+    
     // Key not found
     return 0.0; // or some sentinel value for "not found"
 }
