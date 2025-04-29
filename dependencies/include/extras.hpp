@@ -190,40 +190,50 @@ inline float query(int index, std::vector<int>& Hash_keys_V, std::vector<float>&
     return 0.0; // or some sentinel value for "not found"
 }
 
-inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V){
+inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V) {
     int hash_index = index % TABLE_SIZE;
     int attempts = 0;
     int first_deleted = -1;
-    // Linear probing
-    while (Hash_keys_V[hash_index] != -1 && Hash_keys_V[hash_index] != index) {
-        if (Hash_keys_V[hash_index] == -2 && first_deleted == -1) {
-            first_deleted = hash_index;  // Remember the first deleted slot
+
+    while (attempts < TABLE_SIZE) {
+        if (Hash_keys_V[hash_index] == index) {
+            // Key found → update
+            Hash_val_V[hash_index] = val;
+            return 0;
         }
-    
+        else if (Hash_keys_V[hash_index] == -1) {
+            // Empty slot → insert
+            int insert_index = (first_deleted != -1) ? first_deleted : hash_index;
+            Hash_keys_V[insert_index] = index;
+            Hash_val_V[insert_index] = val;
+            return 0;
+        }
+        else if (Hash_keys_V[hash_index] == -2 && first_deleted == -1) {
+            // First deleted slot
+            first_deleted = hash_index;
+        }
+
+        // Continue probing
         hash_index = (hash_index + 1) % TABLE_SIZE;
         attempts++;
-        if (attempts >= TABLE_SIZE) {
-            Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
-            Logger::warning("hashkeys : ", Hash_keys_V);
-            Logger::warning("hashvalues : ", Hash_val_V);
-            hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
-            // Table is full, handle appropriately
-            std::exit(1);
-            return -1; // Return error code
-        }
     }
 
-    if (Hash_keys_V[hash_index] == index) {
-        // Key already exists → update value
-        Hash_val_V[hash_index] = val;
-    } else {
-        // Key does not exist → insert
-        int insert_index = (first_deleted != -1) ? first_deleted : hash_index;
-        Hash_keys_V[insert_index] = index;
-        Hash_val_V[insert_index] = val;
+    // If full loop completed, insert at first_deleted if available
+    if (first_deleted != -1) {
+        Hash_keys_V[first_deleted] = index;
+        Hash_val_V[first_deleted] = val;
+        return 0;
     }
-    return 0;
+
+    // Table is truly full
+    Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
+    Logger::warning("hashkeys : ", Hash_keys_V);
+    Logger::warning("hashvalues : ", Hash_val_V);
+    hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
+    std::exit(1);
+    return -1;
 }
+
 inline bool is_prime(int n) {
     if (n <= 1) return false;
     if (n <= 3) return true;
