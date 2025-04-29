@@ -149,17 +149,9 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
     if (Hash_keys_V[hash_index] == index) {
         // Key already exists → update value
         return Hash_val_V[hash_index];
-    } 
-    else if(Hash_keys_V[hash_index] == -2){
-        // Key does not exist → insert
-        int insert_index = (first_deleted != -1) ? first_deleted : hash_index;
-        return Hash_val_V[insert_index];
     }
-    else{
-        return 0.0; // or some sentinel value for "not found"
-    }
+    return 0.0;
     // Key not found
-    
 }
 
 inline float query(int index, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
