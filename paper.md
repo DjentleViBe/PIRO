@@ -9,11 +9,11 @@ tags:
 authors:
   - name: Vishakh Begari
     orcid: 0009-0008-9399-8581
-    affiliation: 1
+    affiliation: '1'
 affiliations:
-  - index: 1
   - name: Independent Researcher, Germany
-date: 01 May 2024
+    index: 1
+date: 1 May 2024
 bibliography: paper.bib
 ---
 
