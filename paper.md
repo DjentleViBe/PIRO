@@ -42,9 +42,8 @@ $${\lambda} = nnz @ {\kappa} : 0 / nnz @{\kappa} : N - 1 $$
 
 $nnz$ for an $UTM$ obtained after gaussian elimination of a Laplacian operator for various cell grid sizes $(N)$ is shown in the figure below.
 
-![Figure 1: UTM generation.\label{fig:UTM}](svg/trends.svg)
-**Figure 1** **(a)** Row filling for different N during gaussian elimination. 'x' marker denoting maximum nnz. **(b)** Curve fitting for
-nnz. **(c)** Curve fitting for the load factor.<br>
+![**(a)** Row filling for different N during gaussian elimination. 'x' marker denoting maximum nnz. **(b)** Curve fitting for nnz. **(c)** Curve fitting for the load factor.\label{fig:UTM}](svg/trends.svg)
+
 The sparseness decreases initially, reaching a maximum, before finally increasing according to \autoref{fig:UTM}.
 
 ## Table size estimation
@@ -69,8 +68,7 @@ where, $$index = row \ number * N + column \ number$$
 For a large enough $TABLE\_SIZE$, steps 1. and 2. are O(1) at best. Sometimes traversal performed in step 1 might need extra probing (upon encountering -2 before -1) during insertion due to open addressing.
 
 # Performance
-![Figure 2: Cumulative run times for different algorithms.\label{fig:CRT}](svg/execcumulativetime.svg)
-**Figure 2** Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times.
+![Figure 2: Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times.\label{fig:CRT}](svg/execcumulativetime.svg)
 
 | Study            | Execution Time [s] | Host memory<br> [int, float]                  | Device Memory<br> [int, float]            |
 |------------------|:--------------------:|--------------------------------------------|-------------------------------------------|
@@ -83,10 +81,8 @@ For a large enough $TABLE\_SIZE$, steps 1. and 2. are O(1) at best. Sometimes tr
 **Table 1**: Run times and space complexities of various algorithms generating a UTM for a ```7 x 7 x 7``` grid Laplacian on an AMD Radeon Pro 5300M; $factor$ = percentage of $N^2$.
 
 
-![Figure 3: Scaling factor sensitivities.\label{fig:LF}](svg/lf.svg){ width=50% }
+![Run times for different $\sigma$.\label{fig:LF}](svg/lf.svg){ width=50% }
 
-
-**Figure 3**  Run times for different $\sigma$.<br>
 The above figure shows performance improvements with reducing $\sigma$. The ideal value for $\sigma$ can be chosen based on use case.
 
 # Conclusion
