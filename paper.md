@@ -11,8 +11,8 @@ authors:
     orcid: 0009-0008-9399-8581
     affiliation: 1
 affiliations:
-    - name: Independent Researcher, Germany
-    - index: 1
+  - index: 1
+  - name: Independent Researcher, Germany
 date: 01 May 2024
 bibliography: paper.bib
 ---
@@ -23,8 +23,8 @@ bibliography: paper.bib
 
 # Statement of Need
 Compressed Sparse Row (CSR) is a space efficient way for storing sparse-matrices. It is particularly useful in situations where the matrix has many zero elements. Parallellising CSR matrix operations requires special treatment as not all elements in the matrix are readily available for independent processing. 
-One solution is to process each row separately, making it straightforward to assign different rows to different threads. This approach requires the availability of atomic operations to extract good performance `@ieeepaper2020`. 
-For dynamic graphs stored in CSR, parallel algorithms can insert or delete edges concurrently. Lock-free or fine-grained locking mechanisms are employed to allow multiple threads to update the structure without significant contention. However, this introduces complexity in managing numerous locks, increasing the risk of deadlock or priority inversion if not designed meticulously `@ieeepaper2024`.
+One solution is to process each row separately, making it straightforward to assign different rows to different threads. This approach requires the availability of atomic operations to extract good performance `@ieeepaper2012`. 
+For dynamic graphs stored in CSR, parallel algorithms can insert or delete edges concurrently. Lock-free or fine-grained locking mechanisms are employed to allow multiple threads to update the structure without significant contention`@dyngraphs`. However, this introduces complexity in managing numerous locks, increasing the risk of deadlock or priority inversion if not designed meticulously `@ieeepaper2024`.
 Existing libraries often lack GPU support or are tied to proprietary platforms (e.g., CUDA `@cusparse`). PIRO fills this gap by offering a novel solution (HTLF) by representing Sparse Matrices as Hash Tables (HT). It uses a hash function to compute an index (hash key) into an array of slots, where the corresponding value is stored. Insertion, deletion and lookup can be performed in amortized constant time (on average) independent of the number of non zero elements in the table, assuming a good hash function and  well-sized table. It is well known that HT are generally more efficient than search trees or other lookup structures for these operations, especially when fast access is required.
 
 Additionally the  software offers:
