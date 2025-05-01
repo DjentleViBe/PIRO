@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main   # Trigger when there's a push to the main branch
+      - LU_decomp_HTLF
   schedule:
     - cron: "0 0 * * *" # Optional: Run the workflow daily at midnight
 
