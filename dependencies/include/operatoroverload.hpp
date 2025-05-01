@@ -167,6 +167,8 @@ class CLBuffer{
                                     for (int col : rowouter_cols) {
                                         // std::cout << col << ", ";
                                         // if(col < rowouter) continue;
+                                        lookupandset(r, col, N, 0.0f, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                        /*
                                         if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
                                             // set the col in the hash table directly
                                             ind = r * N + col;
@@ -174,7 +176,7 @@ class CLBuffer{
                                             sethash(ind, 0.0f, TABLE_SIZE, Hash_keys_V, Hash_val_V);
                                             // std::cout << col << ", ";
                                             
-                                        }
+                                        }*/
                                     }
     
                                 }

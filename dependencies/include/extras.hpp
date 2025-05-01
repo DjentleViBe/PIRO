@@ -155,40 +155,40 @@ inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std:
     // Key not found
 }
 
-inline float query(int index, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
+inline int lookupandset(int row, int col, int N, float value, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
+    int index = row * N + col;
     int hash_index = index % TABLE_SIZE;
     int attempts = 0;
     int first_deleted = -1;
-    // Linear probing to find the key
-    while (Hash_keys_V[hash_index] != -1 && Hash_keys_V[hash_index] != index) {
-        if (Hash_keys_V[hash_index] == -2 && first_deleted == -1) {
-            first_deleted = hash_index;  // Remember the first deleted slot
-        } 
-        
+    while(attempts <= TABLE_SIZE){
+        if (Hash_keys_V[hash_index] == index){
+            // Hash_val_V[hash_index] = value;
+            return 0;
+        }
+        else if (Hash_keys_V[hash_index] == -1){
+            int insert_index = (first_deleted != -1) ? first_deleted : hash_index;
+            Hash_keys_V[insert_index] = index;
+            Hash_val_V[insert_index] = value;
+            return 0;
+        }
+        else if (Hash_keys_V[hash_index] == -2 && first_deleted == -1){
+            first_deleted = hash_index;
+        }
         hash_index = (hash_index + 1) % TABLE_SIZE;
         attempts++;
-        if (attempts >= TABLE_SIZE) {
-            // Logger::info("Error - lookhash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". \n\t\t\t\t\t\t\t");
-            // Table is full, handle appropriately
-            // std::exit(1);
-            return 0.0; // Return error code
-        }
     }
-    if (Hash_keys_V[hash_index] == index) {
-        std::cout << "Index :" << Hash_keys_V[hash_index] <<  ", hash: "<<hash_index<<", Value = "<< Hash_val_V[hash_index] << std::endl; // key found
-        return 0.0;
+    if(first_deleted != -1) {
+        Hash_keys_V[first_deleted] = index;
+        Hash_val_V[first_deleted] = value;
+        return 0;
     }
-    else if(Hash_keys_V[hash_index] == -2){
-        int insert_index = (first_deleted != -1) ? first_deleted : hash_index;
-        std::cout << "Index :" << Hash_keys_V[insert_index] <<  ", hash: "<< insert_index<<", Value = "<< Hash_val_V[hash_index] << std::endl; // key found
-        
-    }
-    else{
-        std::cout << "key not found" << std::endl;
-    }
-    
+    Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
+    Logger::warning("hashkeys : ", Hash_keys_V);
+    Logger::warning("hashvalues : ", Hash_val_V);
+    hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
+    std::exit(1);
     // Key not found
-    return 0.0; // or some sentinel value for "not found"
+    return -1; // or some sentinel value for "not found"
 }
 
 inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V) {
@@ -249,32 +249,6 @@ inline bool is_prime(int n) {
 inline int next_prime(int n) {
     while (!is_prime(n)) ++n;
     return n;
-=======
-inline int lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
-    int index = row * N + col;
-    int hash_index = index % TABLE_SIZE;
-
-    // Linear probing to find the key
-    while (Hash_keys_V[hash_index] != -1) {
-        if (Hash_keys_V[hash_index] == index) {
-            return Hash_val_V[hash_index]; // key found
-        }
-        hash_index = (hash_index + 1) % TABLE_SIZE;
-    }
-
-    // Key not found
-    return -1; // or some sentinel value for "not found"
 }
-inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V){
-    int hash_index = index % TABLE_SIZE;
-    // Linear probing
-    while (Hash_keys_V[hash_index] != -1 && Hash_keys_V[hash_index] != index) {
-        hash_index = (hash_index + 1) % TABLE_SIZE;
-    }
 
-    Hash_keys_V[hash_index] = index;
-    Hash_val_V[hash_index] = val;
-    return 0;
-
-}
 #endif
