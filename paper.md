@@ -37,7 +37,7 @@ Additionally the software offers:
 When solving a linear system numerically, especially for large systems, directly computing the inverse is not recommended for numerical stability and efficiency. Iterative solvers are algorithms that find approximate solutions to linear systems, such as $Ax = b$, by starting with an initial guess and progressively improving it through repeated iterations. If approximate solutions are not desired, Direct methods, such as Gaussian elimination, LU decomposition, and Cramer's rule, compute the exact solution to a linear system in a finite number of steps, assuming no rounding errors occur during computation. 
 LU decomposition requires convertion of the original matrix, which can be sparse by nature, into an Upper Triangular Matrix $(UTM)$, which can also be sparse, before solving. This step adds, modifies and removes elements from the origianal matrix through repeated gaussian elimination steps (${\kappa}$). If sparseness of the matrix is measured by the number of non zero elements $(nnz)$, then 
 $${\mu} = nnz / N^2 $$
-$$ n̄ = {\kappa} / N^2$$
+$$ \bar{n} = {\kappa} / N^2$$
 $${\lambda} = nnz @ {\kappa} : 0 / nnz @{\kappa} : N - 1 $$
 
 $nnz$ for an $UTM$ obtained after gaussian elimination of a Laplacian operator for various cell grid sizes $(N)$ is shown in the figure below.
@@ -47,16 +47,16 @@ $nnz$ for an $UTM$ obtained after gaussian elimination of a Laplacian operator f
 The sparseness decreases initially, reaching a maximum, before finally increasing according to \autoref{fig:UTM}.
 
 ## Table size estimation
-Choosing an appropriate table size for hashing is crucial for the performance of the algorithm. Since the trends are driven by $(N)$, a curve fit for ${\lambda}$ is performed as follows : <br>
+Choosing an appropriate table size for hashing is crucial for the performance of the algorithm. Since the trends are driven by $(N)$, a curve fit for ${\lambda}$ is performed as follows :
 $${\lambda} = a * N^b + c$$
-where $N = n_x * n_y * n_z$ if $n_x, n_y, n_z$ are the number of grid cells in X, Y and Z direction respectively; the coefficients are $a = 3.3608$, $b = 0.5552$, $c = -0.014$.<br>
+where $N = n_x * n_y * n_z$ if $n_x, n_y, n_z$ are the number of grid cells in X, Y and Z direction respectively; the coefficients are $a = 3.3608$, $b = 0.5552$, $c = -0.014$.
 
 Then, 
 $$TABLE\_SIZE = nnz / ({\lambda} * {\sigma})$$
 where, ${\sigma}$ is the scaling factor, providing more flexibility.
 
 ## Hash function
-A simple hash function is used : <br> 
+A simple hash function is used :
 $$key = index \ \% \ TABLE\_SIZE$$
 where, $$index = row \ number * N + column \ number$$
 
@@ -68,7 +68,7 @@ where, $$index = row \ number * N + column \ number$$
 For a large enough $TABLE\_SIZE$, steps 1. and 2. are O(1) at best. Sometimes traversal performed in step 1 might need extra probing (upon encountering -2 before -1) during insertion due to open addressing.
 
 # Performance
-![Figure 2: Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times.\label{fig:CRT}](svg/execcumulativetime.svg)
+![Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times.\label{fig:CRT}](svg/execcumulativetime.svg)
 
 | Study            | Execution Time [s] | Host memory<br> [int, float]                  | Device Memory<br> [int, float]            |
 |------------------|:--------------------:|--------------------------------------------|-------------------------------------------|
