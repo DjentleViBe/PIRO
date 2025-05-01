@@ -44,20 +44,15 @@ jobs:
       PR_NUMBER=$(echo $PR_RESPONSE | jq '.[0].number')
       echo "::set-output name=pr_number::$PR_NUMBER"
 
-      python .github/workflows/genimage.py "$PR_NUMBER Open"
+      python .github/workflows/genimage.py "$PR_NUMBER Open" || { echo "Python script failed"; exit 1; }
+
       git diff --exit-code pics/*.png
         if [ $? -eq 0 ]; then
         echo "No changes in the image files, skipping commit."
         else
         # Stage the changed image files
-        git add pics/Issue_num.png
-        git add pics/Issues.png
-        git add pics/PR.png
-        git add pics/PR_num.png
-        git add pics/Readme_status.png
-        git add pics/Version.png
-        git add pics/Version_num.png
-
+        git add pics/*.png
+        
         # Commit the changes
         git commit -m "Update README status with latest PR number"
         
