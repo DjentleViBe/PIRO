@@ -27,8 +27,8 @@ One solution is to process each row separately, making it straightforward to ass
 For dynamic graphs stored in CSR, parallel algorithms can insert or delete edges concurrently. Lock-free or fine-grained locking mechanisms are employed to allow multiple threads to update the structure without significant contention[@dyngraphs]. However, this introduces complexity in managing numerous locks, increasing the risk of deadlock or priority inversion if not designed meticulously [@ieeepaper2024].
 Existing libraries often lack GPU support or are tied to proprietary platforms (e.g., CUDA [@cusparse]). PIRO fills this gap by offering a novel solution (HTLF) by representing Sparse Matrices as Hash Tables (HT). It uses a hash function to compute an index (hash key) into an array of slots, where the corresponding value is stored. Insertion, deletion and lookup can be performed in amortized constant time (on average) independent of the number of non zero elements in the table, assuming a good hash function and  well-sized table. It is well known that HT are generally more efficient than search trees or other lookup structures for these operations, especially when fast access is required.
 
-Additionally the  software offers:
-- __Cross-platform__ CPU / GPU operation** via OpenCL.
+Additionally the software offers:
+- __Cross-platform CPU / GPU operation__ via OpenCL.
 - __Modular equation__ solver.
 - __Post processing__ export function for viewing results (e.g Paraview).
 - __Benchmarking__ tools and diagnostics. 
@@ -72,7 +72,7 @@ For a large enough $TABLE\_SIZE$, steps 1. and 2. are O(1) at best. Sometimes tr
 ![Figure 2: Cumulative run times for different algorithms.\label{fig:CRT}](svg/execcumulativetime.svg)
 **Figure 2** Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times.
 
-| Study            | Execution Time [s] | Host memory<br>[int, float]                  | Device Memory<br>[int, float]            |
+| Study            | Execution Time [s] | Host memory<br> [int, float]                  | Device Memory<br> [int, float]            |
 |------------------|:--------------------:|--------------------------------------------|-------------------------------------------|
 | DENSE            | 0.0062             | N + nnz + 1, <br>$N^2$ + nnz               | 1, <br>3 * $N^2$  |
 | ROWSEP           | 89.6593            | N + nnz + 1, <br>2 * N + nnz                  | N + factor + 1, <br>3 * N + factor + 1       |
@@ -80,12 +80,11 @@ For a large enough $TABLE\_SIZE$, steps 1. and 2. are O(1) at best. Sometimes tr
 | COO              | 1.9186             | N + 2 * nnz + 1, <br>2 * nnz                     | nnz + N + 1, <br>nnz                      |
 | HT               | 10.7566            | TABLE SIZE + 3, <br>TABLE SIZE             | TABLE SIZE + 3,<br>TABLE SIZE             |
 | HTLF             | 0.4587             | (TABLE SIZE / σ) + 3, <br>(TABLE SIZE / σ) | (TABLE SIZE / σ) + 3, <br>(TABLE SIZE / σ)|
-
 **Table 1**: Run times and space complexities of various algorithms generating a UTM for a ```7 x 7 x 7``` grid Laplacian on an AMD Radeon Pro 5300M; $factor$ = percentage of $N^2$.
 
-\begin{center}
+
 ![Figure 3: Scaling factor sensitivities.\label{fig:LF}](svg/lf.svg){ width=50% }
-\end{center}
+
 
 **Figure 3**  Run times for different $\sigma$.<br>
 The above figure shows performance improvements with reducing $\sigma$. The ideal value for $\sigma$ can be chosen based on use case.
@@ -95,3 +94,5 @@ Hash table representaton of sparse matrices for executing operations using paral
 
 # Scope for future work
 A simple hash function was used to calculate key values. Alternative hash methods and its effect on various differential operators needs to be explored. 
+
+# References
