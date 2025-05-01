@@ -27,7 +27,9 @@ One solution is to process each row separately, making it straightforward to ass
 For dynamic graphs stored in CSR, parallel algorithms can insert or delete edges concurrently. Lock-free or fine-grained locking mechanisms are employed to allow multiple threads to update the structure without significant contention[@dyngraphs]. However, this introduces complexity in managing numerous locks, increasing the risk of deadlock or priority inversion if not designed meticulously [@ieeepaper2024].
 Existing libraries often lack GPU support or are tied to proprietary platforms (e.g., CUDA [@cusparse]). PIRO fills this gap by offering a novel solution (HTLF) by representing Sparse Matrices as Hash Tables (HT). It uses a hash function to compute an index (hash key) into an array of slots, where the corresponding value is stored. Insertion, deletion and lookup can be performed in amortized constant time (on average) independent of the number of non zero elements in the table, assuming a good hash function and  well-sized table. It is well known that HT are generally more efficient than search trees or other lookup structures for these operations, especially when fast access is required.
 
+
 Additionally the software offers:
+
 - __Cross-platform CPU / GPU operation__ via OpenCL.
 - __Modular equation__ solver.
 - __Post processing__ export function for viewing results (e.g Paraview).
@@ -42,7 +44,7 @@ $${\lambda} = nnz @ {\kappa} : 0 / nnz @{\kappa} : N - 1 $$
 
 $nnz$ for an $UTM$ obtained after gaussian elimination of a Laplacian operator for various cell grid sizes $(N)$ is shown in the figure below.
 
-![**(a)** Row filling for different N during gaussian elimination. 'x' marker denoting maximum nnz. **(b)** Curve fitting for nnz. **(c)** Curve fitting for the load factor.\label{fig:UTM}](svg/trends.svg)
+![**(a)** Row filling for different N during gaussian elimination. 'x' marker denoting maximum nnz. **(b)** Curve fitting for nnz. **(c)** Curve fitting for the load factor.\label{fig:UTM}](svg/trends.pdf)
 
 The sparseness decreases initially, reaching a maximum, before finally increasing according to \autoref{fig:UTM}.
 
@@ -68,22 +70,33 @@ where, $$index = row \ number * N + column \ number$$
 For a large enough $TABLE\_SIZE$, steps 1. and 2. are O(1) at best. Sometimes traversal performed in step 1 might need extra probing (upon encountering -2 before -1) during insertion due to open addressing.
 
 # Performance
-![Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times.\label{fig:CRT}](svg/execcumulativetime.svg)
+![Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times.\label{fig:CRT}](svg/execcumulativetime.pdf)
 
-| Study            | Execution Time [s] | Host memory<br> [int, float]                  | Device Memory<br> [int, float]            |
-|------------------|:--------------------:|--------------------------------------------|-------------------------------------------|
-| DENSE            | 0.0062             | N + nnz + 1, <br>$N^2$ + nnz               | 1, <br>3 * $N^2$  |
-| ROWSEP           | 89.6593            | N + nnz + 1, <br>2 * N + nnz                  | N + factor + 1, <br>3 * N + factor + 1       |
-| ROW              | 35.3817            | N + 2 * n + nnz + 1, <br>N + 2 * n + nnz         | 3 * N + factor + 1, <br>3 * N + factor          |
-| COO              | 1.9186             | N + 2 * nnz + 1, <br>2 * nnz                     | nnz + N + 1, <br>nnz                      |
-| HT               | 10.7566            | TABLE SIZE + 3, <br>TABLE SIZE             | TABLE SIZE + 3,<br>TABLE SIZE             |
-| HTLF             | 0.4587             | (TABLE SIZE / σ) + 3, <br>(TABLE SIZE / σ) | (TABLE SIZE / σ) + 3, <br>(TABLE SIZE / σ)|
-**Table 1**: Run times and space complexities of various algorithms generating a UTM for a ```7 x 7 x 7``` grid Laplacian on an AMD Radeon Pro 5300M; $factor$ = percentage of $N^2$.
+Table: Run times and space complexities of various algorithms generating a UTM for a ```7 x 7 x 7``` grid Laplacian on an AMD Radeon Pro 5300M; $factor$ = percentage of $N^2$.
+
+| **Study** |**Time [s]**  |**Host memory**                       |**Device Memory**                       |
+|-----------|--------------|--------------------------------------|----------------------------------------|
+|           |              |[int, float]                          |[int, float]                            |
+|-----------|--------------|--------------------------------------|----------------------------------------|
+| DENSE     | 0.0062        | N + nnz + 1,                         | 1,                              |
+|           |               | $N^2$ + nnz                          | 3 * $N^2$                       |
+| ROWSEP    | 89.6593       | N + nnz + 1,                         | N + factor + 1,                 |
+|           |               | 2 * N + nnz                          | 3 * N + factor + 1              |
+| ROW       | 35.3817       | N + 2 * n + nnz + 1,                 | 3 * N + factor + 1,             |
+|           |               | N + 2 * n + nnz                      | 3 * N + factor                  |
+| COO       | 1.9186        | N + 2 * nnz + 1,                     | nnz + N + 1,                    |
+|           |               | 2 * nnz                              | nnz                             |
+| HT        | 10.7566       | TABLE SIZE + 3,                      | TABLE SIZE + 3,                 |
+|           |               | TABLE SIZE                           | TABLE SIZE                      |
+| HTLF      | 0.4587        | TABLE SIZE + 3,                      | TABLE SIZE + 3,                 |
+| ($\sigma$=0.7)          |              | TABLE SIZE              | TABLE SIZE                      |
 
 
-![Run times for different $\sigma$.\label{fig:LF}](svg/lf.svg){ width=50% }
 
-The above figure shows performance improvements with reducing $\sigma$. The ideal value for $\sigma$ can be chosen based on use case.
+
+![Run times for different $\sigma$.\label{fig:LF}](svg/lf.pdf){ width=50% }
+
+\autoref{fig:LF} shows performance improvements with reducing $\sigma$. The ideal value for $\sigma$ can be chosen based on use case.
 
 # Conclusion
 Hash table representaton of sparse matrices for executing operations using parallel processing gives flexibility to prioritize balance between time and space efficiency. This is benenifical as the method can be adapted easily based on usecase.
