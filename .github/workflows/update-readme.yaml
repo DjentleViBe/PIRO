@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main   # Trigger when there's a push to the main branch
+      - LU_decomp_HTLF
   schedule:
     - cron: "0 0 * * *" # Optional: Run the workflow daily at midnight
 
@@ -40,31 +41,25 @@ jobs:
 
       # Check if there are any open PRs
       if [ "$(echo $PR_RESPONSE | jq length)" -gt 0 ]; then
-      PR_NUMBER=$(echo $PR_RESPONSE | jq '.[0].number')
-      echo "::set-output name=pr_number::$PR_NUMBER"
+        PR_NUMBER=$(echo $PR_RESPONSE | jq '.[0].number')
+        echo "::set-output name=pr_number::$PR_NUMBER"
 
-      python .github/workflows/genimage.py "$PR_NUMBER Open"
-      git diff --exit-code pics/*.png
-        if [ $? -eq 0 ]; then
-        echo "No changes in the image files, skipping commit."
-        else
-        # Stage the changed image files
-        git add pics/Issue_num.png
-        git add pics/Issues.png
-        git add pics/PR.png
-        git add pics/PR_num.png
-        git add pics/Readme_status.png
-        git add pics/Version.png
-        git add pics/Version_num.png
+        python .github/workflows/genimage.py "$PR_NUMBER Open" || { echo "Python script failed"; exit 1; }
 
-        # Commit the changes
-        git commit -m "Update README status with latest PR number"
-        
-        # Push the changes to the remote repository
-        git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
-        fi
-      else
-      echo "No open pull requests found."
-      echo "::set-output name=pr_number::none"
-      fi
+        git diff --exit-code pics/*.png
+          if [ $? -eq 0 ]; then
+            echo "No changes in the image files, skipping commit."
+          else
+            # Stage the changed image files
+            git add pics/*.png
+
+            # Commit the changes
+            git commit -m "Update README status with latest PR number"
           
+            # Push the changes to the remote repository
+            git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
+          fi
+      else
+        echo "No open pull requests found."
+        echo "::set-output name=pr_number::none"
+      fi
