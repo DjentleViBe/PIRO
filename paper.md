@@ -37,11 +37,12 @@ Additionally the software offers:
 
 # Algorithm - HTLF
 When solving a linear system numerically, especially for large systems, directly computing the inverse is not recommended for numerical stability and efficiency. Iterative solvers are algorithms that find approximate solutions to linear systems, such as $Ax = b$, by starting with an initial guess and progressively improving it through repeated iterations. If approximate solutions are not desired, Direct methods, such as Gaussian elimination, LU decomposition, and Cramer's rule, compute the exact solution to a linear system in a finite number of steps, assuming no rounding errors occur during computation. 
-LU decomposition requires convertion of the original matrix, which can be sparse by nature, into an Upper Triangular Matrix $(UTM)$, which can also be sparse, before solving. This step adds, modifies and removes elements from the origianal matrix through repeated gaussian elimination steps (${\kappa}$). If sparseness of the matrix is measured by the number of non zero elements $(nnz)$, then 
+LU decomposition requires modification of the original matrix, which can be sparse by nature, into an Upper Triangular Matrix $(UTM)$, which can also be sparse, before solving. This step adds, modifies and removes elements from the origianal matrix through repeated gaussian elimination steps (${\kappa}$). If sparseness of the matrix is measured by the number of non zero elements $(nnz)$, then 
 $${\mu} = nnz / N^2 $$
 $$ \bar{n} = {\kappa} / N^2$$
 $${\lambda} = nnz @ {\kappa} : 0 / nnz @{\kappa} : N - 1 $$
 
+where, $N = n_x * n_y * n_z$ if $n_x, n_y, n_z$ are the number of grid cells in X, Y and Z direction respectively.
 $nnz$ for an $UTM$ obtained after gaussian elimination of a Laplacian operator for various cell grid sizes $(N)$ is shown in the figure below.
 
 ![**(a)** Row filling for different N during gaussian elimination. 'x' marker denoting maximum nnz. **(b)** Curve fitting for nnz. **(c)** Curve fitting for the load factor.\label{fig:UTM}](svg/trends.pdf)
@@ -51,7 +52,7 @@ The sparseness decreases initially, reaching a maximum, before finally increasin
 ## Table size estimation
 Choosing an appropriate table size for hashing is crucial for the performance of the algorithm. Since the trends are driven by $(N)$, a curve fit for ${\lambda}$ is performed as follows :
 $${\lambda} = a * N^b + c$$
-where $N = n_x * n_y * n_z$ if $n_x, n_y, n_z$ are the number of grid cells in X, Y and Z direction respectively; the coefficients are $a = 3.3608$, $b = 0.5552$, $c = -0.014$.
+The coefficients are $a = 3.3608$, $b = 0.5552$, $c = -0.014$.
 
 Then, 
 $$TABLE\_SIZE = nnz / ({\lambda} * {\sigma})$$
@@ -63,14 +64,14 @@ $$key = index \ \% \ TABLE\_SIZE$$
 where, $$index = row \ number * N + column \ number$$
 
 ## Method
-1. The sparse matrix is initially traversed to identify indices where extra elements are to be added. They are assigned a key of -1. This is performed on the host.
-2. The gaussian elimination step is performed on every element in parallel by the kernel. Resulting zero elements are concurrently set to a key of -2. This is done on the device.
-3. The result is synchronised back to host and repeated for $N-1$ steps.
+1. The sparse matrix is initially traversed to identify indices where extra elements are to be added. They are assigned a key of -1 in the HT. The HT is then copied to the device.
+2. The gaussian elimination step is performed on every element in parallel by the kernel. Resulting zero elements are concurrently set to a key of -2. The HT is copied back to the host.
+3. Steps 1. and 2. are repeated $N-1$ times.
 
 For a large enough $TABLE\_SIZE$, steps 1. and 2. are O(1) at best. Sometimes traversal performed in step 1 might need extra probing (upon encountering -2 before -1) during insertion due to open addressing.
 
 ## Performance
-![Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times.\label{fig:CRT}](svg/execcumulativetime.pdf)
+![Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times. HTLF uses {\sigma} = 0.7.\label{fig:CRT}](svg/execcumulativetime.pdf)
 
 Table: Run times and space complexities of various algorithms generating a UTM for a ```7 x 7 x 7``` grid Laplacian on an AMD Radeon Pro 5300M; $factor$ = percentage of $N^2$.
 
@@ -109,7 +110,7 @@ Table: Run times and space complexities of various algorithms generating a UTM f
 \autoref{fig:LF} shows performance improvements with reducing $\sigma$. The ideal value for $\sigma$ can be chosen based on use case.
 
 # Conclusion
-Hash table representaton of sparse matrices for executing operations using parallel processing gives flexibility to prioritize balance between time and space efficiency. This is benenifical as the method can be adapted easily based on usecase.
+Hash table representaton of sparse matrices for executing operations using parallel processing gives flexibility to prioritize balance between time and space efficiency. This is benenifical as the method can be adapted easily based on use ase and hardware.
 
 # Scope for future work
 A simple hash function was used to calculate key values. Alternative hash methods and its effect on various differential operators needs to be explored. 
