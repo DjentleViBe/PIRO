@@ -52,7 +52,7 @@
 | Leapfrog | Time | 14 | `Plan` |
 | RK2 | Time | 15 | `Plan` |
 | RK4 | Time | 16 | `Plan` |
-| LU Decomposition | Solver | 17 | `Plan` |
+| LU Decomposition | Solver | 17 | `Dev` |
 ***
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -106,7 +106,7 @@ List of papers:
 - [JOSS - A Sparse Matrix parallel solver for OpenCL](./paper.md)
 
 ## Feedback and Contributions
-Contributions are always welcome to help improve this project! If you have any suggestions, feel free to fork the repository and create a pull request. If you enjoy the project, please consider giving it a star. Thanks for your support!"
+Contributions are always welcome to help improve this project! If you have any suggestions, feel free to fork the repository and create a pull request. If you enjoy the project, please consider giving it a star. Thank you for your support!
 
 1. Fork the Project
 2. Create your Feature Branch (```git checkout -b feature/AmazingFeature```. For performance studies, ```performance/PerformanceStudyName```.)
