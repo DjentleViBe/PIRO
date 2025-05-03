@@ -71,13 +71,13 @@ def combine_images_horizontally(images):
     return combined_image
 
 
-def readmestatus(PR_num):
+def readmestatus(PR_num, ISSUE_num, RELEASE_num):
     genimage("Pull Requests", "./pics/PR",(255, 255, 255), (0, 0, 0))
     genimage(PR_num, "./pics/PR_num",(0, 0, 0), (164, 193, 162))
     genimage("Version", "./pics/Version",(255, 255, 255), (0, 0, 0))
-    genimage("0.0", "./pics/Version_num",(0, 0, 0), (197, 226, 162))
+    genimage(RELEASE_num, "./pics/Version_num",(0, 0, 0), (197, 226, 162))
     genimage("Issues", "./pics/Issues",(255, 255, 255), (0, 0, 0))
-    genimage("0 Open", "./pics/Issue_num",(255, 255, 255), (56, 66, 132))
+    genimage(ISSUE_num, "./pics/Issue_num",(255, 255, 255), (56, 66, 132))
 
     combined_image = combine_images_horizontally(["./pics/PR.png", 
                                 "./pics/PR_num.png",
@@ -91,7 +91,9 @@ def readmestatus(PR_num):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process readme status.")
-    parser.add_argument("status", type=str, help="The status argument (e.g., '0 Open')")
+    parser.add_argument("pr_status", type=str, help="The PR status argument (e.g., '0 Open')")
+    parser.add_argument("issue_status", type=str, help="The issue count argument (e.g., '5 Issues')")
+    parser.add_argument("release_status", type=str, help="The release number argument (e.g., '1.0.0')")
     args = parser.parse_args()
 
-    readmestatus(args.status)
+    readmestatus(args.pr_status, args.issue_status, args.release_status)

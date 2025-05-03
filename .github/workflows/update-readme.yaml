@@ -38,28 +38,40 @@ jobs:
       PR_RESPONSE=$(curl -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}" \
       "https://api.github.com/repos/${{ github.repository }}/pulls?state=open")
       echo "PR Response: $PR_RESPONSE"  # Debugging line
+      ISSUE_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}" \
+      "https://api.github.com/repos/${{ github.repository }}/issues?state=open&filter=all")
+      echo "Open issues: $ISSUE_COUNT"
 
-      # Check if there are any open PRs
-      if [ "$(echo $PR_RESPONSE | jq length)" -gt 0 ]; then
-        PR_NUMBER=$(echo $PR_RESPONSE | jq '.[0].number')
+      RELEASE_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}" \
+      "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+
+      RELEASE_TAG=$(echo "$RELEASE_RESPONSE" | jq -r '.tag_name')
+      echo "Latest release tag: $RELEASE_TAG"
+
+      PR_COUNT=$(echo "$PR_RESPONSE" | jq length)
+
+      if [ "$PR_COUNT" -gt 0 ]; then
+        PR_NUMBER=$(echo "$PR_RESPONSE" | jq '.[0].number')
         echo "::set-output name=pr_number::$PR_NUMBER"
-
-        python .github/workflows/genimage.py "$PR_NUMBER Open" || { echo "Python script failed"; exit 1; }
-
-        git diff --exit-code pics/*.png
-          if [ $? -eq 0 ]; then
-            echo "No changes in the image files, skipping commit."
-          else
-            # Stage the changed image files
-            git add pics/*.png
-
-            # Commit the changes
-            git commit -m "Update README status with latest PR number"
-          
-            # Push the changes to the remote repository
-            git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
-          fi
       else
-        echo "No open pull requests found."
-        echo "::set-output name=pr_number::none"
+        PR_NUMBER="None"
+      fi
+
+      if [ "$RELEASE_TAG" == "null" ]; then
+        RELEASE_TAG="0.0"
+      fi
+
+      python .github/workflows/genimage.py "$PR_NUMBER Open" "$ISSUE_COUNT Issues" "$RELEASE_TAG Issues" || {
+        echo "Python script failed"
+        exit 1
+      }
+
+      # Check for changes in image files
+      git diff --exit-code pics/*.png
+      if [ $? -eq 0 ]; then
+        echo "No changes in the image files, skipping commit."
+      else
+        git add pics/*.png
+        git commit -m "Update README status with latest PR and issue count"
+        git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
       fi
