@@ -61,7 +61,7 @@ jobs:
         RELEASE_TAG="0.0"
       fi
 
-      python .github/workflows/genimage.py "$PR_NUMBER Open" "$ISSUE_COUNT Issues" "$RELEASE_TAG Issues" || {
+      python .github/workflows/genimage.py "$PR_NUMBER Open" "$RELEASE_TAG" "$ISSUE_COUNT Issues" || {
         echo "Python script failed"
         exit 1
       }
