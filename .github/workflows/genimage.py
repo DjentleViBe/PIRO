@@ -93,7 +93,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process readme status.")
     parser.add_argument("pr_status", type=str, help="The PR status argument (e.g., '0 Open')")
     parser.add_argument("release_status", type=str, help="The release number argument (e.g., '1.0.0')")
-    parser.add_argument("issues_status", type=str, help="The issues argument (e.g., '1 Issues')")
+    parser.add_argument("issue_status", type=str, help="The issues argument (e.g., '1 Issues')")
     args = parser.parse_args()
 
     readmestatus(args.pr_status, args.release_status, args.issue_status)
