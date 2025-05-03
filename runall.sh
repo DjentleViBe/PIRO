@@ -70,4 +70,4 @@ detect_os
 cp -r ./dependencies/assets ./bin/.
 mkdir -p logs
 
-./bin/GIRO$extension $FILE &> ./logs/$FILE.txt
+./bin/PIRO$extension $FILE &> ./logs/$FILE.txt
