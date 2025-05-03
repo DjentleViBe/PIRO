@@ -17,16 +17,22 @@
 <h2> </h2>
 
 ## Table of Contents
-- [About](#-about)
-- [Features](#-certification)
-- [How to Build](#-how-to-build)
-- [Documentation](#-documentation)
-- [Feedback and Contributions](#-feedback-and-contributions)
-- [License](#-license)
-- [Contacts](#%EF%B8%8F-contacts)
+- [About](#about)
+- [Features](#features)
+- [Running](#running)
+- [How to Build](#how-to-build)
+- [Documentation](#documentation)
+- [Feedback and Contributions](#feedback-and-contributions)
+- [License](#license)
 
 ## About 
+**PIRO** is an open-source C++/OpenCL software for performing high-performance numerical simulations. It provides modular solvers, supports various sparse formats (CSR, COO), and offers kernel-level customization for advanced users. PIRO is designed for research and production workflows requiring scalable parallel matrix computations.
 ## Features
+- __Cross-platform CPU / GPU operation__ via OpenCL.
+- __Modular equation__ solver.
+- __Post processing__ export function for viewing results (e.g Paraview).
+- __Benchmarking__ tools and diagnostics. 
+
 ### Operators
 | Name | Description | Syntax | Status |
 | --- | --- | --- | --- |
@@ -46,29 +52,51 @@
 | Leapfrog | Time | 14 | `Plan` |
 | RK2 | Time | 15 | `Plan` |
 | RK4 | Time | 16 | `Plan` |
+| LU Decomposition | Solver | 17 | `Plan` |
 ***
-`Plan Dev Release`
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Running
-### Windows
-1. Run ```.\bin\GIRO_devices.exe``` to get list of platform id and device id.
-2. Edit id and platformid values in .\dependencies\assets\setup_*.ini. with the numbers obtained from 1.
-3. Make sure the following files are in the LF format.
-    - ./dependencies/assets/IC/*.ini
-    - ./dependencies/assets/*.ini
-4. Run ```perf_test.bat```
+1. Run the following program to get device details. Refer [Building](#how-to-build) for instructions on compiling the device program on your own.
 
-### Macos
-1. Run ```./bin/GIRO_devices``` to get list of platform id and device id.
-2. Edit id and platformid values in ./dependencies/assets/setup_*.ini. with the numbers obtained from 1.
-3. Make sure the following files are in the LF format.
-    - ./dependencies/assets/IC/*.ini
-    - ./dependencies/assets/*.ini
-4. Run ```./perf_test.sh```
+| File | Operating Sytem |
+| --- | --- |
+|```Piro_devices_MacOS``` | MacOS (x64) |
+|```Piro_devices_WIN```   | Windows(x64)|
+|```Piro_devices_LIN```   | Linux (x64) |
 
-Logs are output inside ./logs/
+
+2. Edit the necessary files according to instructions in [setup.md](./dependencies/assets/setup.md).
+3. Run the command ```./runall.sh -f setup.ini``` to start the simulation. Log files are stored in [logs](./logs) folder.
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## How to Build
-### Requirements
-```shell
+1. Clone the repo
+```bash
+git clone https://github.com/DjentleViBe/PIRO.git
 ```
+2. Run the command ```./makeall.sh```. The executable file is stored under [bin](./bin) folder.
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Documentation
+List of manuals:
+- [setup.ini](./dependencies/assets/setup.md)
+- [IC.ini](./dependencies/assets/IC.md)
+- [BC.ini](./dependencies/assets/BC.md)
+
+List of papers:
+- [JOSS - A Sparse Matrix parallel solver for OpenCL](./paper.md)
+
 ## Feedback and Contributions
+Contributions are always welcome to help improve this project! If you have any suggestions, feel free to fork the repository and create a pull request. If you enjoy the project, please consider giving it a star. Thanks for your support!"
+
+1. Fork the Project
+2. Create your Feature Branch (```git checkout -b feature/AmazingFeature```)
+3. Commit your Changes (```git commit -m 'Add some AmazingFeature'```)
+4. Push to the Branch (```git push origin feature/AmazingFeature```)
+5. Open a Pull Request
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## License
+Distributed under the MIT License.
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
