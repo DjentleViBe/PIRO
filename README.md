@@ -52,7 +52,7 @@
 | Leapfrog | Time | 14 | `Plan` |
 | RK2 | Time | 15 | `Plan` |
 | RK4 | Time | 16 | `Plan` |
-| LU Decomposition | Solver | 17 | `Dev` |
+| LU Decomposition | Solver | 27 | `Dev` |
 ***
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

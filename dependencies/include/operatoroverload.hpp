@@ -76,7 +76,7 @@ class CLBuffer{
 
             else if(SP.timescheme == 12){
                 std::cout << "Backward Euler" << std::endl;
-                    if(SP.solverscheme == 17){
+                    if(SP.solverscheme == 27){
                         Logger::info("LU Decomposition");
                         int N = MP.n[0] * MP.n[1] * MP.n[2];
                         int index = MP.vectornum + MP.scalarnum;
