@@ -38,9 +38,11 @@ jobs:
       PR_RESPONSE=$(curl -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}" \
       "https://api.github.com/repos/${{ github.repository }}/pulls?state=open")
       echo "PR Response: $PR_RESPONSE"  # Debugging line
-      ISSUE_COUNT=$(curl -s -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}" \
-      "https://api.github.com/repos/${{ github.repository }}/issues?state=open&filter=all")
-      echo "Open issues: $ISSUE_COUNT"
+      ISSUE_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}" \
+      "https://api.github.com/repos/${{ github.repository }}/issues?state=open&filter=all&per_page=100")
+
+      ISSUE_COUNT=$(echo "$ISSUE_RESPONSE" | jq '[.[] | select(.pull_request | not)] | length')
+
 
       RELEASE_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.FINE_GRAINED_TOKEN }}" \
       "https://api.github.com/repos/${{ github.repository }}/releases/latest")
