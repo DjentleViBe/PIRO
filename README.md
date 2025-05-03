@@ -57,7 +57,9 @@
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Running
-1. Run the following program to get device details. Refer [Building](#how-to-build) for instructions on compiling the device program on your own.
+1. Download the necessary executables from the latest [release](https://github.com/DjentleViBe/PIRO/releases/new).
+2. Copy the executables to the [bin](./bin) directory (create one manually in the root directory if it does not exist).
+3. Run the following program to get device details. Refer [Building](#how-to-build) instructions for compiling the program on your own.
 
 | File | Operating Sytem |
 | --- | --- |
@@ -65,17 +67,33 @@
 |```Piro_devices_WIN```   | Windows(x64)|
 |```Piro_devices_LIN```   | Linux (x64) |
 
+4. Make the required changes to the appropriate files as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format.
 
-2. Edit the necessary files according to instructions in [setup.md](./dependencies/assets/setup.md).
-3. Run the command ```./runall.sh -f setup.ini``` to start the simulation. Log files are stored in [logs](./logs) folder.
+5. Execute the command ```./runall.sh -f <setup.ini>``` to initiate the simulation. Log files are stored in the [logs](./logs) folder with the name used for setup file. If the setup file is renamed, update the filename in the command accordingly.
+
+6. Results are stored in the [bin](./bin) directory in a folder with the casename value given in the setup file.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## How to Build
-1. Clone the repo
+Clone the repo:
 ```bash
 git clone https://github.com/DjentleViBe/PIRO.git
 ```
-2. Run the command ```./makeall.sh```. The executable file is stored under [bin](./bin) folder.
+## Devices program
+1. Switch to the ```devices_list``` branch. 
+```bash
+git checkout devices_list
+``` 
+2. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
+
+## Simulation program
+1. Switch to the branch of interest using 
+```bash
+git checkout <branch-name>
+``` 
+2. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Documentation
@@ -91,7 +109,7 @@ List of papers:
 Contributions are always welcome to help improve this project! If you have any suggestions, feel free to fork the repository and create a pull request. If you enjoy the project, please consider giving it a star. Thanks for your support!"
 
 1. Fork the Project
-2. Create your Feature Branch (```git checkout -b feature/AmazingFeature```)
+2. Create your Feature Branch (```git checkout -b feature/AmazingFeature```. For performance studies, ```performance/PerformanceStudyName```.)
 3. Commit your Changes (```git commit -m 'Add some AmazingFeature'```)
 4. Push to the Branch (```git push origin feature/AmazingFeature```)
 5. Open a Pull Request

@@ -1,5 +1,7 @@
 # setup.ini
-This section is used to give details on fields and parameters used in setup.ini files. Please refer to the Features section on the main page for latest implementation before changing values.
+This section is used to give details on fields and parameters used in setup.ini files. Please refer to the Features section on the main page for latest implementation before changing values. 
+The command for running the simulation : ```./runall.sh -f <setup.ini>```
+If the setup file is renamed, update the filename in the command accordingly.
 
 ## [File]
 Folder and file management section.
