@@ -65,13 +65,13 @@ jobs:
         echo "Python script failed"
         exit 1
       }
+      git diff --name-only pics/*.png | grep -q . && CHANGED=true || CHANGED=false
 
-      # Check for changes in image files
-      git diff --exit-code pics/*.png
-      if [ $? -eq 0 ]; then
-        echo "No changes in the image files, skipping commit."
-      else
+      if [ "$CHANGED" = true ]; then
         git add pics/*.png
-        git commit -m "Update README status with latest PR and issue count"
+        git commit -m "Update status images"
         git push https://x-access-token:${{ secrets.FINE_GRAINED_TOKEN }}@github.com/${{ github.repository }}.git
+      else
+        echo "No image changes detected."
       fi
+      
