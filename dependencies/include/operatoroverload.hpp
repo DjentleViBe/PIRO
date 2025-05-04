@@ -17,6 +17,7 @@
 #include <set>
 #include <unordered_set>
 #include <algorithm>
+#include <methods.hpp>
 
 namespace Piro{
     class Equation{
@@ -123,7 +124,7 @@ class CLBuffer{
                                     int row = i;
 
                                     ind = row * N + col;
-                                    sethash(ind, cd.values[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
+                                    Piro::Methods::sethash(ind, cd.values[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
                                 }
                             }
                             // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
@@ -152,7 +153,7 @@ class CLBuffer{
                                 // std::cout << Hash_val_V[141] << ", "<< Hash_keys_V[141] <<std::endl;
                                 // extract rowouter
                                 for(int co = rowouter; co < N; co++){
-                                    float valofrow = lookup(rowouter, co, N, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                    float valofrow = Piro::Methods::lookup(rowouter, co, N, Hash_keys_V, Hash_val_V, TABLE_SIZE);
                                     if(std::abs(valofrow) > 1E-6){
                                         rowouter_cols.push_back(co);
                                     }
@@ -160,14 +161,14 @@ class CLBuffer{
                                 Piro::Logger::warning("row outer", rowouter_cols);
                                 
                                 for (int r = rowouter + 1; r < N; ++r) {
-                                    if(lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
+                                    if(Piro::Methods::lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
                                         continue;
                                     }
         
                                     for (int col : rowouter_cols) {
                                         // std::cout << col << ", ";
                                         // if(col < rowouter) continue;
-                                        lookupandset(r, col, N, 0.0f, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                        Piro::Methods::lookupandset(r, col, N, 0.0f, Hash_keys_V, Hash_val_V, TABLE_SIZE);
                                         /*
                                         if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
                                             // set the col in the hash table directly

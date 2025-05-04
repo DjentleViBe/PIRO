@@ -1,6 +1,17 @@
 #ifndef printutilities_hpp
 #define printutilities_hpp
 
+#ifdef __APPLE__
+    #include <mach-o/dyld.h>
+    #include <OpenCL/opencl.h>
+#elif _WIN32
+    #include "windows.h"
+    #include "./CL/opencl.h"
+#else 
+    #include "windows.h"
+    #include "./CL/opencl.h"
+#endif
+
 namespace Piro::PrintUtilities{
     void printMatrix(const std::vector<std::vector<float>>& matrix);
     void printMatrix(const std::vector<std::vector<int>>& matrix);

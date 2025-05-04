@@ -1,5 +1,6 @@
 #include <extras.hpp>
 #include <iomanip>
+#include <methods.hpp>
 
 namespace Piro::PrintUtilities{
     void printMatrix(const std::vector<std::vector<float>>& matrix) {
@@ -125,7 +126,7 @@ namespace Piro::PrintUtilities{
     void hash_to_dense_and_print(std::vector<int> Hashkeys, std::vector<float> HashValues, int N, int TABLE_SIZE){
         for (int i = 0; i < N; i++){
             for (int j = 0; j < N; j++){
-                float val = lookup(i, j, N, Hashkeys, HashValues, TABLE_SIZE);
+                float val = Piro::Methods::lookup(i, j, N, Hashkeys, HashValues, TABLE_SIZE);
                 Piro::Logger::debug_print(std::round(val * 100.0f) / 100.0f, "\t");
                 // std::cout << std::fixed << std::setprecision(2) << val << "\t";
             }
