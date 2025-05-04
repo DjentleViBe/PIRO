@@ -18,12 +18,12 @@
 #else
     #include "./CL/opencl.h"
 #endif
-extern Giro::SolveParams SP;
+extern Piro::SolveParams SP;
 extern char* dt;
 extern std::time_t now;
 
 int solve();
-namespace Giro{
+namespace Piro{
     class MathOperations{
         public:
             int idx(int i, int j, int k, int N_x, int N_y) {

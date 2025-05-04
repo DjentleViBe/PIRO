@@ -5,7 +5,7 @@
 
 typedef unsigned int uint;
 
-namespace Giro{
+namespace Piro{
     class fvMatrix{
         public:
             typedef int d1scalar_i;

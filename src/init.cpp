@@ -10,10 +10,10 @@ std::filesystem::path current_path;
 void init(){
 
     if(SP.restart){
-        delete_directory(current_path.string() + "/" + SP.casename);
+        Piro::FileUtilities::delete_directory(current_path.string() + "/" + SP.casename);
     }
-    create_directory(current_path.string() + "/" + SP.casename);
-    create_directory(current_path.string() + "/" + SP.casename + "/mesh");
-    create_directory(current_path.string() + "/" + SP.casename + "/mesh/level");
+    Piro::FileUtilities::create_directory(current_path.string() + "/" + SP.casename);
+    Piro::FileUtilities::create_directory(current_path.string() + "/" + SP.casename + "/mesh");
+    Piro::FileUtilities::create_directory(current_path.string() + "/" + SP.casename + "/mesh/level");
 
 }

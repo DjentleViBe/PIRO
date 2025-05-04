@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
     
     std::string name = argv[1];
 
-	get_exec_directory();
+	Piro::FileUtilities::get_exec_directory();
 	preprocess(name);
 	solve();
 	// postprocess("T");

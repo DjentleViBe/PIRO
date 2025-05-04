@@ -21,11 +21,11 @@
     #include "../dependencies/include/CL/opencl.h"
 #endif
 
-Giro::MeshParams MP;
-Giro::SolveParams SP;
-Giro::DeviceParams DP;
-Giro::CellDataGPU CDGPU;
-Giro::Equation RHS;
+Piro::MeshParams MP;
+Piro::SolveParams SP;
+Piro::DeviceParams DP;
+Piro::CellDataGPU CDGPU;
+Piro::Equation RHS;
 CLBuffer CD_GPU;
 cl_mem RHSterms;
 int debuginfo;
@@ -83,7 +83,7 @@ int preprocess(const std::string& name) {
     
     for(int i = 0; i <= MP.levels; i++){
 
-        Giro::AMR AMR;
+        Piro::AMR AMR;
         AMR.WholeExtent[0] = 0;
         AMR.WholeExtent[1] = MP.n[0];
         AMR.WholeExtent[2] = 0;
@@ -112,7 +112,7 @@ int preprocess(const std::string& name) {
     MP.ICfiles = splitString(reader.get("IC", "filename", "default_value"), ' ');
     std::cout << "Initialising scalars and vectors" << std::endl;
     int j = 0;
-    Giro::CellData CD;
+    Piro::CellData CD;
     //CLBuffer CD_GPU;
     // total number of cells
     int N = MP.n[0] * MP.n[1] * MP.n[2];
@@ -179,7 +179,7 @@ bool isValidIndex(int index){
 
 int laplacian_CSR_init(){
     int N = MP.n[0] * MP.n[1] * MP.n[2];
-    Giro::CellData CD;
+    Piro::CellData CD;
     MP.AMR[0].CD.push_back(CD);
     CDGPU.laplacian_csr.push_back(CD_GPU);
     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].type = 2; // row pointers

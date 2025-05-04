@@ -9,7 +9,7 @@
 #include <iostream>
 #include <algorithm>
 
-std::string writevti(Giro::AMR AMR){
+std::string writevti(Piro::AMR AMR){
     std::string level = "";
     level = "<VTKFile type=\"ImageData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
     level += "<ImageData WholeExtent=\""+
@@ -123,11 +123,11 @@ void writevth(int timestep){
                         std::to_string(MP.n[2] - 2) + "\" ";
             vtkfile += "file=\"level/" + ts_string + "_level_" + std::to_string(j) + ".vti\">\n";
             vtkfile += "</DataSet>\n";
-            writefile(current_path.string() + "/" + SP.casename + "/mesh/level/" + ts_string + "_level_" + std::to_string(j) + ".vti", writevti(MP.AMR[j]));
+            Piro::FileUtilities::writefile(current_path.string() + "/" + SP.casename + "/mesh/level/" + ts_string + "_level_" + std::to_string(j) + ".vti", writevti(MP.AMR[j]));
         }
         vtkfile += "</Block>\n";
     }
     vtkfile += "</vtkOverlappingAMR>\n</VTKFile>\n";
-    writefile(current_path.string() + "/" + SP.casename + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
+    Piro::FileUtilities::writefile(current_path.string() + "/" + SP.casename + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
 
 }

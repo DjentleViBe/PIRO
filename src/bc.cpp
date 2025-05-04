@@ -21,7 +21,7 @@ std::vector<int> indices_toprint;
 std::vector<int> indices_toprint_vec;
 std::vector<std::string> BC_property;
 std::vector<float> BC_value;
-Giro::Solve GS;
+Piro::Solve GS;
 uint Q;
 cl_mem memD, memE;
 

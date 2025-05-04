@@ -18,7 +18,7 @@
 #include <unordered_set>
 #include <algorithm>
 
-namespace Giro{
+namespace Piro{
     class Equation{
         public:
             cl_mem operandvalues;
@@ -29,7 +29,7 @@ namespace Giro{
     };
 };
 
-extern Giro::Equation RHS;
+extern Piro::Equation RHS;
 const float EPSILON = 1E-6;
 
 class CLBuffer{
@@ -403,7 +403,7 @@ class CLBuffer{
         }
 };
 
-namespace Giro{
+namespace Piro{
     class CellDataGPU{
         public:
             std::vector<CLBuffer> values_gpu;
@@ -412,6 +412,6 @@ namespace Giro{
     };
 };
 
-extern Giro::CellDataGPU CDGPU;
+extern Piro::CellDataGPU CDGPU;
 
 #endif // OPERATOR_OVERLOAD_HPP

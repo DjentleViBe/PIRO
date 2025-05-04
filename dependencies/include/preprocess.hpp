@@ -12,9 +12,9 @@
     #include "./CL/opencl.h"
 #endif
 
-extern Giro::MeshParams MP;
-extern Giro::SolveParams SP;
-extern Giro::DeviceParams DP;
+extern Piro::MeshParams MP;
+extern Piro::SolveParams SP;
+extern Piro::DeviceParams DP;
 extern int ts;
 extern bool LAP_INIT;
 extern bool RHS_INIT;
