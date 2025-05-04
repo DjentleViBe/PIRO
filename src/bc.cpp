@@ -1,19 +1,19 @@
 #include <iostream>
 #include <vector>
-#include "../dependencies/include/preprocess.hpp"
-#include "../dependencies/include/init.hpp"
-#include "../dependencies/include/inireader.hpp"
-#include "../dependencies/include/extras.hpp"
-#include "../dependencies/include/stringutilities.hpp"
-#include "../dependencies/include/bc.hpp"
-#include "../dependencies/include/solve.hpp"
+#include <preprocess.hpp>
+#include <init.hpp>
+#include <inireader.hpp>
+#include <extras.hpp>
+#include <stringutilities.hpp>
+#include <bc.hpp>
+#include <solve.hpp>
 #include <algorithm>
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
 #elif _WIN32
-    #include "../dependencies/include/CL/opencl.h"
+    #include <CL/opencl.h"
 #else
-    #include "../dependencies/include/CL/opencl.h"
+    #include <CL/opencl.h"
 #endif
 
 std::vector<std::vector<int>> indices(6, std::vector<int>());

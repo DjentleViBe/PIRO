@@ -1,10 +1,10 @@
 #include <vector>
-#include "../dependencies/include/preprocess.hpp"
-#include "../dependencies/include/init.hpp"
-#include "../dependencies/include/ic.hpp"
-#include "../dependencies/include/inireader.hpp"
-#include "../dependencies/include/extras.hpp"
-#include "../dependencies/include/stringutilities.hpp"
+#include <preprocess.hpp>
+#include <init.hpp>
+#include <ic.hpp>
+#include <inireader.hpp>
+#include <extras.hpp>
+#include <stringutilities.hpp>
 #include <cmath>
 
 #ifndef M_PI

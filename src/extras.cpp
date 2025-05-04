@@ -6,10 +6,10 @@
 #include <algorithm>
 #include <sstream>
 #include <iterator>
-#include "../dependencies/include/extras.hpp"
-#include "../dependencies/include/datatypes.hpp"
-#include "../dependencies/include/init.hpp"
-#include "operatoroverload.hpp"
+#include <extras.hpp>
+#include <datatypes.hpp>
+#include <init.hpp>
+#include <operatoroverload.hpp>
 #ifdef __APPLE__
     #include <mach-o/dyld.h>
     #include <OpenCL/opencl.h>

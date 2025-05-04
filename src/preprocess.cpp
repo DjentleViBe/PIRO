@@ -2,23 +2,23 @@
 #include <vector>
 #include <string>
 
-#include "../dependencies/include/preprocess.hpp"
-#include "../dependencies/include/init.hpp"
-#include "../dependencies/include/inireader.hpp"
-#include "../dependencies/include/datatypes.hpp"
-#include "../dependencies/include/extras.hpp"
-#include "../dependencies/include/stringutilities.hpp"
-#include "../dependencies/include/solve.hpp"
-#include "../dependencies/include/ic.hpp"
-#include "../dependencies/include/bc.hpp"
-#include "../dependencies/include/operatoroverload.hpp"
+#include <preprocess.hpp>
+#include <init.hpp>
+#include <inireader.hpp>
+#include <datatypes.hpp>
+#include <extras.hpp>
+#include <stringutilities.hpp>
+#include <solve.hpp>
+#include <ic.hpp>
+#include <bc.hpp>
+#include <operatoroverload.hpp>
 
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
 #elif _WIN32
-    #include "../dependencies/include/CL/opencl.h"
+    #include <CL/opencl.h"
 #else
-    #include "../dependencies/include/CL/opencl.h"
+    #include <CL/opencl.h"
 #endif
 
 Piro::MeshParams MP;

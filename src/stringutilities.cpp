@@ -2,7 +2,7 @@
 #include <sstream>
 #include <numeric>
 #include <iterator>
-#include "../dependencies/include/extras.hpp"
+#include <extras.hpp>
 
 namespace Piro::StringUtilities{
     std::vector<std::string> splitString(const std::string& str, char delimiter) {

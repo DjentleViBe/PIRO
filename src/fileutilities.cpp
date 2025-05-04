@@ -3,7 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <extras.hpp>
-#include "../dependencies/include/init.hpp"
+#include <init.hpp>
 
 #ifdef __APPLE__
     #include <mach-o/dyld.h>

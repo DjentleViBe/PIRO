@@ -3,16 +3,16 @@
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
 #elif _WIN32
-    #include "../dependencies/include/CL/opencl.h"
+    #include <CL/opencl.h"
 #else
-    #include "../dependencies/include/CL/opencl.h"
+    #include <CL/opencl.h"
 #endif
-#include "../dependencies/include/gpuinit.hpp"
-#include "../dependencies/include/kernel.cl.h"
-#include "../dependencies/include/extras.hpp"
-#include "../dependencies/include/preprocess.hpp"
-#include "../dependencies/include/datatypes.hpp"
-#include "../dependencies/include/bc.hpp"
+#include <gpuinit.hpp>
+#include <kernel.cl.h>
+#include <extras.hpp>
+#include <preprocess.hpp>
+#include <datatypes.hpp>
+#include <bc.hpp>
 
 float* B_ptr;
 cl_int err;

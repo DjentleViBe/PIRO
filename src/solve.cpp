@@ -1,7 +1,7 @@
-#include "../dependencies/include/bc.hpp"
-#include "../dependencies/include/solve.hpp"
-#include "../dependencies/include/extras.hpp"
-#include "../dependencies/include/operatoroverload.hpp"
+#include <bc.hpp>
+#include <solve.hpp>
+#include <extras.hpp>
+#include <operatoroverload.hpp>
 
 #include <iostream>
 #include <ctime>

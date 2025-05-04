@@ -1,9 +1,9 @@
-#include "../dependencies/include/init.hpp"
-#include "../dependencies/include/preprocess.hpp"
-#include "../dependencies/include/solve.hpp"
-#include "../dependencies/include/postprocess.hpp"
-#include "../dependencies/include/bc.hpp"
-#include "../dependencies/include/fileutilities.hpp"
+#include <init.hpp>
+#include <preprocess.hpp>
+#include <solve.hpp>
+#include <postprocess.hpp>
+#include <bc.hpp>
+#include <fileutilities.hpp>
 #include <string>
 
 int main(int argc, char* argv[])

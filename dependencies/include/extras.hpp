@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
-#include "datatypes.hpp"
-#include "preprocess.hpp"
+#include <datatypes.hpp>
+#include <preprocess.hpp>
 #ifdef __APPLE__
     #include <mach-o/dyld.h>
     #include <OpenCL/opencl.h>

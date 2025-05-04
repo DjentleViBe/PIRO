@@ -1,9 +1,9 @@
 #include <iostream>
 #include <filesystem>
-#include "../dependencies/include/init.hpp"
-#include "../dependencies/include/extras.hpp"
-#include "../dependencies/include/solve.hpp"
-#include "../dependencies/include/fileutilities.hpp"
+#include <init.hpp>
+#include <extras.hpp>
+#include <solve.hpp>
+#include <fileutilities.hpp>
 
 std::filesystem::path current_path;
 

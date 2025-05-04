@@ -1,10 +1,10 @@
-#include "../dependencies/include/postprocess.hpp"
-#include "../dependencies/include/bc.hpp"
-#include "../dependencies/include/preprocess.hpp"
-#include "../dependencies/include/datatypes.hpp"
-#include "../dependencies/include/init.hpp"
-#include "../dependencies/include/fileutilities.hpp"
-#include "../dependencies/include/stringutilities.hpp"
+#include <postprocess.hpp>
+#include <bc.hpp>
+#include <preprocess.hpp>
+#include <datatypes.hpp>
+#include <init.hpp>
+#include <fileutilities.hpp>
+#include <stringutilities.hpp>
 #include <string>
 #include <iostream>
 #include <algorithm>
