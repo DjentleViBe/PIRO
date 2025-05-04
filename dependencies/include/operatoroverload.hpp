@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <methods.hpp>
 #include <openclutilities.hpp>
+#include <logger.hpp>
 
 namespace Piro{
     class Equation{

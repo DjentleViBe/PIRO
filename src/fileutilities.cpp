@@ -4,6 +4,7 @@
 #include <fstream>
 #include <extras.hpp>
 #include <init.hpp>
+#include <logger.hpp>
 
 #ifdef __APPLE__
     #include <mach-o/dyld.h>

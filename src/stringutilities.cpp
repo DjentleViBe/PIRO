@@ -3,6 +3,7 @@
 #include <numeric>
 #include <iterator>
 #include <extras.hpp>
+#include <logger.hpp>
 
 namespace Piro::string_utilities{
     std::vector<std::string> splitString(const std::string& str, char delimiter) {

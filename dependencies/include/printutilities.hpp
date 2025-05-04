@@ -1,5 +1,6 @@
 #ifndef printutilities_hpp
 #define printutilities_hpp
+#include <vector>
 
 #ifdef __APPLE__
     #include <mach-o/dyld.h>

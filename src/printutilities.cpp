@@ -2,6 +2,8 @@
 #include <iomanip>
 #include <methods.hpp>
 #include <preprocess.hpp>
+#include <logger.hpp>
+
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
 #elif _WIN32

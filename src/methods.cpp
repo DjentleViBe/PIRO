@@ -2,6 +2,7 @@
 #include <printutilities.hpp>
 #include <extras.hpp>
 #include <preprocess.hpp>
+#include <logger.hpp>
 
 namespace Piro::methods{
     float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {

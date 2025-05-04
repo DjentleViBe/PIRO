@@ -15,6 +15,7 @@
 #include <datatypes.hpp>
 #include <bc.hpp>
 #include <vector>
+#include <logger.hpp>
 
 float* B_ptr;
 cl_int err;
