@@ -90,7 +90,6 @@ void printVector(const std::vector<float>& vec);
 void printVector(const std::vector<int>& vec);
 void printArray(float* array, uint size);
 std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector);
-int countWords(const std::string& str);
 template <typename T>
 std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *event6) {
     std::vector<T> hostValues(N);

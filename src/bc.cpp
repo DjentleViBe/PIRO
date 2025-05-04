@@ -129,9 +129,9 @@ void initbc(){
     }
 
     IniReader reader(current_path.string() + "/assets/setup.ini");
-    BC_type = convertStringVectorToInt(splitString(reader.get("BC", "type", "default_value"), ' '));
-    BC_property = splitString(reader.get("BC", "property", "default_value"), ' ');
-    BC_value = convertStringVectorToFloat(splitString(reader.get("BC", "values", "default_value"), ' '));
+    BC_type = Piro::StringUtilities::convertStringVectorToInt(Piro::StringUtilities::splitString(reader.get("BC", "type", "default_value"), ' '));
+    BC_property = Piro::StringUtilities::splitString(reader.get("BC", "property", "default_value"), ' ');
+    BC_value = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(reader.get("BC", "values", "default_value"), ' '));
     setbc();
     prepbc();
 
@@ -143,7 +143,7 @@ void readbc(){
     std::cout << "Reading boundary conditions" << std::endl;
     IniReader reader(current_path.string() + "/assets/setup.ini");
 
-    if(countSpaces(reader.get("BC", "type", "default_value")) > 1){
+    if(Piro::StringUtilities::countSpaces(reader.get("BC", "type", "default_value")) > 1){
         initbc();
     }
 

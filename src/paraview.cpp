@@ -53,7 +53,7 @@ std::string writevti(Piro::AMR AMR){
             level.append("<DataArray type=\"Float64\" Name=\"");
             level.append(AMR.CD[l].Scalars);
             level.append("\" format=\"ascii\">\n");
-            level.append(concatenateStrings2(floatScalarToString(AMR.CD[l].values)));
+            level.append(Piro::StringUtilities::concatenateStrings2(Piro::StringUtilities::floatScalarToString(AMR.CD[l].values)));
             level.append("</DataArray>\n");
         }
         else{
@@ -70,21 +70,21 @@ std::string writevti(Piro::AMR AMR){
                         level.append("<DataArray type=\"Float64\" Name=\"");
                         level.append(AMR.CD[l].Scalars + "_x");
                         level.append("\" format=\"ascii\">\n");
-                        level.append(concatenateStrings2(floatVectorToString(AMR.CD[l].values, 0)));
+                        level.append(Piro::StringUtilities::concatenateStrings2(Piro::StringUtilities::floatVectorToString(AMR.CD[l].values, 0)));
                         level.append("</DataArray>\n");
                         break;
                     case 1:
                         level.append("<DataArray type=\"Float64\" Name=\"");
                         level.append(AMR.CD[l].Scalars + "_y");
                         level.append("\" format=\"ascii\">\n");
-                        level.append(concatenateStrings2(floatVectorToString(AMR.CD[l].values, 1)));
+                        level.append(Piro::StringUtilities::concatenateStrings2(Piro::StringUtilities::floatVectorToString(AMR.CD[l].values, 1)));
                         level.append("</DataArray>\n");
                         break;
                     case 2:
                         level.append("<DataArray type=\"Float64\" Name=\"");
                         level.append(AMR.CD[l].Scalars + "_z");
                         level.append("\" format=\"ascii\">\n");
-                        level.append(concatenateStrings2(floatVectorToString(AMR.CD[l].values, 2)));
+                        level.append(Piro::StringUtilities::concatenateStrings2(Piro::StringUtilities::floatVectorToString(AMR.CD[l].values, 2)));
                         level.append("</DataArray>\n");
                         break;
                 }
