@@ -19,81 +19,71 @@
 #endif
 extern int debuginfo;
 void print_time();
-class Logger {
-    public:
-        template<typename... Args>
-        static void info(const Args&... args) {
-            if(debuginfo >= 0){
-                print_time();
-                ((std::cout << args << " "), ...);
-                std::cout << "" << std::endl;
-            }
-        }
-        
-        template<typename... Args>
-        static void error(const Args&... args) {
-            if(debuginfo >= 3){
-                print_time();
-                ((std::cout << args << " "), ...);
-                std::cout << "" << std::endl;
-            }
-        }
-
-        template<typename... Args>
-        static void debug(const Args&... args) {
-            if(debuginfo >= 1){
-                print_time();
-                ((std::cout << args << " "), ...);
-                std::cout << "" << std::endl;
-            }
-        }
-        template<typename... Args>
-        static void debug_print(const Args&... args) {
-            if(debuginfo >= 1){
-                ((std::cout << args << " "), ...);
-                // std::cout << "" << std::endl;
-            }
-        }
-
-        // Basic case with a single argument
-        template<typename T>
-        static void info_debug(const T& arg) {
-            std::cout << arg;
-        }
-        
-        // Specialization for vectors
-        template<typename T>
-        static void info_debug(const std::vector<T>& vec) {
-            for (const auto& item : vec) {
-                std::cout << item << " ";
-            }
-        }
-
-        // Variadic template version for multiple arguments
-        template<typename T, typename... Args>
-        static void warning(const T& first, const Args&... args) {
-            if(debuginfo >= 2){
-                print_time();
-                info_debug(first);  // Handle the first argument
-                info_debug(args...); // Recursive call for remaining arguments
-                std::cout << "" << std::endl;
+namespace Piro{
+    class Logger {
+        public:
+            template<typename... Args>
+            static void info(const Args&... args) {
+                if(debuginfo >= 0){
+                    print_time();
+                    ((std::cout << args << " "), ...);
+                    std::cout << "" << std::endl;
+                }
             }
             
-        }
-    };
-int writefile(std::string file_path, std::string line_to_write);
-int create_directory(std::string directoryname);
-int delete_directory(std::string folderPath);
-int get_exec_directory();
-std::vector<std::string> splitString(const std::string& str, char delimiter);
-std::vector<int> convertStringVectorToInt(const std::vector<std::string>& stringVector);
-std::vector<uint> convertStringVectorToUInt(const std::vector<std::string>& stringVector);
-std::vector<float> convertStringVectorToFloat(const std::vector<std::string>& stringVector);
-std::vector<std::string> floatVectorToString(const std::vector<float>& floatVector, int dex);
-std::vector<std::string> floatScalarToString(const std::vector<float>& floatScalar);
-std::string concatenateStrings(const std::vector<std::string>& strVector);
-int countSpaces(const std::string& str);
-std::string concatenateStrings2(const std::vector<std::string>& strVector);
+            template<typename... Args>
+            static void error(const Args&... args) {
+                if(debuginfo >= 3){
+                    print_time();
+                    ((std::cout << args << " "), ...);
+                    std::cout << "" << std::endl;
+                }
+            }
+
+            template<typename... Args>
+            static void debug(const Args&... args) {
+                if(debuginfo >= 1){
+                    print_time();
+                    ((std::cout << args << " "), ...);
+                    std::cout << "" << std::endl;
+                }
+            }
+            template<typename... Args>
+            static void debug_print(const Args&... args) {
+                if(debuginfo >= 1){
+                    ((std::cout << args << " "), ...);
+                    // std::cout << "" << std::endl;
+                }
+            }
+
+            // Basic case with a single argument
+            template<typename T>
+            static void info_debug(const T& arg) {
+                std::cout << arg;
+            }
+            
+            // Specialization for vectors
+            template<typename T>
+            static void info_debug(const std::vector<T>& vec) {
+                for (const auto& item : vec) {
+                    std::cout << item << " ";
+                }
+            }
+
+            // Variadic template version for multiple arguments
+            template<typename T, typename... Args>
+            static void warning(const T& first, const Args&... args) {
+                if(debuginfo >= 2){
+                    print_time();
+                    info_debug(first);  // Handle the first argument
+                    info_debug(args...); // Recursive call for remaining arguments
+                    std::cout << "" << std::endl;
+                }
+                
+            }
+        };
+}
+
 void printMatrix(const std::vector<std::vector<float>>& matrix);
 void printMatrix(const std::vector<std::vector<int>>& matrix);
 void printVector(const std::vector<float>& vec);
@@ -182,9 +172,9 @@ inline int lookupandset(int row, int col, int N, float value, std::vector<int>& 
         Hash_val_V[first_deleted] = value;
         return 0;
     }
-    Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
-    Logger::warning("hashkeys : ", Hash_keys_V);
-    Logger::warning("hashvalues : ", Hash_val_V);
+    Piro::Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
+    Piro::Logger::warning("hashkeys : ", Hash_keys_V);
+    Piro::Logger::warning("hashvalues : ", Hash_val_V);
     hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
     std::exit(1);
     // Key not found
@@ -227,9 +217,9 @@ inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_
     }
 
     // Table is truly full
-    Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
-    Logger::warning("hashkeys : ", Hash_keys_V);
-    Logger::warning("hashvalues : ", Hash_val_V);
+    Piro::Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
+    Piro::Logger::warning("hashkeys : ", Hash_keys_V);
+    Piro::Logger::warning("hashvalues : ", Hash_val_V);
     hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
     std::exit(1);
     return -1;

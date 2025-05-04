@@ -4,6 +4,7 @@
 #include "../dependencies/include/init.hpp"
 #include "../dependencies/include/inireader.hpp"
 #include "../dependencies/include/extras.hpp"
+#include "../dependencies/include/stringutilities.hpp"
 #include "../dependencies/include/bc.hpp"
 #include "../dependencies/include/solve.hpp"
 #include <algorithm>

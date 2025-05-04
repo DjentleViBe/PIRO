@@ -77,12 +77,12 @@ class CLBuffer{
             else if(SP.timescheme == 12){
                 std::cout << "Backward Euler" << std::endl;
                     if(SP.solverscheme == 27){
-                        Logger::info("LU Decomposition");
+                        Piro::Logger::info("LU Decomposition");
                         int N = MP.n[0] * MP.n[1] * MP.n[2];
                         int index = MP.vectornum + MP.scalarnum;
                         if(RHS_INIT == false){
                             cl_event event0, event1, event4, event5, event7, event8, event9;
-                            Logger::debug("Buffer creation begin");
+                            Piro::Logger::debug("Buffer creation begin");
                             
                             MP.AMR[0].CD[index].rowpointers = copyCL<int>(queue, other[0].buffer, N + 1, &event7);
                             MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, RHS.sparsecount, &event8);
@@ -97,8 +97,8 @@ class CLBuffer{
                             // int raw_size = cd.columns.size() / load;
                             // int TABLE_SIZE = next_prime(raw_size);
                             int TABLE_SIZE = RHS.sparsecount / (load * SP.loadfactor);
-                            Logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", load * SP.loadfactor);
-                            Logger::warning("N * N :", N*N);
+                            Piro::Logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", load * SP.loadfactor);
+                            Piro::Logger::warning("N * N :", N*N);
                             
                             LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
                             LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
@@ -106,11 +106,11 @@ class CLBuffer{
                             err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &LFvalues.buffer);
                             err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_int), &N);
                             err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &TABLE_SIZE);
-                            Logger::debug("Buffer creation end");
+                            Piro::Logger::debug("Buffer creation end");
                             size_t globalWorkSize[1];
                             size_t localWorkSize[1];
                             int ind;
-                            Logger::debug("Loop begin");
+                            Piro::Logger::debug("Loop begin");
                             
                             std::vector<float> Hash_val_V(TABLE_SIZE, 0.0);
                             std::vector<int> Hash_keys_V(TABLE_SIZE, -1);
@@ -144,11 +144,11 @@ class CLBuffer{
                             clWaitForEvents(2, (cl_event[]){event0, event1});
                             int limit;
                             for (int rowouter = 0; rowouter < N - 1; rowouter++){
-                                Logger::info("rowouter :", rowouter, ", HashTable size :", TABLE_SIZE);
+                                Piro::Logger::info("rowouter :", rowouter, ", HashTable size :", TABLE_SIZE);
                                 std::vector<int> rowouter_cols;
                                 
-                                //Logger::warning("Hashkeys:", Hash_keys_V);
-                                //Logger::warning("Hashvalues:", Hash_val_V);
+                                //Piro::Logger::warning("Hashkeys:", Hash_keys_V);
+                                //Piro::Logger::warning("Hashvalues:", Hash_val_V);
                                 // std::cout << Hash_val_V[141] << ", "<< Hash_keys_V[141] <<std::endl;
                                 // extract rowouter
                                 for(int co = rowouter; co < N; co++){
@@ -157,7 +157,7 @@ class CLBuffer{
                                         rowouter_cols.push_back(co);
                                     }
                                 }
-                                Logger::warning("row outer", rowouter_cols);
+                                Piro::Logger::warning("row outer", rowouter_cols);
                                 
                                 for (int r = rowouter + 1; r < N; ++r) {
                                     if(lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
@@ -181,13 +181,13 @@ class CLBuffer{
     
                                 }
                                 
-                                Logger::debug("Inserting 0s finished");
-                                //Logger::warning("Hashkeys:", Hash_keys_V);
-                                //Logger::warning("Hashvalues:", Hash_val_V);
+                                Piro::Logger::debug("Inserting 0s finished");
+                                //Piro::Logger::warning("Hashkeys:", Hash_keys_V);
+                                //Piro::Logger::warning("Hashvalues:", Hash_val_V);
                                 // query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
                                 //hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
-                                //Logger::warning("Hashkeys:", Hash_keys_V);
-                                //Logger::warning("Hashvalues:", Hash_val_V);
+                                //Piro::Logger::warning("Hashkeys:", Hash_keys_V);
+                                //Piro::Logger::warning("Hashvalues:", Hash_val_V);
                                 err = clEnqueueWriteBuffer(queue, LFkeys.buffer, CL_FALSE, 
                                                             0, 
                                                             sizeof(int) * TABLE_SIZE,
@@ -203,13 +203,13 @@ class CLBuffer{
 
                                 // Wait for all transfers to complete
                                 clWaitForEvents(2, (cl_event[]){event0, event1});
-                                Logger::debug("Map memory object finished");
+                                Piro::Logger::debug("Map memory object finished");
                                 // std::cout << cd.rowpointers[N] << std::endl;
                                 limit = (N - rowouter - 1) * (N - rowouter);
                                 // int mws = static_cast<int>(maxWorkGroupSize);
                                 size_t nnz = (size_t)limit;
                                 size_t local = (size_t)maxWorkGroupSize; // or whatever max workgroup size your device supports
-                                // Logger::debug("nnz :", nnz, "local :", mws);
+                                // Piro::Logger::debug("nnz :", nnz, "local :", mws);
                                 globalWorkSize[0] = ((nnz + local - 1) / local) * local;
                                 localWorkSize[0] = local;
                                 // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
@@ -217,18 +217,18 @@ class CLBuffer{
                                 err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
-                                Logger::debug("Kernel finished");
+                                Piro::Logger::debug("Kernel finished");
                                 copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
                                 copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
-                                Logger::debug("CopyCL");
-                                Logger::debug("Erased");
+                                Piro::Logger::debug("CopyCL");
+                                Piro::Logger::debug("Erased");
                                 //hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
                                 // query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
                                 
                             }
                             // copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
                             // copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);    
-                            Logger::debug("loop end");
+                            Piro::Logger::debug("loop end");
                             // printVector(MP.AMR[0].CD[index].values);
                             // printVector(MP.AMR[0].CD[index].rowpointers);
                             // csr_to_dense_and_print(cd.rowpointers,
@@ -236,10 +236,10 @@ class CLBuffer{
                             //                        cd.values, N);
                             RHS_INIT = true;
                             // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
-                            // Logger::warning("Hashkeys:", Hash_keys_V);
-                            // Logger::warning("Hashvalues:", Hash_val_V);
+                            // Piro::Logger::warning("Hashkeys:", Hash_keys_V);
+                            // Piro::Logger::warning("Hashvalues:", Hash_val_V);
                         }
-                        Logger::debug("RHS_INIT end" );
+                        Piro::Logger::debug("RHS_INIT end" );
                         // csr_to_dense_and_print(MP.AMR[0].CD[index].rowpointers, MP.AMR[0].CD[index].columns, MP.AMR[0].CD[index].values, N);
                         // printVector(MP.AMR[0].CD[index].values);
                     }

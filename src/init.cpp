@@ -3,6 +3,7 @@
 #include "../dependencies/include/init.hpp"
 #include "../dependencies/include/extras.hpp"
 #include "../dependencies/include/solve.hpp"
+#include "../dependencies/include/fileutilities.hpp"
 
 std::filesystem::path current_path;
 

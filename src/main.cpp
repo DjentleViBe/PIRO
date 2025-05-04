@@ -3,6 +3,7 @@
 #include "../dependencies/include/solve.hpp"
 #include "../dependencies/include/postprocess.hpp"
 #include "../dependencies/include/bc.hpp"
+#include "../dependencies/include/fileutilities.hpp"
 #include <string>
 
 int main(int argc, char* argv[])

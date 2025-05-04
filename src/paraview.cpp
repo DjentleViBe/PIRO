@@ -3,7 +3,8 @@
 #include "../dependencies/include/preprocess.hpp"
 #include "../dependencies/include/datatypes.hpp"
 #include "../dependencies/include/init.hpp"
-#include "../dependencies/include/extras.hpp"
+#include "../dependencies/include/fileutilities.hpp"
+#include "../dependencies/include/stringutilities.hpp"
 #include <string>
 #include <iostream>
 #include <algorithm>

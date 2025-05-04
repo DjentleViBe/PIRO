@@ -4,6 +4,7 @@
 #include "../dependencies/include/ic.hpp"
 #include "../dependencies/include/inireader.hpp"
 #include "../dependencies/include/extras.hpp"
+#include "../dependencies/include/stringutilities.hpp"
 #include <cmath>
 
 #ifndef M_PI

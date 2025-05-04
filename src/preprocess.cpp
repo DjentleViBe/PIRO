@@ -7,6 +7,7 @@
 #include "../dependencies/include/inireader.hpp"
 #include "../dependencies/include/datatypes.hpp"
 #include "../dependencies/include/extras.hpp"
+#include "../dependencies/include/stringutilities.hpp"
 #include "../dependencies/include/solve.hpp"
 #include "../dependencies/include/ic.hpp"
 #include "../dependencies/include/bc.hpp"
