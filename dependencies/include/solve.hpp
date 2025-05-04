@@ -7,6 +7,7 @@
 #include "extras.hpp"
 #include "postprocess.hpp"
 #include "operatoroverload.hpp"
+#include <printutilities.hpp>
 #include <iostream>
 #include <immintrin.h>
 #include <ctime>
@@ -277,9 +278,9 @@ namespace Piro{
                         std::cout << "Post processing started" << std::endl;
                         err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
                               sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
-                        print_time();
+                        Piro::PrintUtilities::print_time();
                         postprocess("T");
-                        print_time();
+                        Piro::PrintUtilities::print_time();
                         std::cout << "Post processing finished" << std::endl;
                     }
                 }

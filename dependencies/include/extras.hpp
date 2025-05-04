@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <datatypes.hpp>
 #include <preprocess.hpp>
+#include <printutilities.hpp>
 #ifdef __APPLE__
     #include <mach-o/dyld.h>
     #include <OpenCL/opencl.h>
@@ -18,14 +19,14 @@
     #include "./CL/opencl.h"
 #endif
 extern int debuginfo;
-void print_time();
+
 namespace Piro{
     class Logger {
         public:
             template<typename... Args>
             static void info(const Args&... args) {
                 if(debuginfo >= 0){
-                    print_time();
+                    Piro::PrintUtilities::print_time();
                     ((std::cout << args << " "), ...);
                     std::cout << "" << std::endl;
                 }
@@ -34,7 +35,7 @@ namespace Piro{
             template<typename... Args>
             static void error(const Args&... args) {
                 if(debuginfo >= 3){
-                    print_time();
+                    Piro::PrintUtilities::print_time();
                     ((std::cout << args << " "), ...);
                     std::cout << "" << std::endl;
                 }
@@ -43,7 +44,7 @@ namespace Piro{
             template<typename... Args>
             static void debug(const Args&... args) {
                 if(debuginfo >= 1){
-                    print_time();
+                    Piro::PrintUtilities::print_time();
                     ((std::cout << args << " "), ...);
                     std::cout << "" << std::endl;
                 }
@@ -74,7 +75,7 @@ namespace Piro{
             template<typename T, typename... Args>
             static void warning(const T& first, const Args&... args) {
                 if(debuginfo >= 2){
-                    print_time();
+                    Piro::PrintUtilities::print_time();
                     info_debug(first);  // Handle the first argument
                     info_debug(args...); // Recursive call for remaining arguments
                     std::cout << "" << std::endl;
@@ -84,12 +85,8 @@ namespace Piro{
         };
 }
 
-void printMatrix(const std::vector<std::vector<float>>& matrix);
-void printMatrix(const std::vector<std::vector<int>>& matrix);
-void printVector(const std::vector<float>& vec);
-void printVector(const std::vector<int>& vec);
-void printArray(float* array, uint size);
 std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector);
+
 template <typename T>
 std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *event6) {
     std::vector<T> hostValues(N);
@@ -107,13 +104,6 @@ int copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U>& Lap, int 
     clWaitForEvents(1, event6);
     return 0;
 }
-void printCL(cl_mem memC, int N, int type);
-void printCLArray(cl_mem memC, int N, int type);
-void csr_to_dense_and_print(const std::vector<int>& row_pointer,
-    const std::vector<int>& columns,
-    const std::vector<float>& values,
-    int N);
-void hash_to_dense_and_print(std::vector<int> Hashkeys, std::vector<float> HashValues, int N, int TABLE_SIZE);
 uint64_t nextPowerOf2(uint64_t N);
 
 inline float lookup(int row, int col, int N, std::vector<int>& Hash_keys_V, std::vector<float>& Hash_val_V, int TABLE_SIZE) {
@@ -174,7 +164,7 @@ inline int lookupandset(int row, int col, int N, float value, std::vector<int>& 
     Piro::Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
     Piro::Logger::warning("hashkeys : ", Hash_keys_V);
     Piro::Logger::warning("hashvalues : ", Hash_val_V);
-    hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
+    Piro::PrintUtilities::hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
     std::exit(1);
     // Key not found
     return -1; // or some sentinel value for "not found"
@@ -219,7 +209,7 @@ inline int sethash(int index, float val, int TABLE_SIZE, std::vector<int>& Hash_
     Piro::Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
     Piro::Logger::warning("hashkeys : ", Hash_keys_V);
     Piro::Logger::warning("hashvalues : ", Hash_val_V);
-    hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
+    Piro::PrintUtilities::hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
     std::exit(1);
     return -1;
 }

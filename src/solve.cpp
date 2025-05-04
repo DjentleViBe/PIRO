@@ -2,7 +2,7 @@
 #include <solve.hpp>
 #include <extras.hpp>
 #include <operatoroverload.hpp>
-
+#include <printutilities.hpp>
 #include <iostream>
 #include <ctime>
 
@@ -15,7 +15,7 @@ int solve(){
     Piro::Solve solver;
     float time = 0.0;
     float totaltime = SP.totaltime;
-    print_time();
+    Piro::PrintUtilities::print_time();
     while(time < totaltime){
         // Heat Equation
         // Piro::scalarMatrix UEqn(solver.ddt_r("U") + (solver.ddc_r("Alpha") * solver.laplacian_full("U")));
@@ -34,6 +34,6 @@ int solve(){
         //    break;
         //}
     }
-    print_time();
+    Piro::PrintUtilities::print_time();
     return 0;
 }
