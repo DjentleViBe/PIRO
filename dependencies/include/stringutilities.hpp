@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-namespace Piro::StringUtilities{
+namespace Piro::string_utilities{
     std::vector<std::string> splitString(const std::string& str, char delimiter);
     std::vector<int> convertStringVectorToInt(const std::vector<std::string>& stringVector);
     std::vector<uint> convertStringVectorToUInt(const std::vector<std::string>& stringVector);

@@ -18,6 +18,7 @@
 #include <unordered_set>
 #include <algorithm>
 #include <methods.hpp>
+#include <openclutilities.hpp>
 
 namespace Piro{
     class Equation{
@@ -85,9 +86,9 @@ class CLBuffer{
                             cl_event event0, event1, event4, event5, event7, event8, event9;
                             Piro::Logger::debug("Buffer creation begin");
                             
-                            MP.AMR[0].CD[index].rowpointers = copyCL<int>(queue, other[0].buffer, N + 1, &event7);
-                            MP.AMR[0].CD[index].columns = copyCL<int>(queue, other[1].buffer, RHS.sparsecount, &event8);
-                            MP.AMR[0].CD[index].values = copyCL<float>(queue, other[2].buffer, RHS.sparsecount, &event9);
+                            MP.AMR[0].CD[index].rowpointers = Piro::opencl_utilities::copyCL<int>(queue, other[0].buffer, N + 1, &event7);
+                            MP.AMR[0].CD[index].columns = Piro::opencl_utilities::copyCL<int>(queue, other[1].buffer, RHS.sparsecount, &event8);
+                            MP.AMR[0].CD[index].values = Piro::opencl_utilities::copyCL<float>(queue, other[2].buffer, RHS.sparsecount, &event9);
 
                             
                             /////////////////////////////////////////////////////////////////////////////////////////
@@ -124,7 +125,7 @@ class CLBuffer{
                                     int row = i;
 
                                     ind = row * N + col;
-                                    Piro::Methods::sethash(ind, cd.values[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
+                                    Piro::methods::sethash(ind, cd.values[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
                                 }
                             }
                             // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
@@ -153,7 +154,7 @@ class CLBuffer{
                                 // std::cout << Hash_val_V[141] << ", "<< Hash_keys_V[141] <<std::endl;
                                 // extract rowouter
                                 for(int co = rowouter; co < N; co++){
-                                    float valofrow = Piro::Methods::lookup(rowouter, co, N, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                    float valofrow = Piro::methods::lookup(rowouter, co, N, Hash_keys_V, Hash_val_V, TABLE_SIZE);
                                     if(std::abs(valofrow) > 1E-6){
                                         rowouter_cols.push_back(co);
                                     }
@@ -161,14 +162,14 @@ class CLBuffer{
                                 Piro::Logger::warning("row outer", rowouter_cols);
                                 
                                 for (int r = rowouter + 1; r < N; ++r) {
-                                    if(Piro::Methods::lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
+                                    if(Piro::methods::lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
                                         continue;
                                     }
         
                                     for (int col : rowouter_cols) {
                                         // std::cout << col << ", ";
                                         // if(col < rowouter) continue;
-                                        Piro::Methods::lookupandset(r, col, N, 0.0f, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+                                        Piro::methods::lookupandset(r, col, N, 0.0f, Hash_keys_V, Hash_val_V, TABLE_SIZE);
                                         /*
                                         if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
                                             // set the col in the hash table directly
@@ -219,8 +220,8 @@ class CLBuffer{
                                 err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
                                 clFinish(queue);
                                 Piro::Logger::debug("Kernel finished");
-                                copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
-                                copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
+                                Piro::opencl_utilities::copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
+                                Piro::opencl_utilities::copyCL_offset<int>(queue, LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
                                 Piro::Logger::debug("CopyCL");
                                 Piro::Logger::debug("Erased");
                                 //hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);

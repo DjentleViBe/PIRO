@@ -2,7 +2,7 @@
 #define fileutilities_hpp
 #include <string>
 
-namespace Piro::FileUtilities{
+namespace Piro::file_utilities{
     int writefile(std::string file_path, std::string line_to_write);
     int create_directory(std::string directoryname);
     int delete_directory(std::string folderPath);

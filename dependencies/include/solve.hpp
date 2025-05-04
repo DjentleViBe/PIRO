@@ -278,9 +278,9 @@ namespace Piro{
                         std::cout << "Post processing started" << std::endl;
                         err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
                               sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
-                        Piro::PrintUtilities::print_time();
+                        Piro::print_utilities::print_time();
                         postprocess("T");
-                        Piro::PrintUtilities::print_time();
+                        Piro::print_utilities::print_time();
                         std::cout << "Post processing finished" << std::endl;
                     }
                 }

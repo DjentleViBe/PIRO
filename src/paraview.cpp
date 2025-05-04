@@ -53,7 +53,7 @@ std::string writevti(Piro::AMR AMR){
             level.append("<DataArray type=\"Float64\" Name=\"");
             level.append(AMR.CD[l].Scalars);
             level.append("\" format=\"ascii\">\n");
-            level.append(Piro::StringUtilities::concatenateStrings2(Piro::StringUtilities::floatScalarToString(AMR.CD[l].values)));
+            level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatScalarToString(AMR.CD[l].values)));
             level.append("</DataArray>\n");
         }
         else{
@@ -70,21 +70,21 @@ std::string writevti(Piro::AMR AMR){
                         level.append("<DataArray type=\"Float64\" Name=\"");
                         level.append(AMR.CD[l].Scalars + "_x");
                         level.append("\" format=\"ascii\">\n");
-                        level.append(Piro::StringUtilities::concatenateStrings2(Piro::StringUtilities::floatVectorToString(AMR.CD[l].values, 0)));
+                        level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatVectorToString(AMR.CD[l].values, 0)));
                         level.append("</DataArray>\n");
                         break;
                     case 1:
                         level.append("<DataArray type=\"Float64\" Name=\"");
                         level.append(AMR.CD[l].Scalars + "_y");
                         level.append("\" format=\"ascii\">\n");
-                        level.append(Piro::StringUtilities::concatenateStrings2(Piro::StringUtilities::floatVectorToString(AMR.CD[l].values, 1)));
+                        level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatVectorToString(AMR.CD[l].values, 1)));
                         level.append("</DataArray>\n");
                         break;
                     case 2:
                         level.append("<DataArray type=\"Float64\" Name=\"");
                         level.append(AMR.CD[l].Scalars + "_z");
                         level.append("\" format=\"ascii\">\n");
-                        level.append(Piro::StringUtilities::concatenateStrings2(Piro::StringUtilities::floatVectorToString(AMR.CD[l].values, 2)));
+                        level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatVectorToString(AMR.CD[l].values, 2)));
                         level.append("</DataArray>\n");
                         break;
                 }
@@ -123,11 +123,11 @@ void writevth(int timestep){
                         std::to_string(MP.n[2] - 2) + "\" ";
             vtkfile += "file=\"level/" + ts_string + "_level_" + std::to_string(j) + ".vti\">\n";
             vtkfile += "</DataSet>\n";
-            Piro::FileUtilities::writefile(current_path.string() + "/" + SP.casename + "/mesh/level/" + ts_string + "_level_" + std::to_string(j) + ".vti", writevti(MP.AMR[j]));
+            Piro::file_utilities::writefile(current_path.string() + "/" + SP.casename + "/mesh/level/" + ts_string + "_level_" + std::to_string(j) + ".vti", writevti(MP.AMR[j]));
         }
         vtkfile += "</Block>\n";
     }
     vtkfile += "</vtkOverlappingAMR>\n</VTKFile>\n";
-    Piro::FileUtilities::writefile(current_path.string() + "/" + SP.casename + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
+    Piro::file_utilities::writefile(current_path.string() + "/" + SP.casename + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
 
 }

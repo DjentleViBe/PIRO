@@ -1,8 +1,16 @@
 #include <extras.hpp>
 #include <iomanip>
 #include <methods.hpp>
+#include <preprocess.hpp>
+#ifdef __APPLE__
+    #include <OpenCL/opencl.h>
+#elif _WIN32
+    #include <CL/opencl.h"
+#else
+    #include <CL/opencl.h"
+#endif
 
-namespace Piro::PrintUtilities{
+namespace Piro::print_utilities{
     void printMatrix(const std::vector<std::vector<float>>& matrix) {
         int rows = matrix.size();
         int cols = matrix[0].size();
@@ -126,7 +134,7 @@ namespace Piro::PrintUtilities{
     void hash_to_dense_and_print(std::vector<int> Hashkeys, std::vector<float> HashValues, int N, int TABLE_SIZE){
         for (int i = 0; i < N; i++){
             for (int j = 0; j < N; j++){
-                float val = Piro::Methods::lookup(i, j, N, Hashkeys, HashValues, TABLE_SIZE);
+                float val = Piro::methods::lookup(i, j, N, Hashkeys, HashValues, TABLE_SIZE);
                 Piro::Logger::debug_print(std::round(val * 100.0f) / 100.0f, "\t");
                 // std::cout << std::fixed << std::setprecision(2) << val << "\t";
             }

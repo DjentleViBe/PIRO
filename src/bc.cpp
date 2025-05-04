@@ -27,9 +27,9 @@ cl_mem memD, memE;
 
 void opencl_initBC(){
     int N = MP.n[0] * MP.n[1] * MP.n[2];
-    Q = flattenvector(indices).size();
+    Q = Piro::vector_operations::flattenvector(indices).size();
     memE = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                          sizeof(uint) * Q, flattenvector(indices).data(), &err);
+                          sizeof(uint) * Q, Piro::vector_operations::flattenvector(indices).data(), &err);
     memD = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, MP.AMR[0].CD[0].values.data(), &err);
     if (err != CL_SUCCESS){
@@ -129,9 +129,9 @@ void initbc(){
     }
 
     IniReader reader(current_path.string() + "/assets/setup.ini");
-    BC_type = Piro::StringUtilities::convertStringVectorToInt(Piro::StringUtilities::splitString(reader.get("BC", "type", "default_value"), ' '));
-    BC_property = Piro::StringUtilities::splitString(reader.get("BC", "property", "default_value"), ' ');
-    BC_value = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(reader.get("BC", "values", "default_value"), ' '));
+    BC_type = Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("BC", "type", "default_value"), ' '));
+    BC_property = Piro::string_utilities::splitString(reader.get("BC", "property", "default_value"), ' ');
+    BC_value = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("BC", "values", "default_value"), ' '));
     setbc();
     prepbc();
 
@@ -143,7 +143,7 @@ void readbc(){
     std::cout << "Reading boundary conditions" << std::endl;
     IniReader reader(current_path.string() + "/assets/setup.ini");
 
-    if(Piro::StringUtilities::countSpaces(reader.get("BC", "type", "default_value")) > 1){
+    if(Piro::string_utilities::countSpaces(reader.get("BC", "type", "default_value")) > 1){
         initbc();
     }
 

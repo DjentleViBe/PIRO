@@ -60,15 +60,15 @@ int preprocess(const std::string& name) {
     SP.spacescheme = std::stoi(reader.get("Schemes", "Space", "default_value"));
     SP.solverscheme = std::stoi(reader.get("Schemes", "Solver", "default_value"));
 
-    MP.o = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(reader.get("Mesh", "o", "default_value"), ' '));
-    MP.s = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(reader.get("Mesh", "s", "default_value"), ' '));
-    MP.n = Piro::StringUtilities::convertStringVectorToUInt(Piro::StringUtilities::splitString(reader.get("Mesh", "n", "default_value"), ' '));
-    MP.l = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(reader.get("Mesh", "l", "default_value"), ' '));
-    MP.index = Piro::StringUtilities::convertStringVectorToInt(Piro::StringUtilities::splitString(reader.get("Mesh", "index", "default_value"), ' '));
-    MP.constantslist = Piro::StringUtilities::splitString(reader.get("Simulation", "Constants", "default_value"), ' ');
-    MP.constantsvalues = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(reader.get("Simulation", "Values", "default_value"), ' '));
-    MP.scalarlist = Piro::StringUtilities::splitString(reader.get("Simulation", "Scalars", "default_value"), ' ');
-    MP.vectorlist = Piro::StringUtilities::splitString(reader.get("Simulation", "Vectors", "default_value"), ' ');
+    MP.o = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Mesh", "o", "default_value"), ' '));
+    MP.s = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Mesh", "s", "default_value"), ' '));
+    MP.n = Piro::string_utilities::convertStringVectorToUInt(Piro::string_utilities::splitString(reader.get("Mesh", "n", "default_value"), ' '));
+    MP.l = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Mesh", "l", "default_value"), ' '));
+    MP.index = Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("Mesh", "index", "default_value"), ' '));
+    MP.constantslist = Piro::string_utilities::splitString(reader.get("Simulation", "Constants", "default_value"), ' ');
+    MP.constantsvalues = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Simulation", "Values", "default_value"), ' '));
+    MP.scalarlist = Piro::string_utilities::splitString(reader.get("Simulation", "Scalars", "default_value"), ' ');
+    MP.vectorlist = Piro::string_utilities::splitString(reader.get("Simulation", "Vectors", "default_value"), ' ');
     MP.meshtype = std::stoi(reader.get("Mesh", "MeshType", "default_value"));
     MP.levels = std::stoi(reader.get("Mesh", "levels", "default_value"));
     debuginfo = std::stoi(reader.get("Debug", "Verbose", "default_value"));
@@ -103,13 +103,13 @@ int preprocess(const std::string& name) {
         
     }
     // number of scalars defined in the .ini file
-    MP.scalarnum = Piro::StringUtilities::countSpaces(reader.get("Simulation", "Scalars", "default_value")) + 1;
+    MP.scalarnum = Piro::string_utilities::countSpaces(reader.get("Simulation", "Scalars", "default_value")) + 1;
     // number of vectors defined in the .ini file
-    MP.vectornum = Piro::StringUtilities::countWords(reader.get("Simulation", "Vectors", ""));
+    MP.vectornum = Piro::string_utilities::countWords(reader.get("Simulation", "Vectors", ""));
     // Initial condition type.
-    MP.ICtype = Piro::StringUtilities::convertStringVectorToInt(Piro::StringUtilities::splitString(reader.get("IC", "type", "default_value"), ' '));
+    MP.ICtype = Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("IC", "type", "default_value"), ' '));
     // File location needed if ICtype == 2
-    MP.ICfiles = Piro::StringUtilities::splitString(reader.get("IC", "filename", "default_value"), ' ');
+    MP.ICfiles = Piro::string_utilities::splitString(reader.get("IC", "filename", "default_value"), ' ');
     std::cout << "Initialising scalars and vectors" << std::endl;
     int j = 0;
     Piro::CellData CD;

@@ -17,7 +17,7 @@
 #endif
 
 namespace Piro{
-    namespace FileUtilities{
+    namespace file_utilities{
         int writefile(std::string file_path, std::string line_to_write){
             // Create an output file stream (ofstream) object
             // std::ofstream outfile(file_path, std::ios::app);  // Open the file in append mode

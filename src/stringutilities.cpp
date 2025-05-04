@@ -4,7 +4,7 @@
 #include <iterator>
 #include <extras.hpp>
 
-namespace Piro::StringUtilities{
+namespace Piro::string_utilities{
     std::vector<std::string> splitString(const std::string& str, char delimiter) {
         std::vector<std::string> tokens;
         std::size_t start = 0, end = 0;

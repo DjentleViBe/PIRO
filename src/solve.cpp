@@ -15,7 +15,7 @@ int solve(){
     Piro::Solve solver;
     float time = 0.0;
     float totaltime = SP.totaltime;
-    Piro::PrintUtilities::print_time();
+    Piro::print_utilities::print_time();
     while(time < totaltime){
         // Heat Equation
         // Piro::scalarMatrix UEqn(solver.ddt_r("U") + (solver.ddc_r("Alpha") * solver.laplacian_full("U")));
@@ -34,6 +34,6 @@ int solve(){
         //    break;
         //}
     }
-    Piro::PrintUtilities::print_time();
+    Piro::print_utilities::print_time();
     return 0;
 }

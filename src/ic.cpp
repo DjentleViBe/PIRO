@@ -43,8 +43,8 @@ std::vector<float> initialcondition(int index, int valuetype){
         values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
         std::cout << "Gaussian initialisation" << std::endl;
         float scalefactor = std::stof(icreader.get("Gaussian", "Scalefactor", "default_value"));
-        std::vector<float> sigma = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(icreader.get("Gaussian", "Sigma", "default_value"), ' '));
-        std::vector<float> mean = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(icreader.get("Gaussian", "Median", "default_value"), ' '));
+        std::vector<float> sigma = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Gaussian", "Sigma", "default_value"), ' '));
+        std::vector<float> mean = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Gaussian", "Median", "default_value"), ' '));
         for (int x = 0; x < MP.n[0]; ++x) {
             for (int y = 0; y < MP.n[1]; ++y) {
                 for (int z = 0; z < MP.n[2]; ++z) {
@@ -60,7 +60,7 @@ std::vector<float> initialcondition(int index, int valuetype){
     else if (MP.ICfiles[index] == "Coulomb"){
         values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
         std::cout << "Coulomb initialisation" << std::endl;
-        std::vector<float> center = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(icreader.get("Coulomb", "center", "default_value"), ' '));
+        std::vector<float> center = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Coulomb", "center", "default_value"), ' '));
         float Z = std::stof(icreader.get("Coulomb", "Z", "default_value"));
         double e = std::stof(icreader.get("Coulomb", "e", "default_value"));
         double epsilon_0 = std::stof(icreader.get("Coulomb", "epsilon_0", "default_value"));
@@ -79,8 +79,8 @@ std::vector<float> initialcondition(int index, int valuetype){
     }
     else if (MP.ICfiles[index] == "UniformVector"){
         values.assign(MP.n[0] * MP.n[1] * MP.n[2] * 3, 0.0);
-        std::vector<float> vectordir = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(icreader.get("Vector", "Direction", "default_value"), ' '));
-        std::vector<float> vecval = Piro::StringUtilities::convertStringVectorToFloat(Piro::StringUtilities::splitString(icreader.get("Vector", "Value", "default_value"), ' '));
+        std::vector<float> vectordir = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Vector", "Direction", "default_value"), ' '));
+        std::vector<float> vecval = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Vector", "Value", "default_value"), ' '));
         for(int vec = 0; vec < values.size() / 3; vec++){
             values[vec] = vectordir[0] * vecval[0];
         }

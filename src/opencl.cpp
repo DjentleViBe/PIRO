@@ -7,12 +7,14 @@
 #else
     #include <CL/opencl.h"
 #endif
+#include <vector>
 #include <gpuinit.hpp>
 #include <kernel.cl.h>
 #include <extras.hpp>
 #include <preprocess.hpp>
 #include <datatypes.hpp>
 #include <bc.hpp>
+#include <vector>
 
 float* B_ptr;
 cl_int err;
@@ -282,4 +284,32 @@ int opencl_cleanup(){
 
     std::cout << "Cleanup ended" << std::endl;
     return 0;
+}
+
+namespace Piro::opencl_utilities{
+    template <typename T>
+    std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *event6) {
+        std::vector<T> hostValues(N);
+        clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
+                            sizeof(T) * N, hostValues.data(), 0, NULL, event6);
+        clFinish(queue);
+        return hostValues;
+    }
+
+    template <typename U>
+    int copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U>& Lap, int offset, int N, cl_event *event6) {
+        size_t offset_size = sizeof(U) * offset;     
+        clEnqueueReadBuffer(queue, memC, CL_FALSE, offset_size,
+                            sizeof(U) * (N - offset), Lap.data() + offset, 0, NULL, event6);
+        
+        clWaitForEvents(1, event6);
+        return 0;
+    }
+
+    template std::vector<float> copyCL<float>(cl_command_queue, cl_mem, int, cl_event*);
+    template std::vector<int> copyCL<int>(cl_command_queue, cl_mem, int, cl_event*);
+
+    template int copyCL_offset<float>(cl_command_queue, cl_mem, std::vector<float>& ,int, int, cl_event*);
+    template int copyCL_offset<int>(cl_command_queue, cl_mem, std::vector<int>& ,int, int, cl_event*);
+
 }
