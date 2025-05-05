@@ -19,7 +19,7 @@ Piro::process GS;
 uint Q;
 cl_mem memD, memE;
 
-void opencl_initBC(){
+void Piro::opencl_initBC(){
     int N = MP.n[0] * MP.n[1] * MP.n[2];
     Q = Piro::vector_operations::flattenvector(indices).size();
     memE = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -31,7 +31,7 @@ void opencl_initBC(){
         }
 }
 
-void opencl_setBC(int ind){
+void Piro::opencl_setBC(int ind){
     // int N = MP.n[0] * MP.n[1] * MP.n[2];
     size_t globalWorkSizeBC[1] = { (size_t)Q };
     // std::vector<float> prop = MP.AMR[0].CD[ind].values;
@@ -58,7 +58,7 @@ void opencl_setBC(int ind){
     
 }
 
-void setbc(){
+void Piro::setbc(){
     for (int ind = 0; ind < 6; ind++){
         for(uint faces = 0; faces < indices[ind].size(); faces++){
             int msv = GS.matchscalartovar(BC_property[ind]);
@@ -67,7 +67,7 @@ void setbc(){
     }
 }
 
-void prepbc(){
+void Piro::prepbc(){
     Piro::Logger::info("Preparing cells to print");
     for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
         uint kd = ind / (MP.n[1] * MP.n[0]);
@@ -85,7 +85,7 @@ void prepbc(){
     std::sort(indices_toprint_vec.rbegin(), indices_toprint_vec.rend());
 }
 
-void initbc(){
+void Piro::initbc(){
     Piro::Logger::info("Initialising boundary conditions");
     std::vector<int> BC_type;
     
@@ -126,19 +126,19 @@ void initbc(){
     BC_type = Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("BC", "type", "default_value"), ' '));
     BC_property = Piro::string_utilities::splitString(reader.get("BC", "property", "default_value"), ' ');
     BC_value = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("BC", "values", "default_value"), ' '));
-    setbc();
-    prepbc();
+    Piro::setbc();
+    Piro::prepbc();
 
     opencl_initBC();
     Piro::Logger::info("Boundary conditions initialised");
 }
 
-void readbc(){
+void Piro::readbc(){
     Piro::Logger::info("Reading boundary conditions");
     IniReader reader(current_path.string() + "/assets/setup.ini");
 
     if(Piro::string_utilities::countSpaces(reader.get("BC", "type", "default_value")) > 1){
-        initbc();
+        Piro::initbc();
     }
 
 }

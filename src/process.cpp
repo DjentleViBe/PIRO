@@ -18,9 +18,6 @@ extern char* dt;
 extern std::time_t now;
 
 using namespace Piro;
-int math_operations::idx(int i, int j, int k, int N_x, int N_y) {
-    return i + j * N_x + k * N_x * N_y;
-}
 
 int process::matchscalartovar(std::string var){
     for(int v = 0; v < MP.AMR[0].CD.size(); v++){

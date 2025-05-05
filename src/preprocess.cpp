@@ -15,6 +15,7 @@
 #include <CL/opencl.h>
 #include <cmath>
 #include <logger.hpp>
+#include <mathoperations.hpp>
 
 Piro::MeshParams MP;
 Piro::SolveParams SP;
@@ -29,16 +30,8 @@ bool LAP_INIT = false;
 bool RHS_INIT = false;
 int ts = 0;
 
-// Function to map 3D indices to 1D
-int idx(int i, int j, int k, int N_x, int N_y) {
-    return i + j * N_x + k * N_x * N_y;
-}
 
-int index(int i, int j, int k, int Nx, int Ny) {
-    return i + j * Nx + k * Nx * Ny;
-}
-
-int preprocess(const std::string& name) {
+int Piro::preprocess(const std::string& name) {
     
     Piro::Logger::info("Preprocess step initiated");
     Piro::Logger::info("Setup file : ",name);
@@ -121,7 +114,7 @@ int preprocess(const std::string& name) {
         // push scalar data to gpu
         CDGPU.values_gpu.push_back(CD_GPU);
         CDGPU.values_gpu[i].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                          sizeof(float) * N, MP.AMR[0].CD[i].values.data(), &err);
+                        sizeof(float) * N, MP.AMR[0].CD[i].values.data(), &err);
         j += 1;
     }
     for (int i = j; i < j + MP.vectornum; i++){
@@ -133,7 +126,7 @@ int preprocess(const std::string& name) {
         // push vector data to gpu
         CDGPU.values_gpu.push_back(CD_GPU);
         CDGPU.values_gpu[i].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                          sizeof(float) * N, MP.AMR[0].CD[i].values.data(), &err);
+                        sizeof(float) * N, MP.AMR[0].CD[i].values.data(), &err);
         
     }
     Piro::Logger::info("Initialising scalars and vectors completed!");
@@ -172,7 +165,7 @@ bool isValidIndex(int index){
     return (index >= 0 && index < MP.n[0] * MP.n[1] * MP.n[2]);
     }
 
-int laplacian_CSR_init(){
+int Piro::laplacian_CSR_init(){
     int N = MP.n[0] * MP.n[1] * MP.n[2];
     Piro::CellData CD;
     MP.AMR[0].CD.push_back(CD);
@@ -188,7 +181,7 @@ int laplacian_CSR_init(){
     for (int z = 0; z < MP.n[2]; ++z) {
         for (int y = 0; y < MP.n[1]; ++y) {
             for (int x = 0; x < MP.n[0]; ++x) {
-                int i = index(x, y, z, MP.n[0], MP.n[1]); // 1D index of the (x, y, z) point
+                int i = math_operations::index(x, y, z, MP.n[0], MP.n[1]); // 1D index of the (x, y, z) point
                 
                 // Self connection (central point)
                 MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(i);
@@ -196,36 +189,36 @@ int laplacian_CSR_init(){
                 
                 // Neighbors in the x-direction (x±1)
                 if (x > 0) {
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x-1, y, z, MP.n[0], MP.n[1]));
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(math_operations::index(x-1, y, z, MP.n[0], MP.n[1]));
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
                     
                 }
                 if (x < MP.n[0] - 1) {
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x+1, y, z, MP.n[0], MP.n[1]));
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(math_operations::index(x+1, y, z, MP.n[0], MP.n[1]));
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
-                   
+                
                 }
 
                 // Neighbors in the y-direction (y±1)
                 if (y > 0) {
-                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y-1, z, MP.n[0], MP.n[1]));
+                    MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(math_operations::index(x, y-1, z, MP.n[0], MP.n[1]));
                     MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
                     
                 }
                     if (y < MP.n[1] - 1) {
-                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y+1, z, MP.n[0], MP.n[1]));
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(math_operations::index(x, y+1, z, MP.n[0], MP.n[1]));
                         MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
                         
                     }
 
                     // Neighbors in the z-direction (z±1)
                     if (z > 0) {
-                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y, z-1, MP.n[0], MP.n[1]));
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(math_operations::index(x, y, z-1, MP.n[0], MP.n[1]));
                         MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
                         
                     }
                     if (z < MP.n[2] - 1) {
-                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(index(x, y, z+1, MP.n[0], MP.n[1]));
+                        MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.push_back(math_operations::index(x, y, z+1, MP.n[0], MP.n[1]));
                         MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.push_back(1.0/norm);
                     }
                 

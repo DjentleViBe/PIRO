@@ -45,9 +45,15 @@ extern cl_kernel    kernelgradient_type1,
 extern cl_context   context;
 extern cl_command_queue queue;
 extern cl_uint maxWorkGroupSize;
-int preprocess(const std::string& name);
-int idx(int i, int j, int k, int N_x, int N_y);
-int opencl_init();
-int opencl_build();
-int laplacian_CSR_init();
+
+namespace Piro{
+    int laplacian_CSR_init();
+    int preprocess(const std::string& name);
+    void print_device_info(cl_device_id device);
+    cl_int opencl_BuildProgram(cl_program program);
+    cl_program opencl_CreateProgram(const char* dialog);
+    int opencl_init();
+    int opencl_build();
+}
+
 #endif

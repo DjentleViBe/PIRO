@@ -7,12 +7,13 @@
 #include <stringutilities.hpp>
 #include <cmath>
 #include <logger.hpp>
+#include <mathoperations.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
-float calculategaussian(std::vector<float> coord, std::vector<float> mean, std::vector<float> sigma){
+float Piro::calculategaussian(std::vector<float> coord, std::vector<float> mean, std::vector<float> sigma){
     float gaussian = exp(-0.5 * (pow((coord[0] - mean[0])/sigma[0], 2) + 
                                 pow((coord[1] - mean[1])/sigma[1], 2) + 
                                 pow((coord[2] - mean[2])/sigma[2], 2))) * 1 / 
@@ -21,18 +22,12 @@ float calculategaussian(std::vector<float> coord, std::vector<float> mean, std::
     return gaussian;
 }
 
-float calc_length_3d(std::vector<float> coord, std::vector<float> center){
-    return pow((pow((coord[0] - center[0]), 2) 
-                + pow((coord[1] - center[1]), 2) 
-                + pow((coord[2] - center[2]), 2)), 0.5);
-}
-
-float calculatecoulomb(std::vector<float> coord, std::vector<float> center, float Z, double e, double epsilon_0){
-    float r = calc_length_3d(coord, center);
+float Piro::calculatecoulomb(std::vector<float> coord, std::vector<float> center, float Z, double e, double epsilon_0){
+    float r = Piro::math_operations::calc_length_3d(coord, center);
     return -(Z * 1E15 * pow(e, 2)) / (4 * M_PI * epsilon_0 * (r + 1E-10));
 }
 
-std::vector<float> initialcondition(int index, int valuetype){
+std::vector<float> Piro::initialcondition(int index, int valuetype){
     Piro::Logger::info("Initialisation started");
     std::vector<float> values;
     std::srand(std::time(0));
@@ -49,7 +44,7 @@ std::vector<float> initialcondition(int index, int valuetype){
         for (int x = 0; x < MP.n[0]; ++x) {
             for (int y = 0; y < MP.n[1]; ++y) {
                 for (int z = 0; z < MP.n[2]; ++z) {
-                    int l = idx(x, y, z, MP.n[0], MP.n[1]);
+                    int l = Piro::math_operations::idx(x, y, z, MP.n[0], MP.n[1]);
                     coordinate[0] = x * MP.l[0] / MP.n[0];
                     coordinate[1] = y * MP.l[1] / MP.n[1];
                     coordinate[2] = z * MP.l[2] / MP.n[2];
@@ -68,7 +63,7 @@ std::vector<float> initialcondition(int index, int valuetype){
         for (int x = 0; x < MP.n[0]; ++x) {
             for (int y = 0; y < MP.n[1]; ++y) {
                 for (int z = 0; z < MP.n[2]; ++z) {
-                    int l = idx(x, y, z, MP.n[0], MP.n[1]);
+                    int l = Piro::math_operations::idx(x, y, z, MP.n[0], MP.n[1]);
                     coordinate[0] = x * MP.l[0] / MP.n[0];
                     coordinate[1] = y * MP.l[1] / MP.n[1];
                     coordinate[2] = z * MP.l[2] / MP.n[2];

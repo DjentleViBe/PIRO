@@ -71,14 +71,14 @@ cl_kernel   kernelgradient_type1,
             kernelbackward_substitution_csr;
 cl_mem memBx, memCx, memDx, memEx;
 
-static void print_device_info(cl_device_id device){
+void Piro::print_device_info(cl_device_id device){
     char name[128];
     char vendor[128];
 
     clGetDeviceInfo(device, CL_DEVICE_NAME, 128, name, NULL);
     clGetDeviceInfo(device, CL_DEVICE_VENDOR, 128, vendor, NULL);
     Piro::Logger::info(name);
-        Piro::Logger::info(vendor);
+    Piro::Logger::info(vendor);
 
     cl_uint numComputeUnits;
     clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(numComputeUnits), &numComputeUnits, NULL);
@@ -90,13 +90,11 @@ static void print_device_info(cl_device_id device){
     Piro::Logger::info("Max Work Group Size: ", maxWorkGroupSize);
     // std::cout << "Max Global Mem Size: " << globalMemSize << " bytes" << std::endl;
     // std::cout << "Max Alloc Size: " << maxAllocSize << " bytes" << std::endl;
-
-
 }
 
-int opencl_init(){
+int Piro::opencl_init(){
     Piro::Logger::info("Initialising OpenCL");
-     // Initialize OpenCL
+    // Initialize OpenCL
     clGetPlatformIDs(0, nullptr, &platformCount);
     std::vector<cl_platform_id> platforms(platformCount);
     clGetPlatformIDs(platformCount, platforms.data(), nullptr);
@@ -122,7 +120,7 @@ int opencl_init(){
     // Set default device
     Piro::Logger::info("Active device");
     device = devices[DP.id];
-    print_device_info(device);
+    Piro::print_device_info(device);
 
     // Initialize OpenCL
     Piro::Logger::info("Calling OpenCL");
@@ -144,7 +142,7 @@ int opencl_init(){
     return 0;
 }
 
-cl_program opencl_CreateProgram(const char* dialog){
+cl_program Piro::opencl_CreateProgram(const char* dialog){
     cl_program program = clCreateProgramWithSource(context, 1, &dialog, NULL, &err);
     if (err != CL_SUCCESS) {
         Piro::Logger::info("Failed to create program with source");
@@ -154,7 +152,7 @@ cl_program opencl_CreateProgram(const char* dialog){
     return program;
 }
 
-cl_int opencl_BuildProgram(cl_program program){
+cl_int Piro::opencl_BuildProgram(cl_program program){
     err = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
     if (err != CL_SUCCESS) {
         Piro::Logger::info("Failed to build program");
@@ -172,12 +170,12 @@ cl_int opencl_BuildProgram(cl_program program){
     return err;
 }
 
-int opencl_build(){
-     // Create program objects
+int Piro::opencl_build(){
+    // Create program objects
     Piro::Logger::info("Building program : ");
     for(size_t i = 0; i < program_math.size(); i++){
         program_math[i] = opencl_CreateProgram(kernelSources[i]);
-        err = opencl_BuildProgram(program_math[i]);
+        err = Piro::opencl_BuildProgram(program_math[i]);
         kernel_math[i] = clCreateKernel(program_math[i], kernelNames[i], &err);
     }
     program_gradient_type1 = opencl_CreateProgram(gradcalc1);
@@ -232,79 +230,79 @@ int opencl_build(){
     return 0;
 }
 
-int opencl_cleanup(){
-    
-    Piro::Logger::info("Cleanup started");
-    // Clean up
-    free(devices);
-    // Cleanup
-    clReleaseMemObject(memBx);
-    clReleaseMemObject(memCx);
-    clReleaseMemObject(memDx);
-    clReleaseMemObject(memEx);
-    clReleaseKernel(kernelgradient_type1);
-    clReleaseKernel(kernelgradient_type2);
-    clReleaseKernel(kernelgradient_type3);
-    clReleaseKernel(kernelgradient_type4);
-    clReleaseKernel(kernellaplacianscalar);
-    clReleaseKernel(kernellaplacianvector);
-    clReleaseKernel(kernellu_decompose_dense);
-    clReleaseKernel(kernelsparseMatrixMultiplyCSR);
-    clReleaseKernel(kernellaplaciansparseMatrixMultiplyCSR);
-    clReleaseKernel(kernelforward_substitution_csr);
-    clReleaseKernel(kernelbackward_substitution_csr);
-    for(size_t i = 0; i < program_math.size(); i++){
-        clReleaseKernel(kernel_math[i]);
-        clReleaseProgram(program_math[i]);
-    }
-    clReleaseKernel(kernelBC);
-    clReleaseKernel(kernelfilterarray);
-    clReleaseKernel(kernelfilterrow);
-    clReleaseProgram(program_gradient_type1);
-    clReleaseProgram(program_gradient_type2);
-    clReleaseProgram(program_gradient_type3);
-    clReleaseProgram(program_gradient_type4);
-    clReleaseProgram(program_laplacian_scalar);
-    clReleaseProgram(program_sparseMatrixMultiply_CSR);
-    clReleaseProgram(program_lu_decompose_dense);
-    clReleaseProgram(program_laplaciansparseMatrixMultiply_CSR);
-    clReleaseProgram(program_laplacian_vector);
-    clReleaseProgram(program_setBC);
-    clReleaseProgram(program_filter_array);
-    clReleaseProgram(program_filter_row);
-    clReleaseProgram(program_forward_substitution_csr);
-    clReleaseProgram(program_backward_substitution_csr);
-    clReleaseCommandQueue(queue);
-    clReleaseContext(context);
-
-    Piro::Logger::info("Cleanup ended");
-    return 0;
-}
-
-namespace Piro::opencl_utilities{
-    template <typename T>
-    std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *event6) {
-        std::vector<T> hostValues(N);
-        clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
-                            sizeof(T) * N, hostValues.data(), 0, NULL, event6);
-        clFinish(queue);
-        return hostValues;
-    }
-
-    template <typename U>
-    int copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U>& Lap, int offset, int N, cl_event *event6) {
-        size_t offset_size = sizeof(U) * offset;     
-        clEnqueueReadBuffer(queue, memC, CL_FALSE, offset_size,
-                            sizeof(U) * (N - offset), Lap.data() + offset, 0, NULL, event6);
+    int opencl_cleanup(){
         
-        clWaitForEvents(1, event6);
+        Piro::Logger::info("Cleanup started");
+        // Clean up
+        free(devices);
+        // Cleanup
+        clReleaseMemObject(memBx);
+        clReleaseMemObject(memCx);
+        clReleaseMemObject(memDx);
+        clReleaseMemObject(memEx);
+        clReleaseKernel(kernelgradient_type1);
+        clReleaseKernel(kernelgradient_type2);
+        clReleaseKernel(kernelgradient_type3);
+        clReleaseKernel(kernelgradient_type4);
+        clReleaseKernel(kernellaplacianscalar);
+        clReleaseKernel(kernellaplacianvector);
+        clReleaseKernel(kernellu_decompose_dense);
+        clReleaseKernel(kernelsparseMatrixMultiplyCSR);
+        clReleaseKernel(kernellaplaciansparseMatrixMultiplyCSR);
+        clReleaseKernel(kernelforward_substitution_csr);
+        clReleaseKernel(kernelbackward_substitution_csr);
+        for(size_t i = 0; i < program_math.size(); i++){
+            clReleaseKernel(kernel_math[i]);
+            clReleaseProgram(program_math[i]);
+        }
+        clReleaseKernel(kernelBC);
+        clReleaseKernel(kernelfilterarray);
+        clReleaseKernel(kernelfilterrow);
+        clReleaseProgram(program_gradient_type1);
+        clReleaseProgram(program_gradient_type2);
+        clReleaseProgram(program_gradient_type3);
+        clReleaseProgram(program_gradient_type4);
+        clReleaseProgram(program_laplacian_scalar);
+        clReleaseProgram(program_sparseMatrixMultiply_CSR);
+        clReleaseProgram(program_lu_decompose_dense);
+        clReleaseProgram(program_laplaciansparseMatrixMultiply_CSR);
+        clReleaseProgram(program_laplacian_vector);
+        clReleaseProgram(program_setBC);
+        clReleaseProgram(program_filter_array);
+        clReleaseProgram(program_filter_row);
+        clReleaseProgram(program_forward_substitution_csr);
+        clReleaseProgram(program_backward_substitution_csr);
+        clReleaseCommandQueue(queue);
+        clReleaseContext(context);
+
+        Piro::Logger::info("Cleanup ended");
         return 0;
     }
 
-    template std::vector<float> copyCL<float>(cl_command_queue, cl_mem, int, cl_event*);
-    template std::vector<int> copyCL<int>(cl_command_queue, cl_mem, int, cl_event*);
+    namespace Piro::opencl_utilities{
+        template <typename T>
+        std::vector<T> copyCL(cl_command_queue queue, cl_mem memC, int N, cl_event *event6) {
+            std::vector<T> hostValues(N);
+            clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
+                                sizeof(T) * N, hostValues.data(), 0, NULL, event6);
+            clFinish(queue);
+            return hostValues;
+        }
 
-    template int copyCL_offset<float>(cl_command_queue, cl_mem, std::vector<float>& ,int, int, cl_event*);
-    template int copyCL_offset<int>(cl_command_queue, cl_mem, std::vector<int>& ,int, int, cl_event*);
+        template <typename U>
+        int copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U>& Lap, int offset, int N, cl_event *event6) {
+            size_t offset_size = sizeof(U) * offset;     
+            clEnqueueReadBuffer(queue, memC, CL_FALSE, offset_size,
+                                sizeof(U) * (N - offset), Lap.data() + offset, 0, NULL, event6);
+            
+            clWaitForEvents(1, event6);
+            return 0;
+        }
 
-}
+        template std::vector<float> copyCL<float>(cl_command_queue, cl_mem, int, cl_event*);
+        template std::vector<int> copyCL<int>(cl_command_queue, cl_mem, int, cl_event*);
+
+        template int copyCL_offset<float>(cl_command_queue, cl_mem, std::vector<float>& ,int, int, cl_event*);
+        template int copyCL_offset<int>(cl_command_queue, cl_mem, std::vector<int>& ,int, int, cl_event*);
+
+    }

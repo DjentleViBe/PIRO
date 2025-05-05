@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 
 	Piro::Logger::info("Start Program");
 	Piro::file_utilities::get_exec_directory();
-	preprocess(name);
+	Piro::preprocess(name);
 	solve();
 
 	Piro::Logger::info("End Program");

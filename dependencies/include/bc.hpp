@@ -8,8 +8,15 @@ extern std::vector<std::vector<int>> indices;
 extern std::vector<int> indices_toprint;
 extern std::vector<int> indices_toprint_vec;
 extern cl_int err;
-void readbc();
-void setbc();
-void opencl_setBC(int ind);
+
+namespace Piro{
+    void prepbc();
+    void initbc();
+    void readbc();
+    void setbc();
+    void opencl_setBC(int ind);
+    void opencl_initBC();
+    void opencl_setBC(int ind);
+}
 
 #endif
