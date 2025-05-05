@@ -5,6 +5,6 @@
 #include <vector>
 
 namespace Piro::matrix_operations{
-    void lu_decomposition(const std::vector<CLBuffer>& other)
+    void lu_decomposition_HTLF(const std::vector<CLBuffer>& other);
 }
 #endif

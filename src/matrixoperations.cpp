@@ -7,7 +7,7 @@
 
 namespace Piro::matrix_operations{
 
-    void lu_decomposition(const std::vector<CLBuffer>& other){
+    void lu_decomposition_HTLF(const std::vector<CLBuffer>& other){
         int N = MP.n[0] * MP.n[1] * MP.n[2];
         int index = MP.vectornum + MP.scalarnum;
         cl_int err;
