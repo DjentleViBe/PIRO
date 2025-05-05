@@ -13,6 +13,7 @@
 #include <bc.hpp>
 #include <operatoroverload.hpp>
 #include <CL/opencl.h>
+#include <cmath>
 
 Piro::MeshParams MP;
 Piro::SolveParams SP;
