@@ -85,7 +85,9 @@ class CLBuffer{
                         int N = MP.n[0] * MP.n[1] * MP.n[2];
                         int index = MP.vectornum + MP.scalarnum;
                         if(RHS_INIT == false){
-                            cl_event event0, event1, event4, event5, event7, event8, event9;
+                            cl_event event0 = nullptr;
+                            cl_event event1 = nullptr; 
+                            cl_event event4, event5, event7, event8, event9;
                             cl_event events[] = {event0, event1};
                             Piro::Logger::debug("Buffer creation begin");
                             
