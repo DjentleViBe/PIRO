@@ -13,6 +13,7 @@
 #include <ctime>
 #include <gpuinit.hpp>
 #include <CL/opencl.h>
+#include <logger.hpp>
 
 extern Piro::SolveParams SP;
 extern char* dt;
@@ -264,19 +265,19 @@ namespace Piro{
                 void Solve(float currenttime){
                     int N = MP.n[0] * MP.n[1] * MP.n[2];
                     ts = int(currenttime / SP.timestep);
-                    std::cout << "\nTimestep : " << ts + 1  << " / " << SP.totaltimesteps << std::endl;
+                    Piro::Logger::info("\nTimestep : ", ts + 1, " / ", SP.totaltimesteps);
                     // apply Boundary Conditions
                     err = clEnqueueCopyBuffer(queue, smatrix.buffer, CDGPU.values_gpu[0].buffer, 0, 0, sizeof(float) * N, 0, NULL, NULL);
                     opencl_setBC(0);
                     
                     if((ts + 1) % SP.save == 0){
-                        std::cout << "Post processing started" << std::endl;
+                        Piro::Logger::info("Post processing started");
                         err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
                               sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
                         Piro::print_utilities::print_time();
-                        postprocess("T");
+                        writevth(ts);
                         Piro::print_utilities::print_time();
-                        std::cout << "Post processing finished" << std::endl;
+                        Piro::Logger::info("Post processing finished");
                     }
                 }
         };
