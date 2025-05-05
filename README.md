@@ -57,9 +57,17 @@
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Running
-1. Download the necessary executables from the latest [release](https://github.com/DjentleViBe/PIRO/releases/new).
-2. Copy the executables to the [bin](./bin) directory (create one manually in the root directory if it does not exist).
-3. Run the following program to get device details. Refer [Building](#how-to-build) instructions for compiling the program on your own.
+1. To avoid Git changing line endings when you clone or commit, run:
+```bash
+git config --global core.autocrlf false
+```
+2. Clone the repo:
+```bash
+git clone https://github.com/DjentleViBe/PIRO.git
+```
+3. Download the necessary executables from the latest [release](https://github.com/DjentleViBe/PIRO/releases/new).
+4. Copy the executables to the [bin](./bin) directory (create one manually in the root directory if it does not exist).
+5. Run the following program to get device details. Refer [Building](#how-to-build) instructions for compiling the program on your own.
 
 | File | Operating Sytem |
 | --- | --- |
@@ -67,16 +75,21 @@
 |```Piro_devices_WIN```   | Windows(x64)|
 |```Piro_devices_LIN```   | Linux (x64) |
 
-4. Make the required changes to the appropriate files as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format.
+6. Make the required changes to the appropriate files as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format.
 
-5. Execute the command ```./runall.sh -f <setup.ini>``` to initiate the simulation. Log files are stored in the [logs](./logs) folder with the name used for setup file. If the setup file is renamed, update the filename in the command accordingly.
+7. Execute the command ```./runall.sh -f <setup.ini>``` to initiate the simulation. Log files are stored in the [logs](./logs) folder with the name used for setup file. If the setup file is renamed, update the filename in the command accordingly.
 
-6. Results are stored in the [bin](./bin) directory in a folder with the casename value given in the setup file.
+8. Results are stored in the [bin](./bin) directory in a folder with the casename value given in the setup file.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## How to Build
-Clone the repo:
+1. To avoid Git changing line endings when you clone or commit, run:
+```bash
+git config --global core.autocrlf false
+```
+
+2. Clone the repo:
 ```bash
 git clone https://github.com/DjentleViBe/PIRO.git
 ```
