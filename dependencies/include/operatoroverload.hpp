@@ -3,6 +3,7 @@
 #ifndef OPERATOROVERLOADHPP
 #define OPERATOROVERLOADHPP
 #include <vector>
+#include <CL/opencl.h>
 
 namespace Piro{
     class CLBuffer{

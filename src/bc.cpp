@@ -6,16 +6,16 @@
 #include <extras.hpp>
 #include <stringutilities.hpp>
 #include <bc.hpp>
-#include <solve.hpp>
+#include <process.hpp>
 #include <algorithm>
 #include <CL/opencl.h>
-
+#include <logger.hpp>
 std::vector<std::vector<int>> indices(6, std::vector<int>());
 std::vector<int> indices_toprint;
 std::vector<int> indices_toprint_vec;
 std::vector<std::string> BC_property;
 std::vector<float> BC_value;
-Piro::Solve GS;
+Piro::process GS;
 uint Q;
 cl_mem memD, memE;
 
@@ -68,7 +68,7 @@ void setbc(){
 }
 
 void prepbc(){
-    std::cout << "Preparing cells to print" << std::endl;
+    Piro::Logger::info("Preparing cells to print");
     for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
         uint kd = ind / (MP.n[1] * MP.n[0]);
         uint jd = (ind / MP.n[0]) % MP.n[1];
@@ -86,7 +86,7 @@ void prepbc(){
 }
 
 void initbc(){
-    std::cout << "Initialising boundary conditions" << std::endl;
+    Piro::Logger::info("Initialising boundary conditions");
     std::vector<int> BC_type;
     
     for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
@@ -130,11 +130,11 @@ void initbc(){
     prepbc();
 
     opencl_initBC();
-    std::cout << "Boundary conditions initialised" << std::endl;
+    Piro::Logger::info("Boundary conditions initialised");
 }
 
 void readbc(){
-    std::cout << "Reading boundary conditions" << std::endl;
+    Piro::Logger::info("Reading boundary conditions");
     IniReader reader(current_path.string() + "/assets/setup.ini");
 
     if(Piro::string_utilities::countSpaces(reader.get("BC", "type", "default_value")) > 1){

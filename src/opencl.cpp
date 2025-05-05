@@ -77,8 +77,8 @@ static void print_device_info(cl_device_id device){
 
     clGetDeviceInfo(device, CL_DEVICE_NAME, 128, name, NULL);
     clGetDeviceInfo(device, CL_DEVICE_VENDOR, 128, vendor, NULL);
-    std::cout << name << std::endl;
-    std::cout << vendor << std::endl;
+    Piro::Logger::info(name);
+        Piro::Logger::info(vendor);
 
     cl_uint numComputeUnits;
     clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(numComputeUnits), &numComputeUnits, NULL);
@@ -86,8 +86,8 @@ static void print_device_info(cl_device_id device){
     clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(maxWorkGroupSize), &maxWorkGroupSize, NULL);
 
     clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxWorkGroupSize, NULL);
-    std::cout << "Compute Units: " << numComputeUnits << std::endl;
-    std::cout << "Max Work Group Size: " << maxWorkGroupSize << std::endl;
+    Piro::Logger::info("Compute Units: ", numComputeUnits);
+    Piro::Logger::info("Max Work Group Size: ", maxWorkGroupSize);
     // std::cout << "Max Global Mem Size: " << globalMemSize << " bytes" << std::endl;
     // std::cout << "Max Alloc Size: " << maxAllocSize << " bytes" << std::endl;
 
@@ -95,7 +95,7 @@ static void print_device_info(cl_device_id device){
 }
 
 int opencl_init(){
-    std::cout << "Initialising OpenCL" << std::endl;
+    Piro::Logger::info("Initialising OpenCL");
      // Initialize OpenCL
     clGetPlatformIDs(0, nullptr, &platformCount);
     std::vector<cl_platform_id> platforms(platformCount);
@@ -104,7 +104,7 @@ int opencl_init(){
     // Get number of devices
     err = clGetDeviceIDs(platforms[DP.platformid], CL_DEVICE_TYPE_ALL, 3, NULL, &num_devices);
     if (err != CL_SUCCESS) {
-        std::cerr << "Failed to get number of devices" << std::endl;
+        Piro::Logger::info("Failed to get number of devices");
         return 1;
     }
 
@@ -114,29 +114,29 @@ int opencl_init(){
     // Get all device IDs
     err = clGetDeviceIDs(platforms[DP.platformid], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
     if (err != CL_SUCCESS) {
-        std::cerr << "Failed to get device IDs" << std::endl;
+        Piro::Logger::info("Failed to get device IDs");
         free(devices);
         return 1;
     }
 
     // Set default device
-    std::cout << "Active device" << std::endl;
+    Piro::Logger::info("Active device");
     device = devices[DP.id];
     print_device_info(device);
 
     // Initialize OpenCL
-    std::cout << "Calling OpenCL" << std::endl;
+    Piro::Logger::info("Calling OpenCL");
     // Create OpenCL context
     context = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
     if (err != CL_SUCCESS) {
-        std::cerr << "Failed to create OpenCL context" << std::endl;
+        Piro::Logger::info("Failed to create OpenCL context");
         return 1;
     }
 
     // Create command queue
     queue = clCreateCommandQueue(context, device, 0, &err);
     if (err != CL_SUCCESS) {
-        std::cerr << "Failed to create command queue" << std::endl;
+        Piro::Logger::info("Failed to create command queue");
         clReleaseContext(context);
         return 1;
     }
@@ -147,7 +147,7 @@ int opencl_init(){
 cl_program opencl_CreateProgram(const char* dialog){
     cl_program program = clCreateProgramWithSource(context, 1, &dialog, NULL, &err);
     if (err != CL_SUCCESS) {
-        std::cerr << "Failed to create program with source" << std::endl;
+        Piro::Logger::info("Failed to create program with source");
         clReleaseCommandQueue(queue);
         clReleaseContext(context);
     }
@@ -157,12 +157,12 @@ cl_program opencl_CreateProgram(const char* dialog){
 cl_int opencl_BuildProgram(cl_program program){
     err = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
     if (err != CL_SUCCESS) {
-        std::cerr << "Failed to build program" << std::endl;
+        Piro::Logger::info("Failed to build program");
         size_t log_size;
         clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
         char *log = (char *)malloc(log_size);
         clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
-        std::cerr << "Build log:\n" << log << std::endl;
+        Piro::Logger::info("Build log:\n", log);
         free(log);
         clReleaseProgram(program);
         clReleaseCommandQueue(queue);
@@ -174,7 +174,7 @@ cl_int opencl_BuildProgram(cl_program program){
 
 int opencl_build(){
      // Create program objects
-    std::cout << "Building program : " << std::endl;
+    Piro::Logger::info("Building program : ");
     for(size_t i = 0; i < program_math.size(); i++){
         program_math[i] = opencl_CreateProgram(kernelSources[i]);
         err = opencl_BuildProgram(program_math[i]);
@@ -211,10 +211,10 @@ int opencl_build(){
     err = opencl_BuildProgram(program_filter_row);
 
     if (err != CL_SUCCESS){
-        std::cout << "program error" << std::endl;
+        Piro::Logger::info("program error");
     }
     
-    std::cout << "Creating kernel" << std::endl;
+    Piro::Logger::info("Creating kernel");
     kernelBC = clCreateKernel(program_setBC, "setBC", &err);
     kernelfilterarray = clCreateKernel(program_filter_array, "filter_array", &err);
     kernelfilterrow = clCreateKernel(program_filter_row, "filter_row", &err);
@@ -234,7 +234,7 @@ int opencl_build(){
 
 int opencl_cleanup(){
     
-    std::cout << "Cleanup started" << std::endl;
+    Piro::Logger::info("Cleanup started");
     // Clean up
     free(devices);
     // Cleanup
@@ -277,7 +277,7 @@ int opencl_cleanup(){
     clReleaseCommandQueue(queue);
     clReleaseContext(context);
 
-    std::cout << "Cleanup ended" << std::endl;
+    Piro::Logger::info("Cleanup ended");
     return 0;
 }
 

@@ -6,6 +6,7 @@
 #include <extras.hpp>
 #include <stringutilities.hpp>
 #include <cmath>
+#include <logger.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -32,7 +33,7 @@ float calculatecoulomb(std::vector<float> coord, std::vector<float> center, floa
 }
 
 std::vector<float> initialcondition(int index, int valuetype){
-    std::cout << "Initialisation started" << std::endl;
+    Piro::Logger::info("Initialisation started");
     std::vector<float> values;
     std::srand(std::time(0));
     std::vector<float> coordinate(3);
@@ -41,7 +42,7 @@ std::vector<float> initialcondition(int index, int valuetype){
     IniReader icreader(current_path.string() + "/assets/IC/" + "distribution.ini");
     if(MP.ICfiles[index] == "Gaussian"){
         values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
-        std::cout << "Gaussian initialisation" << std::endl;
+        Piro::Logger::info("Gaussian initialisation");
         float scalefactor = std::stof(icreader.get("Gaussian", "Scalefactor", "default_value"));
         std::vector<float> sigma = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Gaussian", "Sigma", "default_value"), ' '));
         std::vector<float> mean = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Gaussian", "Median", "default_value"), ' '));
@@ -59,7 +60,7 @@ std::vector<float> initialcondition(int index, int valuetype){
     }
     else if (MP.ICfiles[index] == "Coulomb"){
         values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
-        std::cout << "Coulomb initialisation" << std::endl;
+        Piro::Logger::info("Coulomb initialisation");
         std::vector<float> center = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Coulomb", "center", "default_value"), ' '));
         float Z = std::stof(icreader.get("Coulomb", "Z", "default_value"));
         double e = std::stof(icreader.get("Coulomb", "e", "default_value"));
@@ -91,7 +92,7 @@ std::vector<float> initialcondition(int index, int valuetype){
             values[vec] = vectordir[2] * vecval[0];
         }
     }
-    std::cout << "Initialisation completed" << std::endl;
+    Piro::Logger::info("Initialisation completed");
     return values;
 
 }

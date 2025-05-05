@@ -29,7 +29,7 @@ namespace Piro{
         size_t globalWorkSize[1] = { (size_t)N };
         if(SP.timescheme == 11){
             // Forward Euler
-            std::cout << "Forward Euler" << std::endl;
+            // std::cout << "Forward Euler" << std::endl;
 
             err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 0, sizeof(cl_int), &N);
             err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 1, sizeof(cl_int), &N);
@@ -54,7 +54,7 @@ namespace Piro{
         }
 
         else if(SP.timescheme == 12){
-            std::cout << "Backward Euler" << std::endl;
+            // std::cout << "Backward Euler" << std::endl;
                 if(SP.solverscheme == 27){
                     Piro::Logger::info("LU Decomposition");
                     if(RHS_INIT == false){
