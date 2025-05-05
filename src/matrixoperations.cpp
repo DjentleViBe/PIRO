@@ -4,6 +4,7 @@
 #include <preprocess.hpp>
 #include <methods.hpp>
 #include <operatoroverload.hpp>
+#include <cmath>
 
 namespace Piro::matrix_operations{
 
