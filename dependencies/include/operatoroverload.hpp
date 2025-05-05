@@ -5,9 +5,9 @@
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
 #elif _WIN32
-    #include "./CL/opencl.h"
+    #include <CL/opencl.h>
 #else
-    #include "./CL/opencl.h"
+    #include <CL/opencl.h>
 #endif
 #include "preprocess.hpp"
 #include <vector>
@@ -20,6 +20,7 @@
 #include <methods.hpp>
 #include <openclutilities.hpp>
 #include <logger.hpp>
+#include <cmath>
 
 namespace Piro{
     class Equation{
@@ -85,6 +86,7 @@ class CLBuffer{
                         int index = MP.vectornum + MP.scalarnum;
                         if(RHS_INIT == false){
                             cl_event event0, event1, event4, event5, event7, event8, event9;
+                            cl_event events[] = {event0, event1};
                             Piro::Logger::debug("Buffer creation begin");
                             
                             MP.AMR[0].CD[index].rowpointers = Piro::opencl_utilities::copyCL<int>(queue, other[0].buffer, N + 1, &event7);
@@ -144,7 +146,7 @@ class CLBuffer{
                                                         0, nullptr, &event1);
 
                             // Wait for all transfers to complete
-                            clWaitForEvents(2, (cl_event[]){event0, event1});
+                            clWaitForEvents(2, events);
                             int limit;
                             for (int rowouter = 0; rowouter < N - 1; rowouter++){
                                 Piro::Logger::info("rowouter :", rowouter, ", HashTable size :", TABLE_SIZE);
@@ -205,7 +207,7 @@ class CLBuffer{
                                                             0, nullptr, &event1);
 
                                 // Wait for all transfers to complete
-                                clWaitForEvents(2, (cl_event[]){event0, event1});
+                                clWaitForEvents(2, events);
                                 Piro::Logger::debug("Map memory object finished");
                                 // std::cout << cd.rowpointers[N] << std::endl;
                                 limit = (N - rowouter - 1) * (N - rowouter);

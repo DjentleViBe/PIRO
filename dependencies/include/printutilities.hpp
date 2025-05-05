@@ -12,6 +12,7 @@
     #include "windows.h"
     #include "./CL/opencl.h"
 #endif
+#include <datatypes.hpp>
 
 namespace Piro::print_utilities{
     void printMatrix(const std::vector<std::vector<float>>& matrix);

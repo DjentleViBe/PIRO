@@ -4,9 +4,9 @@
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
 #elif _WIN32
-    #include <CL/opencl.h"
+    #include <CL/opencl.h>
 #else
-    #include <CL/opencl.h"
+    #include <CL/opencl.h>
 #endif
 
 namespace Piro::opencl_utilities{

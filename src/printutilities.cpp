@@ -3,13 +3,16 @@
 #include <methods.hpp>
 #include <preprocess.hpp>
 #include <logger.hpp>
+#include <datatypes.hpp>
+#include <cmath>
+#include <chrono>
 
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
 #elif _WIN32
-    #include <CL/opencl.h"
+    #include <CL/opencl.h>
 #else
-    #include <CL/opencl.h"
+    #include <CL/opencl.h>
 #endif
 
 namespace Piro::print_utilities{
