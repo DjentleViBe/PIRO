@@ -1,12 +1,6 @@
 #define CL_HPP_TARGET_OPENCL_VERSION 200 
 #include <iostream>
-#ifdef __APPLE__
-    #include <OpenCL/opencl.h>
-#elif _WIN32
-    #include <CL/opencl.h>
-#else
-    #include <CL/opencl.h>
-#endif
+#include <CL/opencl.h>
 #include <vector>
 #include <gpuinit.hpp>
 #include <kernel.cl.h>

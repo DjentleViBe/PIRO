@@ -6,14 +6,7 @@
 #include <datatypes.hpp>
 #include <cmath>
 #include <chrono>
-
-#ifdef __APPLE__
-    #include <OpenCL/opencl.h>
-#elif _WIN32
-    #include <CL/opencl.h>
-#else
-    #include <CL/opencl.h>
-#endif
+#include <CL/opencl.h>
 
 namespace Piro::print_utilities{
     void printMatrix(const std::vector<std::vector<float>>& matrix) {

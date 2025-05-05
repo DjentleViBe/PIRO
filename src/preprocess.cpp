@@ -12,14 +12,7 @@
 #include <ic.hpp>
 #include <bc.hpp>
 #include <operatoroverload.hpp>
-
-#ifdef __APPLE__
-    #include <OpenCL/opencl.h>
-#elif _WIN32
-    #include <CL/opencl.h>
-#else
-    #include <CL/opencl.h>
-#endif
+#include <CL/opencl.h>
 
 Piro::MeshParams MP;
 Piro::SolveParams SP;

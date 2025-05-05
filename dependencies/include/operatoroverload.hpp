@@ -2,14 +2,9 @@
 
 #ifndef OPERATOROVERLOADHPP
 #define OPERATOROVERLOADHPP
-#ifdef __APPLE__
-    #include <OpenCL/opencl.h>
-#elif _WIN32
-    #include <CL/opencl.h>
-#else
-    #include <CL/opencl.h>
-#endif
-#include "preprocess.hpp"
+
+#include <CL/opencl.h>
+#include <preprocess.hpp>
 #include <vector>
 #include <iostream>
 #include <algorithm>

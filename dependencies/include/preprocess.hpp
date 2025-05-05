@@ -4,13 +4,7 @@
 #include <datatypes.hpp>
 #include <vector>
 #include <string>
-#ifdef __APPLE__
-    #include <OpenCL/opencl.h>
-#elif _WIN32
-    #include "./CL/opencl.h"
-#else
-    #include "./CL/opencl.h"
-#endif
+#include <CL/opencl.h>
 
 extern Piro::MeshParams MP;
 extern Piro::SolveParams SP;

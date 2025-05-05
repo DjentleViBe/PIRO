@@ -1,24 +1,19 @@
 #ifndef solve_hpp
 #define solve_hpp
 
-#include "datatypes.hpp"
-#include "preprocess.hpp"
-#include "bc.hpp"
-#include "extras.hpp"
-#include "postprocess.hpp"
-#include "operatoroverload.hpp"
+#include <datatypes.hpp>
+#include <preprocess.hpp>
+#include <bc.hpp>
+#include <extras.hpp>
+#include <postprocess.hpp>
+#include <operatoroverload.hpp>
 #include <printutilities.hpp>
 #include <iostream>
 #include <immintrin.h>
 #include <ctime>
-#include "gpuinit.hpp"
-#ifdef __APPLE__
-    #include <OpenCL/opencl.h>
-#elif _WIN32
-    #include "./CL/opencl.h"
-#else
-    #include "./CL/opencl.h"
-#endif
+#include <gpuinit.hpp>
+#include <OpenCL/opencl.h>
+
 extern Piro::SolveParams SP;
 extern char* dt;
 extern std::time_t now;

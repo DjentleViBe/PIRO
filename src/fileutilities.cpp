@@ -5,16 +5,13 @@
 #include <extras.hpp>
 #include <init.hpp>
 #include <logger.hpp>
-
+#include <CL/opencl.h>
 #ifdef __APPLE__
     #include <mach-o/dyld.h>
-    #include <OpenCL/opencl.h>
 #elif _WIN32
     #include "windows.h"
-    #include "./CL/opencl.h"
 #else 
     #include "windows.h"
-    #include "./CL/opencl.h"
 #endif
 
 namespace Piro{

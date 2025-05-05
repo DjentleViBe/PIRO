@@ -2,13 +2,7 @@
 #define bc_hpp
 
 #include <vector>
-#ifdef __APPLE__
-    #include <OpenCL/opencl.h>
-#elif _WIN32
-    #include "./CL/opencl.h"
-#else
-    #include "./CL/opencl.h"
-#endif
+#include <CL/opencl.h>
 
 extern std::vector<std::vector<int>> indices;
 extern std::vector<int> indices_toprint;

@@ -1,16 +1,13 @@
 #ifndef printutilities_hpp
 #define printutilities_hpp
 #include <vector>
-
+#include <CL/opencl.h>
 #ifdef __APPLE__
     #include <mach-o/dyld.h>
-    #include <OpenCL/opencl.h>
 #elif _WIN32
     #include "windows.h"
-    #include "./CL/opencl.h"
 #else 
     #include "windows.h"
-    #include "./CL/opencl.h"
 #endif
 #include <datatypes.hpp>
 
