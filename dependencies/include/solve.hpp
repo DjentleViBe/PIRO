@@ -12,7 +12,7 @@
 #include <immintrin.h>
 #include <ctime>
 #include <gpuinit.hpp>
-#include <OpenCL/opencl.h>
+#include <CL/opencl.h>
 
 extern Piro::SolveParams SP;
 extern char* dt;
