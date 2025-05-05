@@ -19,7 +19,7 @@ Piro::SolveParams SP;
 Piro::DeviceParams DP;
 Piro::CellDataGPU CDGPU;
 Piro::Equation RHS;
-CLBuffer CD_GPU;
+Piro::CLBuffer CD_GPU;
 cl_mem RHSterms;
 int debuginfo;
 
