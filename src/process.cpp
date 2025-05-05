@@ -241,7 +241,7 @@ void scalarMatrix::Solve(float currenttime){
     Piro::Logger::info("Timestep : ", ts + 1, " / ", SP.totaltimesteps);
     // apply Boundary Conditions
     err = clEnqueueCopyBuffer(queue, smatrix.buffer, CDGPU.values_gpu[0].buffer, 0, 0, sizeof(float) * N, 0, NULL, NULL);
-    opencl_setBC(0);
+    Piro::bc::opencl_setBC(0);
     
     if((ts + 1) % SP.save == 0){
         Piro::Logger::info("Post processing started");

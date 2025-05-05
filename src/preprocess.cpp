@@ -4,7 +4,6 @@
 
 #include <preprocess.hpp>
 #include <init.hpp>
-#include <inireader.hpp>
 #include <datatypes.hpp>
 #include <extras.hpp>
 #include <stringutilities.hpp>
@@ -16,6 +15,7 @@
 #include <cmath>
 #include <logger.hpp>
 #include <mathoperations.hpp>
+#include <fileutilities.hpp>
 
 Piro::MeshParams MP;
 Piro::SolveParams SP;
@@ -35,7 +35,7 @@ int Piro::preprocess(const std::string& name) {
     
     Piro::Logger::info("Preprocess step initiated");
     Piro::Logger::info("Setup file : ",name);
-    IniReader reader(current_path.string() + "/assets/" + name);
+    Piro::file_utilities::IniReader reader(current_path.string() + "/assets/" + name);
     // Print all sections and key-value pairs
     // reader.print();
     DP.id = std::stoi(reader.get("Device", "id", "default_value"));
@@ -66,8 +66,8 @@ int Piro::preprocess(const std::string& name) {
     MP.n[2] += 2;
 
     init();
-    opencl_init();
-    opencl_build();
+    Piro::opencl_init();
+    Piro::opencl_build();
     
     for(int i = 0; i <= MP.levels; i++){
 
@@ -141,14 +141,14 @@ int Piro::preprocess(const std::string& name) {
     SP.totaltimesteps = SP.totaltime / SP.timestep;
     
     if(SP.datatype == 2){
-        IniReader reader_data(current_path.string() + "/assets/Data/hashtable.ini");
+        Piro::file_utilities::IniReader reader_data(current_path.string() + "/assets/Data/hashtable.ini");
         SP.probing = std::stoi(reader_data.get("Table", "Probing", "default_value"));
         SP.loadfactor = std::stof(reader_data.get("Table", "LoadFactor", "default_value"));
         SP.a = std::stof(reader_data.get("Table", "a", "default_value"));
         SP.b = std::stof(reader_data.get("Table", "b", "default_value"));
         SP.c = std::stof(reader_data.get("Table", "c", "default_value"));
     }
-    readbc();
+    Piro::bc::readbc();
     Piro::Logger::info("Preprocess step completed");
     return 0;
 }

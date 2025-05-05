@@ -2,7 +2,7 @@
 #include <vector>
 #include <preprocess.hpp>
 #include <init.hpp>
-#include <inireader.hpp>
+#include <fileutilities.hpp>
 #include <extras.hpp>
 #include <stringutilities.hpp>
 #include <bc.hpp>
@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <CL/opencl.h>
 #include <logger.hpp>
+
 std::vector<std::vector<int>> indices(6, std::vector<int>());
 std::vector<int> indices_toprint;
 std::vector<int> indices_toprint_vec;
@@ -19,7 +20,8 @@ Piro::process GS;
 uint Q;
 cl_mem memD, memE;
 
-void Piro::opencl_initBC(){
+using namespace Piro;
+void bc::opencl_initBC(){
     int N = MP.n[0] * MP.n[1] * MP.n[2];
     Q = Piro::vector_operations::flattenvector(indices).size();
     memE = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -31,7 +33,7 @@ void Piro::opencl_initBC(){
         }
 }
 
-void Piro::opencl_setBC(int ind){
+void bc::opencl_setBC(int ind){
     // int N = MP.n[0] * MP.n[1] * MP.n[2];
     size_t globalWorkSizeBC[1] = { (size_t)Q };
     // std::vector<float> prop = MP.AMR[0].CD[ind].values;
@@ -58,7 +60,7 @@ void Piro::opencl_setBC(int ind){
     
 }
 
-void Piro::setbc(){
+void bc::setbc(){
     for (int ind = 0; ind < 6; ind++){
         for(uint faces = 0; faces < indices[ind].size(); faces++){
             int msv = GS.matchscalartovar(BC_property[ind]);
@@ -67,7 +69,7 @@ void Piro::setbc(){
     }
 }
 
-void Piro::prepbc(){
+void bc::prepbc(){
     Piro::Logger::info("Preparing cells to print");
     for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
         uint kd = ind / (MP.n[1] * MP.n[0]);
@@ -85,7 +87,7 @@ void Piro::prepbc(){
     std::sort(indices_toprint_vec.rbegin(), indices_toprint_vec.rend());
 }
 
-void Piro::initbc(){
+void bc::initbc(){
     Piro::Logger::info("Initialising boundary conditions");
     std::vector<int> BC_type;
     
@@ -122,23 +124,23 @@ void Piro::initbc(){
         }
     }
 
-    IniReader reader(current_path.string() + "/assets/setup.ini");
+    file_utilities::IniReader reader(current_path.string() + "/assets/setup.ini");
     BC_type = Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("BC", "type", "default_value"), ' '));
     BC_property = Piro::string_utilities::splitString(reader.get("BC", "property", "default_value"), ' ');
     BC_value = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("BC", "values", "default_value"), ' '));
-    Piro::setbc();
-    Piro::prepbc();
+    Piro::bc::setbc();
+    Piro::bc::prepbc();
 
-    opencl_initBC();
+    bc::opencl_initBC(); 
     Piro::Logger::info("Boundary conditions initialised");
 }
 
-void Piro::readbc(){
+void bc::readbc(){
     Piro::Logger::info("Reading boundary conditions");
-    IniReader reader(current_path.string() + "/assets/setup.ini");
+    file_utilities::IniReader reader(current_path.string() + "/assets/setup.ini");
 
     if(Piro::string_utilities::countSpaces(reader.get("BC", "type", "default_value")) > 1){
-        Piro::initbc();
+        bc::initbc();
     }
 
 }

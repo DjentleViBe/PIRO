@@ -2,12 +2,12 @@
 #include <preprocess.hpp>
 #include <init.hpp>
 #include <ic.hpp>
-#include <inireader.hpp>
 #include <extras.hpp>
 #include <stringutilities.hpp>
 #include <cmath>
 #include <logger.hpp>
 #include <mathoperations.hpp>
+#include <fileutilities.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -34,7 +34,7 @@ std::vector<float> Piro::initialcondition(int index, int valuetype){
     std::vector<float> coordinate(3);
     
     
-    IniReader icreader(current_path.string() + "/assets/IC/" + "distribution.ini");
+    Piro::file_utilities::IniReader icreader(current_path.string() + "/assets/IC/" + "distribution.ini");
     if(MP.ICfiles[index] == "Gaussian"){
         values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
         Piro::Logger::info("Gaussian initialisation");

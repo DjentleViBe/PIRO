@@ -9,7 +9,7 @@ extern std::vector<int> indices_toprint;
 extern std::vector<int> indices_toprint_vec;
 extern cl_int err;
 
-namespace Piro{
+namespace Piro::bc{
     void prepbc();
     void initbc();
     void readbc();
