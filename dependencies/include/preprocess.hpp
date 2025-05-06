@@ -13,14 +13,6 @@ extern int ts;
 extern bool LAP_INIT;
 extern bool RHS_INIT;
 
-extern std::vector<cl_program> program_math;
-extern std::vector<cl_kernel> kernel_math;
-extern std::vector<cl_program> program;
-extern std::vector<cl_kernel> kernel;
-extern cl_context   context;
-extern cl_command_queue queue;
-extern cl_uint maxWorkGroupSize;
-
 namespace Piro{
     int laplacian_CSR_init();
     int preprocess(const std::string& name);
@@ -29,6 +21,7 @@ namespace Piro{
     cl_program opencl_CreateProgram(const char* dialog);
     int opencl_init();
     int opencl_build();
+    int opencl_cleanup();
 }
 
 #endif

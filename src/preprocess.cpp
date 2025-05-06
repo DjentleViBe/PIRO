@@ -15,6 +15,7 @@
 #include <logger.hpp>
 #include <mathoperations.hpp>
 #include <fileutilities.hpp>
+#include <openclutilities.hpp>
 
 Piro::MeshParams MP;
 Piro::SolveParams SP;
@@ -111,7 +112,7 @@ int Piro::preprocess(const std::string& name) {
         MP.AMR[0].CD[i].values = initialcondition(i, MP.AMR[0].CD[i].type);
         // push scalar data to gpu
         CDGPU.values_gpu.push_back(CD_GPU);
-        CDGPU.values_gpu[i].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        CDGPU.values_gpu[i].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         sizeof(float) * N, MP.AMR[0].CD[i].values.data(), &err);
         j += 1;
     }
@@ -123,7 +124,7 @@ int Piro::preprocess(const std::string& name) {
         MP.AMR[0].CD[i].values = initialcondition(i, MP.AMR[0].CD[i].type);
         // push vector data to gpu
         CDGPU.values_gpu.push_back(CD_GPU);
-        CDGPU.values_gpu[i].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        CDGPU.values_gpu[i].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         sizeof(float) * N, MP.AMR[0].CD[i].values.data(), &err);
         
     }
@@ -241,13 +242,13 @@ int Piro::laplacian_CSR_init(){
     }
     
 
-    CDGPU.laplacian_csr[0].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    CDGPU.laplacian_csr[0].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(int) * MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.size(), MP.AMR[0].CD[MP.vectornum + MP.scalarnum].rowpointers.data(), &err);
 
-    CDGPU.laplacian_csr[1].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    CDGPU.laplacian_csr[1].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(int) *  MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.size(), MP.AMR[0].CD[MP.vectornum + MP.scalarnum].columns.data(), &err);
 
-    CDGPU.laplacian_csr[2].buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    CDGPU.laplacian_csr[2].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(float) *  MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.size(), MP.AMR[0].CD[MP.vectornum + MP.scalarnum].values.data(), &err);
     
     LAP_INIT = true;

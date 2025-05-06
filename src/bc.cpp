@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <CL/opencl.h>
 #include <logger.hpp>
+#include <openclutilities.hpp>
 
 std::vector<std::vector<int>> indices(6, std::vector<int>());
 std::vector<int> indices_toprint;
@@ -24,9 +25,9 @@ using namespace Piro;
 void bc::opencl_initBC(){
     int N = MP.n[0] * MP.n[1] * MP.n[2];
     Q = Piro::vector_operations::flattenvector(indices).size();
-    memE = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    memE = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(uint) * Q, Piro::vector_operations::flattenvector(indices).data(), &err);
-    memD = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    memD = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, MP.AMR[0].CD[0].values.data(), &err);
     if (err != CL_SUCCESS){
         std::cout << "BC error" << std::endl;
@@ -43,12 +44,12 @@ void bc::opencl_setBC(int ind){
     // std::cout << "before setting BC" << std::endl;
     // printVector(prop);
 
-    err |= clSetKernelArg(kernel[0], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
-    err |= clSetKernelArg(kernel[0], 1, sizeof(cl_mem), &memD);
-    err |= clSetKernelArg(kernel[0], 2, sizeof(cl_mem), &memE);
-    err |= clSetKernelArg(kernel[0], 3, sizeof(cl_uint), &Q);
+    err |= clSetKernelArg(kernels::kernel[0], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+    err |= clSetKernelArg(kernels::kernel[0], 1, sizeof(cl_mem), &memD);
+    err |= clSetKernelArg(kernels::kernel[0], 2, sizeof(cl_mem), &memE);
+    err |= clSetKernelArg(kernels::kernel[0], 3, sizeof(cl_uint), &Q);
 
-    err = clEnqueueNDRangeKernel(queue, kernel[0], 1, NULL, globalWorkSizeBC, NULL, 0, NULL, NULL);
+    err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel[0], 1, NULL, globalWorkSizeBC, NULL, 0, NULL, NULL);
     if (err != CL_SUCCESS){
         std::cout << "BC error" << std::endl;
         }
