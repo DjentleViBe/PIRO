@@ -11,7 +11,7 @@ char* dt;
 std::time_t now;
 
 int solve(){
-    Piro::Logger::info("Solving . . .\n");
+    Piro::logger::info("Solving . . .\n");
     // solve equations
     Piro::process solver;
     float time = 0.0;

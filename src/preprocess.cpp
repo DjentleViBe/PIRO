@@ -31,8 +31,8 @@ int ts = 0;
 
 int Piro::preprocess(const std::string& name) {
     
-    Piro::Logger::info("Preprocess step initiated");
-    Piro::Logger::info("Setup file : ",name);
+    Piro::logger::info("Preprocess step initiated");
+    Piro::logger::info("Setup file : ",name);
     Piro::file_utilities::IniReader reader(current_path.string() + "/assets/" + name);
     // Print all sections and key-value pairs
     // reader.print();
@@ -96,13 +96,13 @@ int Piro::preprocess(const std::string& name) {
     MP.ICtype = Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("IC", "type", "default_value"), ' '));
     // File location needed if ICtype == 2
     MP.ICfiles = Piro::string_utilities::splitString(reader.get("IC", "filename", "default_value"), ' ');
-    Piro::Logger::info("Initialising scalars and vectors");
+    Piro::logger::info("Initialising scalars and vectors");
     int j = 0;
     Piro::CellData CD;
     //CLBuffer CD_GPU;
     // total number of cells
     int N = MP.n[0] * MP.n[1] * MP.n[2];
-    Piro::Logger::info("Total number of cells : ", N);
+    Piro::logger::info("Total number of cells : ", N);
     for (int i = 0; i < MP.scalarnum; i++){
         
         CD.Scalars = MP.scalarlist[i];
@@ -127,7 +127,7 @@ int Piro::preprocess(const std::string& name) {
                         sizeof(float) * N, MP.AMR[0].CD[i].values.data(), &err);
         
     }
-    Piro::Logger::info("Initialising scalars and vectors completed!");
+    Piro::logger::info("Initialising scalars and vectors completed!");
     SP.delta[0] = MP.l[0] / float(MP.n[0] - 2);
     SP.delta[1] = MP.l[1] / float(MP.n[1] - 2);
     SP.delta[2] = MP.l[2] / float(MP.n[2] - 2);
@@ -147,7 +147,7 @@ int Piro::preprocess(const std::string& name) {
         SP.c = std::stof(reader_data.get("Table", "c", "default_value"));
     }
     Piro::bc::readbc();
-    Piro::Logger::info("Preprocess step completed");
+    Piro::logger::info("Preprocess step completed");
     return 0;
 }
 

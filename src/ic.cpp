@@ -28,7 +28,7 @@ float Piro::calculatecoulomb(std::vector<float> coord, std::vector<float> center
 }
 
 std::vector<float> Piro::initialcondition(int index, int valuetype){
-    Piro::Logger::info("Initialisation started");
+    Piro::logger::info("Initialisation started");
     std::vector<float> values;
     std::srand(std::time(0));
     std::vector<float> coordinate(3);
@@ -37,7 +37,7 @@ std::vector<float> Piro::initialcondition(int index, int valuetype){
     Piro::file_utilities::IniReader icreader(current_path.string() + "/assets/IC/" + "distribution.ini");
     if(MP.ICfiles[index] == "Gaussian"){
         values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
-        Piro::Logger::info("Gaussian initialisation");
+        Piro::logger::info("Gaussian initialisation");
         float scalefactor = std::stof(icreader.get("Gaussian", "Scalefactor", "default_value"));
         std::vector<float> sigma = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Gaussian", "Sigma", "default_value"), ' '));
         std::vector<float> mean = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Gaussian", "Median", "default_value"), ' '));
@@ -55,7 +55,7 @@ std::vector<float> Piro::initialcondition(int index, int valuetype){
     }
     else if (MP.ICfiles[index] == "Coulomb"){
         values.assign(MP.n[0] * MP.n[1] * MP.n[2], 0.0);
-        Piro::Logger::info("Coulomb initialisation");
+        Piro::logger::info("Coulomb initialisation");
         std::vector<float> center = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Coulomb", "center", "default_value"), ' '));
         float Z = std::stof(icreader.get("Coulomb", "Z", "default_value"));
         double e = std::stof(icreader.get("Coulomb", "e", "default_value"));
@@ -87,7 +87,7 @@ std::vector<float> Piro::initialcondition(int index, int valuetype){
             values[vec] = vectordir[2] * vecval[0];
         }
     }
-    Piro::Logger::info("Initialisation completed");
+    Piro::logger::info("Initialisation completed");
     return values;
 
 }

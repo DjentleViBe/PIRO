@@ -56,12 +56,12 @@ namespace Piro{
         else if(SP.timescheme == 12){
             // std::cout << "Backward Euler" << std::endl;
                 if(SP.solverscheme == 27){
-                    Piro::Logger::info("LU Decomposition");
+                    Piro::logger::info("LU Decomposition");
                     if(RHS_INIT == false){
                         Piro::matrix_operations::lu_decomposition_HTLF(other);
                         RHS_INIT = true;
                     }
-                    Piro::Logger::debug("RHS_INIT end" );
+                    Piro::logger::debug("RHS_INIT end" );
                 }
         }
         return partD;

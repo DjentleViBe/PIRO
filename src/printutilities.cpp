@@ -15,11 +15,11 @@ namespace Piro::print_utilities{
 
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                Piro::Logger::debug_print(matrix[i][j], " ");
+                Piro::logger::debug_print(matrix[i][j], " ");
             }
-            Piro::Logger::debug_print("\n");
+            Piro::logger::debug_print("\n");
         }
-        Piro::Logger::debug_print("\n");
+        Piro::logger::debug_print("\n");
     }
 
     void printMatrix(const std::vector<std::vector<int>>& matrix) {
@@ -28,25 +28,25 @@ namespace Piro::print_utilities{
 
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                Piro::Logger::debug_print(matrix[i][j], " ");
+                Piro::logger::debug_print(matrix[i][j], " ");
             }
-            Piro::Logger::debug_print("\n");
+            Piro::logger::debug_print("\n");
         }
-        Piro::Logger::debug_print("\n");
+        Piro::logger::debug_print("\n");
     }
 
     void printVector(const std::vector<float>& vec){
         for (int i = 0; i < vec.size(); ++i) {
-            Piro::Logger::debug_print(vec[i], " ");
+            Piro::logger::debug_print(vec[i], " ");
         }
-        Piro::Logger::debug_print("\n");
+        Piro::logger::debug_print("\n");
     }
 
     void printVector(const std::vector<int>& vec){
         for (int i = 0; i < vec.size(); ++i) {
-            Piro::Logger::debug_print(vec[i], " ");
+            Piro::logger::debug_print(vec[i], " ");
         }
-        Piro::Logger::debug_print("\n");
+        Piro::logger::debug_print("\n");
     }
 
     void print_time() {
@@ -78,7 +78,7 @@ namespace Piro::print_utilities{
     void printArray(float* array, uint size){
         std::cout << "Printing array" << std::endl;
         for (uint i = 0; i < size; i++) {
-            Piro::Logger::debug_print(array[i], " ");
+            Piro::logger::debug_print(array[i], " ");
         }
     }
 
@@ -88,7 +88,7 @@ namespace Piro::print_utilities{
             clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                                         sizeof(int) * N, hostValues.data(), 0, NULL, NULL);
             for (size_t i = 0; i < hostValues.size(); ++i) {
-                Piro::Logger::debug_print(hostValues[i], " ");
+                Piro::logger::debug_print(hostValues[i], " ");
                 }
         }
         else if(type ==1){
@@ -96,10 +96,10 @@ namespace Piro::print_utilities{
             clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                                         sizeof(float) * N, hostValues.data(), 0, NULL, NULL);
             for (size_t i = 0; i < hostValues.size(); ++i) {
-                Piro::Logger::debug_print(round(hostValues[i] * 10) / 10.0, " ");
+                Piro::logger::debug_print(round(hostValues[i] * 10) / 10.0, " ");
                 }
         }
-        Piro::Logger::debug_print("\n");
+        Piro::logger::debug_print("\n");
     }
 
     void printCLArray(cl_mem memC, int N, int type){
@@ -108,9 +108,9 @@ namespace Piro::print_utilities{
             clEnqueueReadBuffer(queue, memC, CL_TRUE, 0,
                                         sizeof(int) * N * N, hostValues.data(), 0, NULL, NULL);
             for (size_t i = 0; i < hostValues.size(); ++i) {
-                Piro::Logger::debug_print(hostValues[i], " ");
+                Piro::logger::debug_print(hostValues[i], " ");
                 if(i % (N - 1) == 0){
-                    Piro::Logger::debug_print("\n");
+                    Piro::logger::debug_print("\n");
                 }
             }
         }
@@ -120,23 +120,23 @@ namespace Piro::print_utilities{
                                         sizeof(float) * N * N, hostValues.data(), 0, NULL, NULL);
             for (size_t i = 0; i < hostValues.size(); ++i) {
                     
-                Piro::Logger::debug_print(std::round(hostValues[i] * 10000.0) / 10000.0, "\t\t");
+                Piro::logger::debug_print(std::round(hostValues[i] * 10000.0) / 10000.0, "\t\t");
                 if((i + 1) % (N) == 0){
-                    Piro::Logger::debug_print("\n");
+                    Piro::logger::debug_print("\n");
                 }
             }
         }
-        Piro::Logger::debug_print("\n");
+        Piro::logger::debug_print("\n");
     }
 
     void hash_to_dense_and_print(std::vector<int> Hashkeys, std::vector<float> HashValues, int N, int TABLE_SIZE){
         for (int i = 0; i < N; i++){
             for (int j = 0; j < N; j++){
                 float val = Piro::methods::lookup(i, j, N, Hashkeys, HashValues, TABLE_SIZE);
-                Piro::Logger::debug_print(std::round(val * 100.0f) / 100.0f, "\t");
+                Piro::logger::debug_print(std::round(val * 100.0f) / 100.0f, "\t");
                 // std::cout << std::fixed << std::setprecision(2) << val << "\t";
             }
-            Piro::Logger::debug_print("\n");
+            Piro::logger::debug_print("\n");
         }
     }
 
@@ -159,7 +159,7 @@ namespace Piro::print_utilities{
             for (float val : row) {
                 std::cout << std::fixed << std::setprecision(2) << val << "\t";
             }
-        Piro::Logger::debug_print("\n");
+        Piro::logger::debug_print("\n");
         }
     }
 }

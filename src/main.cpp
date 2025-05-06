@@ -16,12 +16,12 @@ int main(int argc, char* argv[])
     
     std::string name = argv[1];
 
-	Piro::Logger::info("Start Program");
+	Piro::logger::info("Start Program");
 	Piro::file_utilities::get_exec_directory();
 	Piro::preprocess(name);
 	solve();
 
-	Piro::Logger::info("End Program");
+	Piro::logger::info("End Program");
 	// postprocess("T");
 	return 0;
 }

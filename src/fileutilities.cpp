@@ -32,7 +32,7 @@ namespace Piro{
                 outfile.close();
                 // std::cout << "Line written to file successfully" << std::endl;
             } else {
-                Piro::Logger::info("Failed to open the file");
+                Piro::logger::info("Failed to open the file");
                 // std::cerr << "Failed to open the file." << std::endl;
             }
             return 0;
@@ -40,19 +40,19 @@ namespace Piro{
 
         int create_directory(std::string directoryname){
             std::filesystem::path dir(directoryname);
-            Piro::Logger::info("Creating directory");
+            Piro::logger::info("Creating directory");
             try {
                 if (std::filesystem::exists(dir)) {
-                    Piro::Logger::info("Directory already exists: ", dir);
+                    Piro::logger::info("Directory already exists: ", dir);
                 } else {
                     if (std::filesystem::create_directory(dir)) {
-                        Piro::Logger::info("Directory created successfully: ", dir);
+                        Piro::logger::info("Directory created successfully: ", dir);
                     } else {
-                        Piro::Logger::info("Failed to create directory: ", dir);
+                        Piro::logger::info("Failed to create directory: ", dir);
                     }
                 }
             } catch (const std::filesystem::filesystem_error& e) {
-                Piro::Logger::info("Error: ", e.what());
+                Piro::logger::info("Error: ", e.what());
             }
             return 0;
         }
@@ -61,12 +61,12 @@ namespace Piro{
             try {
                 if (std::filesystem::exists(folderPath)) {
                     std::filesystem::remove_all(folderPath);
-                    Piro::Logger::info("Folder deleted successfully.");
+                    Piro::logger::info("Folder deleted successfully.");
                 } else {
-                    Piro::Logger::info("Folder does not exist.");
+                    Piro::logger::info("Folder does not exist.");
                 }
             } catch (const std::filesystem::filesystem_error& e) {
-                Piro::Logger::info("Error: ", e.what());
+                Piro::logger::info("Error: ", e.what());
             }
 
             return 0;

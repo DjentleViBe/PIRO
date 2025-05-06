@@ -29,7 +29,7 @@ namespace Piro::string_utilities{
                 intVector.push_back(num);
             } else {
                 // Handle error if conversion fails
-                Piro::Logger::info("Error: Conversion failed for string 's", str, "'");
+                Piro::logger::info("Error: Conversion failed for string 's", str, "'");
                 // You may choose to throw an exception or handle the error in another way
             }
         }
@@ -47,7 +47,7 @@ namespace Piro::string_utilities{
                 intVector.push_back(num);
             } else {
                 // Handle error if conversion fails
-                Piro::Logger::info("Error: Conversion failed for string '", str, "'");
+                Piro::logger::info("Error: Conversion failed for string '", str, "'");
                 // You may choose to throw an exception or handle the error in another way
             }
         }
@@ -65,7 +65,7 @@ namespace Piro::string_utilities{
                 intVector.push_back(num);
             } else {
                 // Handle error if conversion fails
-                Piro::Logger::info("Error: Conversion failed for string '", str, "'");
+                Piro::logger::info("Error: Conversion failed for string '", str, "'");
                 // You may choose to throw an exception or handle the error in another way
             }
         }
