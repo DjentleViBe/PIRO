@@ -12,16 +12,15 @@ namespace Piro{
             CLBuffer operator=(const std::vector<CLBuffer>& other);
     
     };
+    CLBuffer operator*(CLBuffer partA, CLBuffer partB);
+    CLBuffer operator*(const float partA, CLBuffer partB);
+    CLBuffer operator+(CLBuffer partA, Piro::CLBuffer partB);
+    CLBuffer operator+(const float partA, CLBuffer partB);
+    CLBuffer operator-(CLBuffer partA, CLBuffer partB);
+    CLBuffer operator-(const float partA, CLBuffer partB);
+    CLBuffer operator/(CLBuffer partA, CLBuffer partB);
+    CLBuffer operator/(const float partA, CLBuffer partB);
 }
-
-Piro::CLBuffer operator*(Piro::CLBuffer partA, Piro::CLBuffer partB);
-Piro::CLBuffer operator*(const float partA, Piro::CLBuffer partB);
-Piro::CLBuffer operator+(Piro::CLBuffer partA, Piro::CLBuffer partB);
-Piro::CLBuffer operator+(const float partA, Piro::CLBuffer partB);
-Piro::CLBuffer operator-(Piro::CLBuffer partA, Piro::CLBuffer partB);
-Piro::CLBuffer operator-(const float partA, Piro::CLBuffer partB);
-Piro::CLBuffer operator/(Piro::CLBuffer partA, Piro::CLBuffer partB);
-Piro::CLBuffer operator/(const float partA, Piro::CLBuffer partB);
 
 namespace Piro{
     class CellDataGPU{
