@@ -2,7 +2,6 @@
 #include <cstdarg>
 #include <postprocess.hpp>
 #include <preprocess.hpp>
-#include <solve.hpp>
 
 void postprocess(){
     // std::cout << "This is the postprocess source" << std::endl;

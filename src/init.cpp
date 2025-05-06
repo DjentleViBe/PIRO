@@ -8,7 +8,7 @@
 
 std::filesystem::path current_path;
 
-void init(){
+void Piro::init(){
     Piro::Logger::info("Directory INIT");
     if(SP.restart){
         Piro::file_utilities::delete_directory(current_path.string() + "/" + SP.casename);

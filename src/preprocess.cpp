@@ -7,7 +7,6 @@
 #include <datatypes.hpp>
 #include <extras.hpp>
 #include <stringutilities.hpp>
-#include <solve.hpp>
 #include <ic.hpp>
 #include <bc.hpp>
 #include <operatoroverload.hpp>
@@ -29,7 +28,6 @@ int debuginfo;
 bool LAP_INIT = false;
 bool RHS_INIT = false;
 int ts = 0;
-
 
 int Piro::preprocess(const std::string& name) {
     
@@ -65,7 +63,7 @@ int Piro::preprocess(const std::string& name) {
     MP.n[1] += 2;
     MP.n[2] += 2;
 
-    init();
+    Piro::init();
     Piro::opencl_init();
     Piro::opencl_build();
     
