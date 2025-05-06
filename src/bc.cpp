@@ -70,7 +70,7 @@ void bc::setbc(){
 }
 
 void bc::prepbc(){
-    Piro::Logger::info("Preparing cells to print");
+    Piro::logger::info("Preparing cells to print");
     for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
         uint kd = ind / (MP.n[1] * MP.n[0]);
         uint jd = (ind / MP.n[0]) % MP.n[1];
@@ -88,7 +88,7 @@ void bc::prepbc(){
 }
 
 void bc::initbc(){
-    Piro::Logger::info("Initialising boundary conditions");
+    Piro::logger::info("Initialising boundary conditions");
     std::vector<int> BC_type;
     
     for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
@@ -132,11 +132,11 @@ void bc::initbc(){
     Piro::bc::prepbc();
 
     bc::opencl_initBC(); 
-    Piro::Logger::info("Boundary conditions initialised");
+    Piro::logger::info("Boundary conditions initialised");
 }
 
 void bc::readbc(){
-    Piro::Logger::info("Reading boundary conditions");
+    Piro::logger::info("Reading boundary conditions");
     file_utilities::IniReader reader(current_path.string() + "/assets/setup.ini");
 
     if(Piro::string_utilities::countSpaces(reader.get("BC", "type", "default_value")) > 1){

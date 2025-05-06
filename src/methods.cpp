@@ -18,7 +18,7 @@ namespace Piro::methods{
             hash_index = (hash_index + 1) % TABLE_SIZE;
             attempts++;
             if (attempts >= TABLE_SIZE) {
-                // Logger::info("Error - lookhash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". \n\t\t\t\t\t\t\t");
+                // logger::info("Error - lookhash [", hash_index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,". \n\t\t\t\t\t\t\t");
                 // Table is full, handle appropriately
                 // std::exit(1);
                 return 0.0; // Return error code
@@ -60,9 +60,9 @@ namespace Piro::methods{
             Hash_val_V[first_deleted] = value;
             return 0;
         }
-        Piro::Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
-        Piro::Logger::warning("hashkeys : ", Hash_keys_V);
-        Piro::Logger::warning("hashvalues : ", Hash_val_V);
+        Piro::logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
+        Piro::logger::warning("hashkeys : ", Hash_keys_V);
+        Piro::logger::warning("hashvalues : ", Hash_val_V);
         Piro::print_utilities::hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
         std::exit(1);
         // Key not found
@@ -105,9 +105,9 @@ namespace Piro::methods{
         }
     
         // Table is truly full
-        Piro::Logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
-        Piro::Logger::warning("hashkeys : ", Hash_keys_V);
-        Piro::Logger::warning("hashvalues : ", Hash_val_V);
+        Piro::logger::info("Error - sethash [", hash_index, "/", index, "]: Hash table [", TABLE_SIZE, "] is full. \n\t\t\t\t\t\t\tAttempts =", attempts,", first_deleted = ", first_deleted,". Try reducing LoadFactor inside hashtable.ini. \n\t\t\t\t\t\t\tAborting program");
+        Piro::logger::warning("hashkeys : ", Hash_keys_V);
+        Piro::logger::warning("hashvalues : ", Hash_val_V);
         Piro::print_utilities::hash_to_dense_and_print(Hash_keys_V, Hash_val_V, MP.n[0]*MP.n[1]*MP.n[2], TABLE_SIZE);
         std::exit(1);
         return -1;

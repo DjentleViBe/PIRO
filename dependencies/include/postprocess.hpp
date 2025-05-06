@@ -1,10 +1,8 @@
 #ifndef postprocess_hpp
 #define postprocess_hpp
-#include <datatypes.hpp>
-//void postprocess();
 
-// template<typename T, typename... Args>
-// void postprocess(T first, Args... args);
+#include <datatypes.hpp>
+
 namespace Piro::post{
     void export_paraview(float timestep);
 }
