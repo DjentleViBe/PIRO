@@ -43,12 +43,12 @@ void bc::opencl_setBC(int ind){
     // std::cout << "before setting BC" << std::endl;
     // printVector(prop);
 
-    err |= clSetKernelArg(kernelBC, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
-    err |= clSetKernelArg(kernelBC, 1, sizeof(cl_mem), &memD);
-    err |= clSetKernelArg(kernelBC, 2, sizeof(cl_mem), &memE);
-    err |= clSetKernelArg(kernelBC, 3, sizeof(cl_uint), &Q);
+    err |= clSetKernelArg(kernel[0], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+    err |= clSetKernelArg(kernel[0], 1, sizeof(cl_mem), &memD);
+    err |= clSetKernelArg(kernel[0], 2, sizeof(cl_mem), &memE);
+    err |= clSetKernelArg(kernel[0], 3, sizeof(cl_uint), &Q);
 
-    err = clEnqueueNDRangeKernel(queue, kernelBC, 1, NULL, globalWorkSizeBC, NULL, 0, NULL, NULL);
+    err = clEnqueueNDRangeKernel(queue, kernel[0], 1, NULL, globalWorkSizeBC, NULL, 0, NULL, NULL);
     if (err != CL_SUCCESS){
         std::cout << "BC error" << std::endl;
         }

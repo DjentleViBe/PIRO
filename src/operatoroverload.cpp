@@ -31,20 +31,20 @@ namespace Piro{
             // Forward Euler
             // std::cout << "Forward Euler" << std::endl;
 
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 0, sizeof(cl_int), &N);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 1, sizeof(cl_int), &N);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 2, sizeof(cl_int), &P);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 3, sizeof(cl_mem), &other[2].buffer);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 4, sizeof(cl_mem), &other[1].buffer);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 5, sizeof(cl_mem), &other[0].buffer);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 6, sizeof(cl_float), &SP.timestep);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 7, sizeof(cl_mem), &this->buffer);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 8, sizeof(cl_mem), &partC.buffer);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 9, sizeof(cl_int), &MP.n[0]);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 10, sizeof(cl_int), &MP.n[1]);
-            err |= clSetKernelArg(kernellaplaciansparseMatrixMultiplyCSR, 11, sizeof(cl_int), &N);
+            err |= clSetKernelArg(kernel[8], 0, sizeof(cl_int), &N);
+            err |= clSetKernelArg(kernel[8], 1, sizeof(cl_int), &N);
+            err |= clSetKernelArg(kernel[8], 2, sizeof(cl_int), &P);
+            err |= clSetKernelArg(kernel[8], 3, sizeof(cl_mem), &other[2].buffer);
+            err |= clSetKernelArg(kernel[8], 4, sizeof(cl_mem), &other[1].buffer);
+            err |= clSetKernelArg(kernel[8], 5, sizeof(cl_mem), &other[0].buffer);
+            err |= clSetKernelArg(kernel[8], 6, sizeof(cl_float), &SP.timestep);
+            err |= clSetKernelArg(kernel[8], 7, sizeof(cl_mem), &this->buffer);
+            err |= clSetKernelArg(kernel[8], 8, sizeof(cl_mem), &partC.buffer);
+            err |= clSetKernelArg(kernel[8], 9, sizeof(cl_int), &MP.n[0]);
+            err |= clSetKernelArg(kernel[8], 10, sizeof(cl_int), &MP.n[1]);
+            err |= clSetKernelArg(kernel[8], 11, sizeof(cl_int), &N);
             
-            err = clEnqueueNDRangeKernel(queue, kernellaplaciansparseMatrixMultiplyCSR, 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+            err = clEnqueueNDRangeKernel(queue, kernel[8], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
             clFinish(queue);
             err |= clSetKernelArg(kernel_math[0], 0, sizeof(cl_mem), &partD.buffer);
             err |= clSetKernelArg(kernel_math[0], 2, sizeof(cl_mem), &partC.buffer);

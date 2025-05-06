@@ -87,17 +87,17 @@ CLBuffer process::laplacian_full(std::string var){
         memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * N, prop.data(), &err);
     
-        err |= clSetKernelArg(kernellaplacianscalar, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
-        err |= clSetKernelArg(kernellaplacianscalar, 1, sizeof(cl_mem), &memC.buffer);
-        err |= clSetKernelArg(kernellaplacianscalar, 2, sizeof(cl_float), &SP.delta[0]);
-        err |= clSetKernelArg(kernellaplacianscalar, 3, sizeof(cl_float), &SP.delta[1]);
-        err |= clSetKernelArg(kernellaplacianscalar, 4, sizeof(cl_float), &SP.delta[2]);
-        err |= clSetKernelArg(kernellaplacianscalar, 5, sizeof(cl_uint), &MP.n[0]);
-        err |= clSetKernelArg(kernellaplacianscalar, 6, sizeof(cl_uint), &MP.n[1]);
-        err |= clSetKernelArg(kernellaplacianscalar, 7, sizeof(cl_float), &SP.timestep);
-        err |= clSetKernelArg(kernellaplacianscalar, 8, sizeof(cl_uint), &N);
+        err |= clSetKernelArg(kernel[5], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+        err |= clSetKernelArg(kernel[5], 1, sizeof(cl_mem), &memC.buffer);
+        err |= clSetKernelArg(kernel[5], 2, sizeof(cl_float), &SP.delta[0]);
+        err |= clSetKernelArg(kernel[5], 3, sizeof(cl_float), &SP.delta[1]);
+        err |= clSetKernelArg(kernel[5], 4, sizeof(cl_float), &SP.delta[2]);
+        err |= clSetKernelArg(kernel[5], 5, sizeof(cl_uint), &MP.n[0]);
+        err |= clSetKernelArg(kernel[5], 6, sizeof(cl_uint), &MP.n[1]);
+        err |= clSetKernelArg(kernel[5], 7, sizeof(cl_float), &SP.timestep);
+        err |= clSetKernelArg(kernel[5], 8, sizeof(cl_uint), &N);
 
-        err = clEnqueueNDRangeKernel(queue, kernellaplacianscalar, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
+        err = clEnqueueNDRangeKernel(queue, kernel[5], 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
     
     }
     else{
@@ -106,17 +106,17 @@ CLBuffer process::laplacian_full(std::string var){
         memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * 3 * N, prop.data(), &err);
     
-        err |= clSetKernelArg(kernellaplacianvector, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
-        err |= clSetKernelArg(kernellaplacianvector, 1, sizeof(cl_mem), &memC.buffer);
-        err |= clSetKernelArg(kernellaplacianvector, 2, sizeof(cl_float), &SP.delta[0]);
-        err |= clSetKernelArg(kernellaplacianvector, 3, sizeof(cl_float), &SP.delta[1]);
-        err |= clSetKernelArg(kernellaplacianvector, 4, sizeof(cl_float), &SP.delta[2]);
-        err |= clSetKernelArg(kernellaplacianvector, 5, sizeof(cl_uint), &MP.n[0]);
-        err |= clSetKernelArg(kernellaplacianvector, 6, sizeof(cl_uint), &MP.n[1]);
-        err |= clSetKernelArg(kernellaplacianvector, 7, sizeof(cl_float), &SP.timestep);
-        err |= clSetKernelArg(kernellaplacianvector, 8, sizeof(cl_uint), &N);
+        err |= clSetKernelArg(kernel[9], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+        err |= clSetKernelArg(kernel[9], 1, sizeof(cl_mem), &memC.buffer);
+        err |= clSetKernelArg(kernel[9], 2, sizeof(cl_float), &SP.delta[0]);
+        err |= clSetKernelArg(kernel[9], 3, sizeof(cl_float), &SP.delta[1]);
+        err |= clSetKernelArg(kernel[9], 4, sizeof(cl_float), &SP.delta[2]);
+        err |= clSetKernelArg(kernel[9], 5, sizeof(cl_uint), &MP.n[0]);
+        err |= clSetKernelArg(kernel[9], 6, sizeof(cl_uint), &MP.n[1]);
+        err |= clSetKernelArg(kernel[9], 7, sizeof(cl_float), &SP.timestep);
+        err |= clSetKernelArg(kernel[9], 8, sizeof(cl_uint), &N);
 
-        err = clEnqueueNDRangeKernel(queue, kernellaplacianvector, 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
+        err = clEnqueueNDRangeKernel(queue, kernel[9], 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
     
 
     }
@@ -189,18 +189,18 @@ CLBuffer process::div_r(std::string var1, std::string var2){
         memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * N, prop.data(), &err);
     
-        err |= clSetKernelArg(kernelgradient_type3, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
-        err |= clSetKernelArg(kernelgradient_type3, 1, sizeof(cl_mem), &memC.buffer);
-        err |= clSetKernelArg(kernelgradient_type3, 2, sizeof(cl_mem), &multi.buffer);
-        err |= clSetKernelArg(kernelgradient_type3, 3, sizeof(cl_float), &SP.delta[0]);
-        err |= clSetKernelArg(kernelgradient_type3, 4, sizeof(cl_float), &SP.delta[1]);
-        err |= clSetKernelArg(kernelgradient_type3, 5, sizeof(cl_float), &SP.delta[2]);
-        err |= clSetKernelArg(kernelgradient_type3, 6, sizeof(cl_uint), &MP.n[0]);
-        err |= clSetKernelArg(kernelgradient_type3, 7, sizeof(cl_uint), &MP.n[1]);
-        err |= clSetKernelArg(kernelgradient_type3, 8, sizeof(cl_float), &SP.timestep);
-        err |= clSetKernelArg(kernelgradient_type3, 9, sizeof(cl_uint), &N);
+        err |= clSetKernelArg(kernel[3], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
+        err |= clSetKernelArg(kernel[3], 1, sizeof(cl_mem), &memC.buffer);
+        err |= clSetKernelArg(kernel[3], 2, sizeof(cl_mem), &multi.buffer);
+        err |= clSetKernelArg(kernel[3], 3, sizeof(cl_float), &SP.delta[0]);
+        err |= clSetKernelArg(kernel[3], 4, sizeof(cl_float), &SP.delta[1]);
+        err |= clSetKernelArg(kernel[3], 5, sizeof(cl_float), &SP.delta[2]);
+        err |= clSetKernelArg(kernel[3], 6, sizeof(cl_uint), &MP.n[0]);
+        err |= clSetKernelArg(kernel[3], 7, sizeof(cl_uint), &MP.n[1]);
+        err |= clSetKernelArg(kernel[3], 8, sizeof(cl_float), &SP.timestep);
+        err |= clSetKernelArg(kernel[3], 9, sizeof(cl_uint), &N);
 
-        err = clEnqueueNDRangeKernel(queue, kernelgradient_type3, 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
+        err = clEnqueueNDRangeKernel(queue, kernel[3], 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
         
     }
     else{
@@ -212,18 +212,18 @@ CLBuffer process::div_r(std::string var1, std::string var2){
         memC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * 3 * N, prop.data(), &err);
     
-        err |= clSetKernelArg(kernelgradient_type4, 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
-        err |= clSetKernelArg(kernelgradient_type4, 1, sizeof(cl_mem), &memC.buffer);
-        err |= clSetKernelArg(kernelgradient_type4, 2, sizeof(cl_mem), &multi.buffer);
-        err |= clSetKernelArg(kernelgradient_type4, 3, sizeof(cl_float), &SP.delta[0]);
-        err |= clSetKernelArg(kernelgradient_type4, 4, sizeof(cl_float), &SP.delta[1]);
-        err |= clSetKernelArg(kernelgradient_type4, 5, sizeof(cl_float), &SP.delta[2]);
-        err |= clSetKernelArg(kernelgradient_type4, 6, sizeof(cl_uint), &MP.n[0]);
-        err |= clSetKernelArg(kernelgradient_type4, 7, sizeof(cl_uint), &MP.n[1]);
-        err |= clSetKernelArg(kernelgradient_type4, 8, sizeof(cl_float), &SP.timestep);
-        err |= clSetKernelArg(kernelgradient_type4, 9, sizeof(cl_uint), &N);
+        err |= clSetKernelArg(kernel[4], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
+        err |= clSetKernelArg(kernel[4], 1, sizeof(cl_mem), &memC.buffer);
+        err |= clSetKernelArg(kernel[4], 2, sizeof(cl_mem), &multi.buffer);
+        err |= clSetKernelArg(kernel[4], 3, sizeof(cl_float), &SP.delta[0]);
+        err |= clSetKernelArg(kernel[4], 4, sizeof(cl_float), &SP.delta[1]);
+        err |= clSetKernelArg(kernel[4], 5, sizeof(cl_float), &SP.delta[2]);
+        err |= clSetKernelArg(kernel[4], 6, sizeof(cl_uint), &MP.n[0]);
+        err |= clSetKernelArg(kernel[4], 7, sizeof(cl_uint), &MP.n[1]);
+        err |= clSetKernelArg(kernel[4], 8, sizeof(cl_float), &SP.timestep);
+        err |= clSetKernelArg(kernel[4], 9, sizeof(cl_uint), &N);
 
-        err = clEnqueueNDRangeKernel(queue, kernelgradient_type4, 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
+        err = clEnqueueNDRangeKernel(queue, kernel[4], 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
         
         
     }

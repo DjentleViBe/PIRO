@@ -36,10 +36,10 @@ namespace Piro::matrix_operations{
         
         LFvalues.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
         LFkeys.buffer = clCreateBuffer(context, CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
-        err |= clSetKernelArg(kernelfilterarray, 0, sizeof(cl_mem), &LFkeys.buffer);
-        err |= clSetKernelArg(kernelfilterarray, 1, sizeof(cl_mem), &LFvalues.buffer);
-        err |= clSetKernelArg(kernelfilterarray, 2, sizeof(cl_int), &N);
-        err |= clSetKernelArg(kernelfilterarray, 4, sizeof(cl_int), &TABLE_SIZE);
+        err |= clSetKernelArg(kernel[10], 0, sizeof(cl_mem), &LFkeys.buffer);
+        err |= clSetKernelArg(kernel[10], 1, sizeof(cl_mem), &LFvalues.buffer);
+        err |= clSetKernelArg(kernel[10], 2, sizeof(cl_int), &N);
+        err |= clSetKernelArg(kernel[10], 4, sizeof(cl_int), &TABLE_SIZE);
         Piro::logger::debug("Buffer creation end");
         size_t globalWorkSize[1];
         size_t localWorkSize[1];
@@ -147,9 +147,9 @@ namespace Piro::matrix_operations{
             globalWorkSize[0] = ((nnz + local - 1) / local) * local;
             localWorkSize[0] = local;
             // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
-            err |= clSetKernelArg(kernelfilterarray, 5, sizeof(cl_int), &limit);
-            err |= clSetKernelArg(kernelfilterarray, 3, sizeof(cl_int), &rowouter);
-            err = clEnqueueNDRangeKernel(queue, kernelfilterarray, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
+            err |= clSetKernelArg(kernel[10], 5, sizeof(cl_int), &limit);
+            err |= clSetKernelArg(kernel[10], 3, sizeof(cl_int), &rowouter);
+            err = clEnqueueNDRangeKernel(queue, kernel[10], 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
             clFinish(queue);
             Piro::logger::debug("Kernel finished");
             Piro::opencl_utilities::copyCL_offset<float>(queue, LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
