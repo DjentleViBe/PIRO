@@ -1,0 +1,9 @@
+subtractVectors
+addVectors
+multiplyVectors
+divideVectors
+addVectors_constant
+subtractVectors_constant
+multiplyVectors_constant
+divideVectors_constant
+subtractVectors_self
