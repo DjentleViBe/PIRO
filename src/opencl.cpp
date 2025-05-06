@@ -12,6 +12,9 @@
 #include <bc.hpp>
 #include <vector>
 #include <logger.hpp>
+#include <fstream>
+#include <sstream>
+#include <init.hpp>
 
 float* B_ptr;
 cl_int err;
@@ -44,34 +47,8 @@ std::vector<const char*> kernelNamesmath = {"addVectors", "subtractVectors", "mu
                                             "divideVectors_constant",
                                             "subtractVectors_self",
                                             "setBC"};
-std::vector<const char*> kernelSources = {setBC,
-                                        gradcalc1,
-                                        gradcalc2, 
-                                        gradcalc3, 
-                                        gradcalc4, 
-                                        laplacianscalar,
-                                        lu_decompose_dense,
-                                        sparseMatrixMultiplyCSR,
-                                        laplaciansparseMatrixMultiplyCSR,
-                                        laplacianvector,
-                                        filter_array,
-                                        filter_row,
-                                        forward_substitution_csr,
-                                        backward_substitution_csr};
-std::vector<const char*> kernelNames = {"setBC",
-                                        "gradcalc1",
-                                        "gradcalc2", 
-                                        "gradcalc3", 
-                                        "gradcalc4", 
-                                        "laplacianscalar",
-                                        "lu_decompose_dense",
-                                        "sparseMatrixMultiplyCSR",
-                                        "laplaciansparseMatrixMultiplyCSR",
-                                        "laplacianvector",
-                                        "filter_array",
-                                        "filter_row",
-                                        "forward_substitution_csr",
-                                        "backward_substitution_csr"};
+std::vector<std::string> kernelSources;
+std::vector<std::string> kernelNames;
 cl_mem memBx, memCx, memDx, memEx;
 
 void Piro::print_device_info(cl_device_id device){
@@ -93,6 +70,19 @@ void Piro::print_device_info(cl_device_id device){
     Piro::logger::info("Max Work Group Size: ", Piro::kernels::maxWorkGroupSize);
     // std::cout << "Max Global Mem Size: " << globalMemSize << " bytes" << std::endl;
     // std::cout << "Max Alloc Size: " << maxAllocSize << " bytes" << std::endl;
+}
+
+
+std::string Piro::readFile(const std::string& kernelName) {
+    std::ifstream file(current_path.string() + "/assets/kernels/" + kernelName + ".cl");  // Assume source file has the same name as the kernel
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open kernel source file: " + current_path.string() + "/assets/kernels/" + kernelName + ".cl");
+    }
+
+    return std::string(
+        std::istreambuf_iterator<char>(file),
+        std::istreambuf_iterator<char>()
+    );
 }
 
 int Piro::opencl_init(){
@@ -173,18 +163,85 @@ cl_int Piro::opencl_BuildProgram(cl_program program){
     return err;
 }
 
+std::string readFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file: " + filename);
+    }
+    
+    return std::string(
+        std::istreambuf_iterator<char>(file),
+        std::istreambuf_iterator<char>()
+    );
+}
+
+// Function to save binary to file
+void saveBinary(const std::string& filename, const std::vector<unsigned char>& binary) {
+    std::ofstream file(filename, std::ios::binary);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file for writing: " + filename);
+    }
+    
+    file.write(reinterpret_cast<const char*>(binary.data()), binary.size());
+}
+
+void Piro::loadKernelsFromFile(const std::string& filename, 
+                                std::vector<std::string>& knm, 
+                                std::vector<std::string>& ksm) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+    throw std::runtime_error("Failed to open kernel names file.");
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;  // Skip empty lines
+
+        // Kernel name is read from the file
+        knm.push_back(line.c_str());
+
+        // Load the corresponding kernel source from a separate file
+        std::string kernelSource = Piro::readFile(line);
+        ksm.push_back(kernelSource);
+    }
+
+    file.close();
+}
+
 int Piro::opencl_build(){
     // Create program objects
     Piro::logger::info("Building program : initiated");
+
+    Piro::logger::info("Reading kernel files from : ", current_path.string(), "/assets/kernels/0_kernels_math.txt");
+    // Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels_math.txt",
+    //                         kernelNamesmath, kernelSourcesmath);
+    Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels.txt",
+                                kernelNames, kernelSources);
+
     for(size_t i = 0; i < Piro::kernels::program_math.size(); i++){
         Piro::kernels::program_math[i] = opencl_CreateProgram(kernelSourcesmath[i]);
         err = Piro::opencl_BuildProgram(Piro::kernels::program_math[i]);
         Piro::kernels::kernel_math[i] = clCreateKernel(Piro::kernels::program_math[i], kernelNamesmath[i], &err);
     }
+
     for(size_t i = 0; i < Piro::kernels::program.size(); i++){
-        Piro::kernels::program[i] = opencl_CreateProgram(kernelSources[i]);
+
+        const char* kernelSourcePtr = kernelSources[i].c_str();
+        size_t kernelSourceSize = kernelSources[i].size();
+
+        Piro::kernels::program[i] = clCreateProgramWithSource(Piro::kernels::context, 1, &kernelSourcePtr, &kernelSourceSize, &err);
         err = Piro::opencl_BuildProgram(Piro::kernels::program[i]);
-        Piro::kernels::kernel[i] = clCreateKernel(Piro::kernels::program[i], kernelNames[i], &err);
+        Piro::kernels::kernel[i] = clCreateKernel(Piro::kernels::program[i], kernelNames[i].c_str(), &err);
+
+        // Export the compiled program binary
+        size_t binarySize;
+        err = clGetProgramInfo(Piro::kernels::program[i], CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binarySize, NULL);
+        std::vector<unsigned char> binary(binarySize);
+        unsigned char* binaryPtr = binary.data();
+        err = clGetProgramInfo(Piro::kernels::program[i], CL_PROGRAM_BINARIES, sizeof(unsigned char*), &binaryPtr, NULL);
+        saveBinary(current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin", binary);
+        Piro::logger::info("Binary successfully saved to: ", kernelNames[i]);
+        Piro::logger::info("Binary size: " , binarySize , " bytes");
     }
 
     if (err != CL_SUCCESS){
@@ -192,6 +249,77 @@ int Piro::opencl_build(){
     }
     Piro::logger::info("Building program : completed");
     return 0;
+}
+
+
+// Function to read binary file
+std::vector<unsigned char> Piro::readBinaryFile(const std::string& filename) {
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open binary file: " + filename);
+    }
+    
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    
+    std::vector<unsigned char> buffer(size);
+    if (!file.read(reinterpret_cast<char*>(buffer.data()), size)) {
+        throw std::runtime_error("Failed to read binary file: " + filename);
+    }
+    
+    return buffer;
+}
+
+int Piro::opencl_run(){
+    // Create program objects
+    Piro::logger::info("Reading program : initiated");
+
+    Piro::logger::info("Reading kernel files from : ", current_path.string(), "/assets/kernels/0_kernels_math.txt");
+    // Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels_math.txt",
+    //                         kernelNamesmath, kernelSourcesmath);
+    Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels.txt",
+                                kernelNames, kernelSources);
+
+    for(size_t i = 0; i < Piro::kernels::program_math.size(); i++){
+        Piro::kernels::program_math[i] = opencl_CreateProgram(kernelSourcesmath[i]);
+        err = Piro::opencl_BuildProgram(Piro::kernels::program_math[i]);
+        Piro::kernels::kernel_math[i] = clCreateKernel(Piro::kernels::program_math[i], kernelNamesmath[i], &err);
+    }
+
+
+    for(size_t i = 0; i < Piro::kernels::program.size(); i++){
+        // Read binary from the file
+        Piro::logger::info("Kernel names : ", kernelNames[i], ", reading : " , current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin");
+        std::vector<unsigned char> binary = readBinaryFile(current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin");
+        // Create program from binary
+        const unsigned char* binaryPtr = binary.data();
+        size_t binarySize = binary.size();
+        cl_int binaryStatus;
+        Piro::kernels::program[i]  = clCreateProgramWithBinary(Piro::kernels::context, 1, &device, &binarySize,
+                                                     &binaryPtr, &binaryStatus, &err);
+        if (err != CL_SUCCESS) {
+            Piro::logger::info("Failed to create program with binary", err);
+        }
+        err = clBuildProgram(Piro::kernels::program[i], 1, &device, NULL, NULL, NULL);
+        if (err != CL_SUCCESS) {
+            // If loading failed, print build log
+            size_t logSize;
+            clGetProgramBuildInfo(Piro::kernels::program[i], device, CL_PROGRAM_BUILD_LOG, 0, NULL, &logSize);
+            std::vector<char> buildLog(logSize);
+            clGetProgramBuildInfo(Piro::kernels::program[i], device, CL_PROGRAM_BUILD_LOG, logSize, buildLog.data(), NULL);
+            std::cerr << "Build Error: " << buildLog.data() << std::endl;
+            throw std::runtime_error("Failed to build program");
+        }
+        Piro::kernels::kernel[i] = clCreateKernel(Piro::kernels::program[i], kernelNames[i].c_str(), &err);
+        if (err != CL_SUCCESS) {
+            Piro::logger::info("Failed to create program with binary", err);
+        }
+    }
+
+    
+    Piro::logger::info("Running program : completed");
+    return 0;
+
 }
 
 int Piro::opencl_cleanup(){

@@ -66,7 +66,13 @@ int Piro::preprocess(const std::string& name) {
 
     Piro::init();
     Piro::opencl_init();
-    Piro::opencl_build();
+    if(compile == 0){
+        Piro::opencl_run();
+    }
+    else{
+        Piro::opencl_build();
+    }
+    
     
     for(int i = 0; i <= MP.levels; i++){
 

@@ -6,20 +6,25 @@
 #include <fileutilities.hpp>
 #include <string>
 #include <logger.hpp>
+#include <openclutilities.hpp>
+int compile;
 
 int main(int argc, char* argv[])
 {	
-	if (argc != 2) {
+	if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <name>" << std::endl;
         return 1;
     }
     
     std::string name = argv[1];
+	compile = std::stoi(argv[2]);
 
 	Piro::logger::info("Start Program");
 	Piro::file_utilities::get_exec_directory();
 	Piro::preprocess(name);
-	solve();
+	if(compile == 0){
+		solve();
+	}
 
 	Piro::logger::info("End Program");
 	// postprocess("T");

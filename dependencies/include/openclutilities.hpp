@@ -21,4 +21,6 @@ namespace Piro::opencl_utilities{
     template <typename U>
     int copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U>& Lap, int offset, int N, cl_event *event6);
 }
+
+extern int compile;
 #endif

@@ -55,6 +55,12 @@ while getopts ":hf:" opt; do
     esac
 done
 
+# Remove parsed options from positional parameters
+shift $((OPTIND - 1))
+
+# Now handle positional arguments (e.g., the `0` at the end)
+INDEX=$1
+
 # Check if required arguments are provided
 if [ -z "$FILE" ]; then
     echo "Error: Missing required arguments."
@@ -70,4 +76,4 @@ detect_os
 cp -r ./dependencies/assets ./bin/.
 mkdir -p logs
 
-./bin/PIRO$extension $FILE &> ./logs/$FILE.txt
+./bin/PIRO$extension $FILE $INDEX &> ./logs/$FILE.txt
