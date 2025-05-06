@@ -8,7 +8,7 @@
 extern int debuginfo;
 
 namespace Piro{
-    class Logger {
+    class logger {
         public:
             template<typename... Args>
             static void info(const Args&... args) {
