@@ -65,9 +65,8 @@ git config --global core.autocrlf false
 ```bash
 git clone https://github.com/DjentleViBe/PIRO.git
 ```
-3. Download the necessary executables from the latest [release](https://github.com/DjentleViBe/PIRO/releases/new).
-4. Copy the executables to the [bin](./bin) directory (create one manually in the root directory if it does not exist).
-5. Run the following program to get device details. Refer [Building](#how-to-build) instructions for compiling the program on your own.
+3. Download the bin directory from the latest [release](https://github.com/DjentleViBe/PIRO/releases/new) to the root directory.
+4. Run the following program to get device details. Refer [Building](#how-to-build) instructions for compiling the program on your own.
 
 | File | Operating Sytem |
 | --- | --- |
@@ -77,7 +76,7 @@ git clone https://github.com/DjentleViBe/PIRO.git
 
 6. Make the required changes to the appropriate files as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format.
 
-7. Execute the command ```./runall.sh -f <setup.ini>``` to initiate the simulation. Log files are stored in the [logs](./logs) folder with the name used for setup file. If the setup file is renamed, update the filename in the command accordingly.
+7. Execute the command ```./runall.sh -f <setup.ini> 0``` to initiate the simulation. Log files are stored in the [logs](./logs) folder with the name used for setup file. If the setup file is renamed, update the filename in the command accordingly.
 
 8. Results are stored in the [bin](./bin) directory in a folder with the casename value given in the setup file.
 
@@ -93,6 +92,7 @@ git config --global core.autocrlf false
 ```bash
 git clone https://github.com/DjentleViBe/PIRO.git
 ```
+
 ## Devices program
 1. Switch to the ```devices_list``` branch. 
 ```bash
@@ -106,6 +106,15 @@ git checkout devices_list
 git checkout <branch-name>
 ``` 
 2. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
+
+## Kernel programs
+[Kernel source files](./dependencies/assets/kernels/) can be updated inside ```0_kernels_math.txt``` and ```0_kernels.txt```. Kernel source filenames should have a ```.cl``` extension and the entries in the list should match the kernel function name. Make sure there are no trailing whitespaces or empty lines in the ```.txt``` file
+
+To compile just the kernels run:
+```bash
+./runall.sh -f <setup.ini> 0
+```
+The binaries are saved to the [./bin/assets/kernels](./bin/assets/kernels) folder.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
