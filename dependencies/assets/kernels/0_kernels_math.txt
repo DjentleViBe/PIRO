@@ -1,5 +1,5 @@
-subtractVectors
 addVectors
+subtractVectors
 multiplyVectors
 divideVectors
 addVectors_constant
