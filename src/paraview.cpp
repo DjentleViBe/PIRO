@@ -9,7 +9,7 @@
 #include <iostream>
 #include <algorithm>
 
-std::string writevti(Piro::AMR AMR){
+std::string Piro::paraview::writevti(Piro::AMR AMR){
     std::string level = "";
     level = "<VTKFile type=\"ImageData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
     level += "<ImageData WholeExtent=\""+
@@ -105,7 +105,7 @@ std::string writevti(Piro::AMR AMR){
     return level;
 }
 
-void writevth(int timestep){
+void Piro::paraview::writevth(int timestep){
     std::string ts_string = std::to_string(timestep);
     ts_string = std::string(5 - ts_string.length(), '0') + ts_string;
 

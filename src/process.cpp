@@ -247,7 +247,8 @@ void scalarMatrix::Solve(float currenttime){
         Piro::Logger::info("Post processing started");
         err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
                 sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
-        writevth(ts);
+        
+        Piro::post::export_paraview(ts);
         Piro::Logger::info("Post processing finished\n");
     }
 }

@@ -3,6 +3,7 @@
 #include <postprocess.hpp>
 #include <preprocess.hpp>
 
+/*
 void postprocess(){
     // std::cout << "This is the postprocess source" << std::endl;
 }
@@ -22,3 +23,9 @@ template void postprocess<>(const char* first);
 template void postprocess<>(std::string first);
 template void postprocess<>(const char* first, const char* second);
 template void postprocess<>(std::string first, std::string second);
+*/
+
+void Piro::post::export_paraview(float timestep){
+    Piro::paraview::writevth(timestep);
+}
+
