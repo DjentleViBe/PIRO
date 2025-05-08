@@ -83,6 +83,9 @@ git clone https://github.com/DjentleViBe/PIRO.git
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## How to Build
+### Requirements
+make
+### Instructions
 1. To avoid Git changing line endings when you clone or commit, run:
 ```bash
 git config --global core.autocrlf false
