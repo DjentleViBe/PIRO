@@ -48,23 +48,52 @@ namespace Piro{
 
     class MeshParams{
         public:
-            int meshtype;
-            int levels;
-            int scalarnum;
-            int vectornum;
-            std::vector<int> ICtype;
-            std::vector<std::string> ICfiles;
-            std::string ICfile;
-            std::vector<uint> n;
-            std::vector<float> o;
-            std::vector<float> s;
-            std::vector<float> l;
-            std::vector<int> index;
-            std::vector<std::string> constantslist;
-            std::vector<float> constantsvalues;
-            std::vector<std::string> scalarlist;
-            std::vector<std::string> vectorlist;
-            std::vector<AMR> AMR;
+            static MeshParams& getInstance(){
+                static MeshParams instance;
+                return instance;
+            }
+            MeshParams(const MeshParams&) = delete;
+            MeshParams& operator=(const MeshParams&) = delete;
+            enum ParameterIndex{
+                // int
+                num_cells, MESHTYPE, LEVELS, SCALARNUM, VECTORNUM, INDEX, ICTYPE,
+                // float
+                O, S, L, CONSTANTSVALUES,
+                // string
+                CONSTANTSLIST, SCALARLIST, VECTORLIST, ICFILES,
+                // custom
+                AMR
+            };
+
+
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const T& val) {
+                parameters[paramindex] = val;
+            }
+            // Specialization for arrays (e.g., std::vector)
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const std::vector<T>& val) {
+                parameters[paramindex] = val;
+            }
+
+            template<typename T>
+            T& getvalue(const ParameterIndex paramindex) {
+                if (parameters.find(paramindex) == parameters.end()) {
+                    throw std::runtime_error("Parameter not set");
+                }
+                if (!std::holds_alternative<T>(parameters.at(paramindex))) {
+                    std::cout << "bad variant : " << paramindex;
+                    throw std::bad_variant_access(); // Throwing a specific exception for mismatched types
+                }
+            return std::get<T>(parameters.at(paramindex));
+            }
+            /*
+            std::vector<AMR> AMR;*/
+        
+        private:
+            MeshParams() = default;
+            using ParamValue = std::variant<int, uint, float, std::string, std::vector<int>, std::vector<uint>, std::vector<float>, std::vector<std::string>, std::vector<Piro::AMR>>;
+            std::unordered_map<ParameterIndex, ParamValue> parameters;
     };
 
     class SolveParams{
