@@ -2,6 +2,9 @@
 #define datatypes_hpp
 #include <vector>
 #include <string>
+#include <unordered_map>
+#include <variant>
+#include <iostream>
 
 typedef unsigned int uint;
 
@@ -66,30 +69,81 @@ namespace Piro{
 
     class SolveParams{
         public:
-            int solverscheme;
-            int timescheme;
-            int spacescheme;
-            std::string casename;
-            int restart;
-            float timestep;
-            float totaltime;
-            float delta[3];
-            float deltaT;
-            int totaltimesteps;
-            int save;
-            int datatype;
-            int probing;
-            float loadfactor;
-            float a;
-            float b;
-            float c;
+            static SolveParams& getInstance(){
+                static SolveParams instance;
+                return instance;
+            }
+
+            SolveParams(const SolveParams&) = delete;
+            SolveParams& operator=(const SolveParams&) = delete;
+            enum ParameterIndex{
+                // int 
+                SOLVERSCHEME, TIMESCHEME, SPACESCHEME, RESTART, TOTALTIMESTEPS,
+                SAVE, DATATYPE, PROBING, 
+                // float
+                A, B, C, TIMESTEP, TOTALTIME, DELTA, DELTAT, LOADFACTOR,
+                // string
+                CASENAME
+            };
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const T& val) {
+                parameters[paramindex] = val;
+            }
+            // Specialization for arrays (e.g., std::vector)
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const std::vector<T>& val) {
+                parameters[paramindex] = val;
+            }
+
+            template<typename T>
+            T getvalue(const ParameterIndex paramindex) const {
+                if (parameters.find(paramindex) == parameters.end()) {
+                    throw std::runtime_error("Parameter not set");
+                }
+                if (!std::holds_alternative<T>(parameters.at(paramindex))) {
+                    std::cout << "bad variant : " << paramindex;
+                    throw std::bad_variant_access(); // Throwing a specific exception for mismatched types
+                }
+                return std::get<T>(parameters.at(paramindex));
+            }
+
+        private:
+            SolveParams() = default;
+            using ParamValue = std::variant<int, float, std::string, std::vector<int>, std::vector<float>, std::vector<std::string>>;
+            std::unordered_map<ParameterIndex, ParamValue> parameters;
+        
     };
-    
+
     class DeviceParams{
         public:
-            int id;
-            int platformid;
-            int type;
+            static DeviceParams& getInstance(){
+                static DeviceParams instance;
+                return instance;
+            }
+
+            DeviceParams(const DeviceParams&) = delete;
+            DeviceParams& operator=(const DeviceParams&) = delete;
+            enum ParameterIndex{
+                // int
+                ID, PLATFORMID, TYPE
+            };
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const T& val) {
+                parameters[paramindex] = val;
+            }
+
+            template<typename T>
+            T getvalue(const ParameterIndex paramindex) const {
+                if (parameters.find(paramindex) == parameters.end()) {
+                    throw std::runtime_error("Parameter not set");
+                }
+                return std::get<T>(parameters.at(paramindex));
+            }
+        private:
+            DeviceParams() = default;
+            using ParamValue = std::variant<int, double, std::string>;
+            std::unordered_map<ParameterIndex, ParamValue> parameters;
+        
     };
 };
 

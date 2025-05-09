@@ -6,16 +6,18 @@
 #include <iostream>
 #include <ctime>
 #include <logger.hpp>
+#include <datatypes.hpp>
 
 char* dt;
 std::time_t now;
 
 int solve(){
     Piro::logger::info("Solving . . .\n");
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    float totaltime = SP.getvalue<float>(Piro::SolveParams::TOTALTIME);
     // solve equations
     Piro::process solver;
     float time = 0.0;
-    float totaltime = SP.totaltime;
     while(time < totaltime){
         // Heat Equation
         // Piro::scalarMatrix UEqn(solver.ddt_r("U") + (solver.ddc_r("Alpha") * solver.laplacian_full("U")));
@@ -28,7 +30,7 @@ int solve(){
         Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.laplacian_CSR("U", "Alpha")); 
         //Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.laplacian_CSR("U")); 
         UEqn.Solve(time);
-        time += SP.timestep;
+        time += SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
         
         //if(DP.type != 0){
         //    break;

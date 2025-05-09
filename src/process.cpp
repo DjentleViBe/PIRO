@@ -14,7 +14,6 @@
 #include <logger.hpp>
 #include <openclutilities.hpp>
 
-extern Piro::SolveParams SP;
 extern char* dt;
 extern std::time_t now;
 
@@ -53,14 +52,16 @@ CLBuffer process::r(std::string var){
     int N = MP.n[0] * MP.n[1] * MP.n[2];
     int ind = process::matchscalartovar(var);
     CLBuffer memC;
+
     std::vector<float> prop = MP.AMR[0].CD[ind].values;
     size_t globalWorkSizemultiplyconst[1] = { (size_t)N };
     memC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * N, prop.data(), &err);
-    
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
     err |= clSetKernelArg(kernels::kernel_math[6], 2, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
     err |= clSetKernelArg(kernels::kernel_math[6], 0, sizeof(cl_mem), &memC.buffer);
-    err |= clSetKernelArg(kernels::kernel_math[6], 1, sizeof(cl_float), &SP.timestep);
+    err |= clSetKernelArg(kernels::kernel_math[6], 1, sizeof(cl_float), &timestep);
     err |= clSetKernelArg(kernels::kernel_math[6], 3, sizeof(cl_uint), &N);
 
     err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel_math[6], 1, NULL, globalWorkSizemultiplyconst, NULL, 0, NULL, NULL);
@@ -70,9 +71,14 @@ CLBuffer process::r(std::string var){
 
 CLBuffer process::laplacian_full(std::string var){
     cl_int err;
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    std::vector<float> delta = SP.getvalue<std::vector<float>>(Piro::SolveParams::DELTA);
+    float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
+
     int N = MP.n[0] * MP.n[1] * MP.n[2];
     int ind = process::matchscalartovar(var);
     CLBuffer memC;
+    
     /*
     std::vector<float> hostValues(MP.AMR[0].CD[ind].values.size());
     err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
@@ -90,12 +96,12 @@ CLBuffer process::laplacian_full(std::string var){
     
         err |= clSetKernelArg(kernels::kernel[5], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
         err |= clSetKernelArg(kernels::kernel[5], 1, sizeof(cl_mem), &memC.buffer);
-        err |= clSetKernelArg(kernels::kernel[5], 2, sizeof(cl_float), &SP.delta[0]);
-        err |= clSetKernelArg(kernels::kernel[5], 3, sizeof(cl_float), &SP.delta[1]);
-        err |= clSetKernelArg(kernels::kernel[5], 4, sizeof(cl_float), &SP.delta[2]);
+        err |= clSetKernelArg(kernels::kernel[5], 2, sizeof(cl_float), &delta[0]);
+        err |= clSetKernelArg(kernels::kernel[5], 3, sizeof(cl_float), &delta[1]);
+        err |= clSetKernelArg(kernels::kernel[5], 4, sizeof(cl_float), &delta[2]);
         err |= clSetKernelArg(kernels::kernel[5], 5, sizeof(cl_uint), &MP.n[0]);
         err |= clSetKernelArg(kernels::kernel[5], 6, sizeof(cl_uint), &MP.n[1]);
-        err |= clSetKernelArg(kernels::kernel[5], 7, sizeof(cl_float), &SP.timestep);
+        err |= clSetKernelArg(kernels::kernel[5], 7, sizeof(cl_float), &timestep);
         err |= clSetKernelArg(kernels::kernel[5], 8, sizeof(cl_uint), &N);
 
         err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel[5], 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
@@ -109,12 +115,12 @@ CLBuffer process::laplacian_full(std::string var){
     
         err |= clSetKernelArg(kernels::kernel[9], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
         err |= clSetKernelArg(kernels::kernel[9], 1, sizeof(cl_mem), &memC.buffer);
-        err |= clSetKernelArg(kernels::kernel[9], 2, sizeof(cl_float), &SP.delta[0]);
-        err |= clSetKernelArg(kernels::kernel[9], 3, sizeof(cl_float), &SP.delta[1]);
-        err |= clSetKernelArg(kernels::kernel[9], 4, sizeof(cl_float), &SP.delta[2]);
+        err |= clSetKernelArg(kernels::kernel[9], 2, sizeof(cl_float), &delta[0]);
+        err |= clSetKernelArg(kernels::kernel[9], 3, sizeof(cl_float), &delta[1]);
+        err |= clSetKernelArg(kernels::kernel[9], 4, sizeof(cl_float), &delta[2]);
         err |= clSetKernelArg(kernels::kernel[9], 5, sizeof(cl_uint), &MP.n[0]);
         err |= clSetKernelArg(kernels::kernel[9], 6, sizeof(cl_uint), &MP.n[1]);
-        err |= clSetKernelArg(kernels::kernel[9], 7, sizeof(cl_float), &SP.timestep);
+        err |= clSetKernelArg(kernels::kernel[9], 7, sizeof(cl_float), &timestep);
         err |= clSetKernelArg(kernels::kernel[9], 8, sizeof(cl_uint), &N);
 
         err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel[9], 1, NULL, globalWorkSizelaplacian, NULL, 0, NULL, NULL);
@@ -163,6 +169,9 @@ std::vector<CLBuffer> process::laplacian_CSR(std::string var1, std::string var2)
 }
 
 CLBuffer process::div_r(std::string var1, std::string var2){
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    std::vector<float> delta = SP.getvalue<std::vector<float>>(Piro::SolveParams::DELTA);
+    float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
     int ind1 = process::matchscalartovar(var1);
     int ind2 = process::matchscalartovar(var2);
     CLBuffer memC, multi;
@@ -193,12 +202,12 @@ CLBuffer process::div_r(std::string var1, std::string var2){
         err |= clSetKernelArg(kernels::kernel[3], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
         err |= clSetKernelArg(kernels::kernel[3], 1, sizeof(cl_mem), &memC.buffer);
         err |= clSetKernelArg(kernels::kernel[3], 2, sizeof(cl_mem), &multi.buffer);
-        err |= clSetKernelArg(kernels::kernel[3], 3, sizeof(cl_float), &SP.delta[0]);
-        err |= clSetKernelArg(kernels::kernel[3], 4, sizeof(cl_float), &SP.delta[1]);
-        err |= clSetKernelArg(kernels::kernel[3], 5, sizeof(cl_float), &SP.delta[2]);
+        err |= clSetKernelArg(kernels::kernel[3], 3, sizeof(cl_float), &delta[0]);
+        err |= clSetKernelArg(kernels::kernel[3], 4, sizeof(cl_float), &delta[1]);
+        err |= clSetKernelArg(kernels::kernel[3], 5, sizeof(cl_float), &delta[2]);
         err |= clSetKernelArg(kernels::kernel[3], 6, sizeof(cl_uint), &MP.n[0]);
         err |= clSetKernelArg(kernels::kernel[3], 7, sizeof(cl_uint), &MP.n[1]);
-        err |= clSetKernelArg(kernels::kernel[3], 8, sizeof(cl_float), &SP.timestep);
+        err |= clSetKernelArg(kernels::kernel[3], 8, sizeof(cl_float), &timestep);
         err |= clSetKernelArg(kernels::kernel[3], 9, sizeof(cl_uint), &N);
 
         err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel[3], 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
@@ -216,12 +225,12 @@ CLBuffer process::div_r(std::string var1, std::string var2){
         err |= clSetKernelArg(kernels::kernel[4], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind1].buffer);
         err |= clSetKernelArg(kernels::kernel[4], 1, sizeof(cl_mem), &memC.buffer);
         err |= clSetKernelArg(kernels::kernel[4], 2, sizeof(cl_mem), &multi.buffer);
-        err |= clSetKernelArg(kernels::kernel[4], 3, sizeof(cl_float), &SP.delta[0]);
-        err |= clSetKernelArg(kernels::kernel[4], 4, sizeof(cl_float), &SP.delta[1]);
-        err |= clSetKernelArg(kernels::kernel[4], 5, sizeof(cl_float), &SP.delta[2]);
+        err |= clSetKernelArg(kernels::kernel[4], 3, sizeof(cl_float), &delta[0]);
+        err |= clSetKernelArg(kernels::kernel[4], 4, sizeof(cl_float), &delta[1]);
+        err |= clSetKernelArg(kernels::kernel[4], 5, sizeof(cl_float), &delta[2]);
         err |= clSetKernelArg(kernels::kernel[4], 6, sizeof(cl_uint), &MP.n[0]);
         err |= clSetKernelArg(kernels::kernel[4], 7, sizeof(cl_uint), &MP.n[1]);
-        err |= clSetKernelArg(kernels::kernel[4], 8, sizeof(cl_float), &SP.timestep);
+        err |= clSetKernelArg(kernels::kernel[4], 8, sizeof(cl_float), &timestep);
         err |= clSetKernelArg(kernels::kernel[4], 9, sizeof(cl_uint), &N);
 
         err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel[4], 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
@@ -237,14 +246,17 @@ scalarMatrix::scalarMatrix(CLBuffer SM) : smatrix(SM) {
 }
 
 void scalarMatrix::Solve(float currenttime){
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
+    int totaltimesteps = SP.getvalue<int>(Piro::SolveParams::TOTALTIMESTEPS);
     int N = MP.n[0] * MP.n[1] * MP.n[2];
-    ts = int(currenttime / SP.timestep);
-    Piro::logger::info("Timestep : ", ts + 1, " / ", SP.totaltimesteps);
+    ts = int(currenttime / timestep);
+    Piro::logger::info("Timestep : ", ts + 1, " / ", totaltimesteps);
     // apply Boundary Conditions
     err = clEnqueueCopyBuffer(kernels::queue, smatrix.buffer, CDGPU.values_gpu[0].buffer, 0, 0, sizeof(float) * N, 0, NULL, NULL);
     Piro::bc::opencl_setBC(0);
     
-    if((ts + 1) % SP.save == 0){
+    if((ts + 1) % SP.getvalue<int>(Piro::SolveParams::SAVE) == 0){
         Piro::logger::info("Post processing started");
         err = clEnqueueReadBuffer(kernels::queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
                 sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);

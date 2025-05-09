@@ -18,8 +18,6 @@
 #include <openclutilities.hpp>
 
 Piro::MeshParams MP;
-Piro::SolveParams SP;
-Piro::DeviceParams DP;
 Piro::CellDataGPU CDGPU;
 Piro::Equation RHS;
 Piro::CLBuffer CD_GPU;
@@ -33,19 +31,21 @@ int ts = 0;
 int Piro::preprocess(const std::string& name) {
     
     Piro::logger::info("Preprocess step initiated");
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    Piro::DeviceParams& DP = Piro::DeviceParams::getInstance();
     Piro::logger::info("Setup file : ",name);
     Piro::file_utilities::IniReader reader(current_path.string() + "/assets/" + name);
     // Print all sections and key-value pairs
     // reader.print();
-    DP.id = std::stoi(reader.get("Device", "id", "default_value"));
-    DP.type = std::stoi(reader.get("Device", "type", "default_value"));
-    DP.platformid = std::stoi(reader.get("Device", "platformid", "default_value"));
+    DP.setvalue(Piro::DeviceParams::ID, std::stoi(reader.get("Device", "id", "default_value")));
+    DP.setvalue(Piro::DeviceParams::TYPE, std::stoi(reader.get("Device", "type", "default_value")));
+    DP.setvalue(Piro::DeviceParams::PLATFORMID, std::stoi(reader.get("Device", "platformid", "default_value")));
 
-    SP.casename = reader.get("File", "casename", "default_value");
-    SP.restart = std::stoi(reader.get("File", "restart", "default_value"));
-    SP.timescheme = std::stoi(reader.get("Schemes", "Time", "default_value"));
-    SP.spacescheme = std::stoi(reader.get("Schemes", "Space", "default_value"));
-    SP.solverscheme = std::stoi(reader.get("Schemes", "Solver", "default_value"));
+    SP.setvalue(Piro::SolveParams::CASENAME, reader.get("File", "casename", "default_value"));
+    SP.setvalue(Piro::SolveParams::RESTART, std::stoi(reader.get("File", "restart", "default_value")));
+    SP.setvalue(Piro::SolveParams::TIMESCHEME, std::stoi(reader.get("Schemes", "Time", "default_value")));
+    SP.setvalue(Piro::SolveParams::SPACESCHEME, std::stoi(reader.get("Schemes", "Space", "default_value")));
+    SP.setvalue(Piro::SolveParams::SOLVERSCHEME, std::stoi(reader.get("Schemes", "Solver", "default_value")));
 
     MP.o = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Mesh", "o", "default_value"), ' '));
     MP.s = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Mesh", "s", "default_value"), ' '));
@@ -135,23 +135,24 @@ int Piro::preprocess(const std::string& name) {
         
     }
     Piro::logger::info("Initialising scalars and vectors completed!");
-    SP.delta[0] = MP.l[0] / float(MP.n[0] - 2);
-    SP.delta[1] = MP.l[1] / float(MP.n[1] - 2);
-    SP.delta[2] = MP.l[2] / float(MP.n[2] - 2);
-
-    SP.timestep = std::stof(reader.get("Solve", "Timestep", "default_value"));
-    SP.totaltime = std::stof(reader.get("Solve", "TotalTime", "default_value"));
-    SP.save = std::stoi(reader.get("Solve", "Save", "default_value"));
-    SP.datatype = std::stoi(reader.get("Solve", "Data", "default_value"));
-    SP.totaltimesteps = SP.totaltime / SP.timestep;
+    std::vector<float> delta = {MP.l[0] / float(MP.n[0] - 2),
+                                MP.l[1] / float(MP.n[1] - 2),
+                                MP.l[2] / float(MP.n[2] - 2)};
     
-    if(SP.datatype == 2){
+    SP.setvalue(Piro::SolveParams::DELTA, delta);
+    SP.setvalue(Piro::SolveParams::TIMESTEP, std::stof(reader.get("Solve", "Timestep", "default_value")));
+    SP.setvalue(Piro::SolveParams::TOTALTIME, std::stof(reader.get("Solve", "TotalTime", "default_value")));
+    SP.setvalue(Piro::SolveParams::SAVE, std::stoi(reader.get("Solve", "Save", "default_value")));
+    SP.setvalue(Piro::SolveParams::DATATYPE, std::stoi(reader.get("Solve", "Data", "default_value")));
+    SP.setvalue(Piro::SolveParams::TOTALTIMESTEPS, static_cast<int>(std::ceil(SP.getvalue<float>(Piro::SolveParams::TOTALTIME) / SP.getvalue<float>(Piro::SolveParams::TIMESTEP))));
+    
+    if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
         Piro::file_utilities::IniReader reader_data(current_path.string() + "/assets/Data/hashtable.ini");
-        SP.probing = std::stoi(reader_data.get("Table", "Probing", "default_value"));
-        SP.loadfactor = std::stof(reader_data.get("Table", "LoadFactor", "default_value"));
-        SP.a = std::stof(reader_data.get("Table", "a", "default_value"));
-        SP.b = std::stof(reader_data.get("Table", "b", "default_value"));
-        SP.c = std::stof(reader_data.get("Table", "c", "default_value"));
+        SP.setvalue(Piro::SolveParams::PROBING, std::stoi(reader_data.get("Table", "Probing", "default_value")));
+        SP.setvalue(Piro::SolveParams::LOADFACTOR, std::stof(reader_data.get("Table", "LoadFactor", "default_value")));
+        SP.setvalue(Piro::SolveParams::A, std::stof(reader_data.get("Table", "a", "default_value")));
+        SP.setvalue(Piro::SolveParams::B, std::stof(reader_data.get("Table", "b", "default_value")));
+        SP.setvalue(Piro::SolveParams::C, std::stof(reader_data.get("Table", "c", "default_value")));
     }
     Piro::bc::readbc();
     Piro::logger::info("Preprocess step completed");

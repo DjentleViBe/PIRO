@@ -27,7 +27,9 @@ namespace Piro{
         partD.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(float) * N, A.data(), &err);
         size_t globalWorkSize[1] = { (size_t)N };
-        if(SP.timescheme == 11){
+        Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+        float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
+        if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 11){
             // Forward Euler
             // std::cout << "Forward Euler" << std::endl;
 
@@ -37,7 +39,7 @@ namespace Piro{
             err |= clSetKernelArg(kernels::kernel[8], 3, sizeof(cl_mem), &other[2].buffer);
             err |= clSetKernelArg(kernels::kernel[8], 4, sizeof(cl_mem), &other[1].buffer);
             err |= clSetKernelArg(kernels::kernel[8], 5, sizeof(cl_mem), &other[0].buffer);
-            err |= clSetKernelArg(kernels::kernel[8], 6, sizeof(cl_float), &SP.timestep);
+            err |= clSetKernelArg(kernels::kernel[8], 6, sizeof(cl_float), &timestep);
             err |= clSetKernelArg(kernels::kernel[8], 7, sizeof(cl_mem), &this->buffer);
             err |= clSetKernelArg(kernels::kernel[8], 8, sizeof(cl_mem), &partC.buffer);
             err |= clSetKernelArg(kernels::kernel[8], 9, sizeof(cl_int), &MP.n[0]);
@@ -53,9 +55,9 @@ namespace Piro{
             err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel_math[0], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
         }
 
-        else if(SP.timescheme == 12){
+        else if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 12){
             // std::cout << "Backward Euler" << std::endl;
-                if(SP.solverscheme == 27){
+                if(SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME) == 27){
                     Piro::logger::info("LU Decomposition");
                     if(RHS_INIT == false){
                         Piro::matrix_operations::lu_decomposition_HTLF(other);

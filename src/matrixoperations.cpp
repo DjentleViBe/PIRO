@@ -25,12 +25,13 @@ void Piro::matrix_operations::lu_decomposition_HTLF(const std::vector<CLBuffer>&
     /////////////////////////////////////////////////////////////////////////////////////////
     auto& cd = MP.AMR[0].CD[index];
     CLBuffer LFvalues, LFkeys;
-    float load = SP.a * pow(N, SP.b) + SP.c;
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    float load = SP.getvalue<float>(Piro::SolveParams::A) * pow(N, SP.getvalue<float>(Piro::SolveParams::B)) + SP.getvalue<float>(Piro::SolveParams::C);
     // int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
     // int raw_size = cd.columns.size() / load;
     // int TABLE_SIZE = next_prime(raw_size);
-    int TABLE_SIZE = RHS.sparsecount / (load * SP.loadfactor);
-    Piro::logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", load * SP.loadfactor);
+    int TABLE_SIZE = RHS.sparsecount / (load * SP.getvalue<float>(Piro::SolveParams::LOADFACTOR));
+    Piro::logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", load * SP.getvalue<float>(Piro::SolveParams::LOADFACTOR));
     Piro::logger::warning("N * N :", N*N);
     
     LFvalues.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);

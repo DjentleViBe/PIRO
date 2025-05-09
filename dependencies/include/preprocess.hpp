@@ -7,7 +7,6 @@
 #include <CL/opencl.h>
 
 extern Piro::MeshParams MP;
-extern Piro::SolveParams SP;
 extern Piro::DeviceParams DP;
 extern int ts;
 extern bool LAP_INIT;
