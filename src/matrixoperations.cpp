@@ -8,8 +8,11 @@
 #include <matrixoperations.hpp>
 
 void Piro::matrix_operations::lu_decomposition_HTLF(const std::vector<CLBuffer>& other){
-    int N = MP.n[0] * MP.n[1] * MP.n[2];
-    int index = MP.vectornum + MP.scalarnum;
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+    int N = n[0] * n[1] * n[2];
+    int index = MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM);
     cl_int err;
     cl_event event0 = nullptr;
     cl_event event1 = nullptr; 
@@ -17,13 +20,13 @@ void Piro::matrix_operations::lu_decomposition_HTLF(const std::vector<CLBuffer>&
     cl_event events[] = {event0, event1};
     Piro::logger::debug("Buffer creation begin");
     
-    MP.AMR[0].CD[index].rowpointers = Piro::opencl_utilities::copyCL<int>(Piro::kernels::queue, other[0].buffer, N + 1, &event7);
-    MP.AMR[0].CD[index].columns = Piro::opencl_utilities::copyCL<int>(Piro::kernels::queue, other[1].buffer, RHS.sparsecount, &event8);
-    MP.AMR[0].CD[index].values = Piro::opencl_utilities::copyCL<float>(Piro::kernels::queue, other[2].buffer, RHS.sparsecount, &event9);
+    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].rowpointers = Piro::opencl_utilities::copyCL<int>(Piro::kernels::queue, other[0].buffer, N + 1, &event7);
+    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].columns = Piro::opencl_utilities::copyCL<int>(Piro::kernels::queue, other[1].buffer, RHS.sparsecount, &event8);
+    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].values = Piro::opencl_utilities::copyCL<float>(Piro::kernels::queue, other[2].buffer, RHS.sparsecount, &event9);
 
     
     /////////////////////////////////////////////////////////////////////////////////////////
-    auto& cd = MP.AMR[0].CD[index];
+    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index];
     CLBuffer LFvalues, LFkeys;
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     float load = SP.getvalue<float>(Piro::SolveParams::A) * pow(N, SP.getvalue<float>(Piro::SolveParams::B)) + SP.getvalue<float>(Piro::SolveParams::C);

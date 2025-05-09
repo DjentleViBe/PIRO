@@ -20,16 +20,19 @@ extern std::time_t now;
 using namespace Piro;
 
 int process::matchscalartovar(std::string var){
-    for(int v = 0; v < MP.AMR[0].CD.size(); v++){
-        if(var == MP.AMR[0].CD[v].Scalars){
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    for(int v = 0; v < MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.size(); v++){
+        if(var == MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[v].Scalars){
             return v;
         }
     }
     return 0;
 }
 int process::matchconstanttovar(std::string var){
-    for(int v = 0; v < MP.constantslist.size(); v++){
-        if(var == MP.constantslist[v]){
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    
+    for(int v = 0; v < MP.getvalue<std::vector<int>>(Piro::MeshParams::CONSTANTSLIST).size(); v++){
+        if(var == MP.getvalue<std::vector<std::string>>(Piro::MeshParams::CONSTANTSLIST)[v]){
             return v;
         }
     }
@@ -42,18 +45,22 @@ CLBuffer process::ddt_r(std::string var){
 }
 
 const float process::ddc_r(std::string var){
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     int ind = process::matchscalartovar(var);
     
-    return MP.constantsvalues[ind];
+    return MP.getvalue<std::vector<float>>(Piro::MeshParams::CONSTANTSVALUES)[ind];
 }
 
 CLBuffer process::r(std::string var){
     cl_int err;
-    int N = MP.n[0] * MP.n[1] * MP.n[2];
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+    int N = n[0] * n[1] * n[2];
     int ind = process::matchscalartovar(var);
     CLBuffer memC;
 
-    std::vector<float> prop = MP.AMR[0].CD[ind].values;
+    std::vector<float> prop = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind].values;
     size_t globalWorkSizemultiplyconst[1] = { (size_t)N };
     memC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * N, prop.data(), &err);
@@ -71,16 +78,19 @@ CLBuffer process::r(std::string var){
 
 CLBuffer process::laplacian_full(std::string var){
     cl_int err;
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     std::vector<float> delta = SP.getvalue<std::vector<float>>(Piro::SolveParams::DELTA);
     float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
 
-    int N = MP.n[0] * MP.n[1] * MP.n[2];
+    int N = n[0] * n[1] * n[2];
     int ind = process::matchscalartovar(var);
     CLBuffer memC;
     
     /*
-    std::vector<float> hostValues(MP.AMR[0].CD[ind].values.size());
+    std::vector<float> hostValues(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind].values.size());
     err = clEnqueueReadBuffer(queue, CDGPU.values_gpu[ind].buffer, CL_TRUE, 0,
                             sizeof(float) * N, hostValues.data(),
                             0, NULL, NULL);
@@ -88,8 +98,8 @@ CLBuffer process::laplacian_full(std::string var){
         std::cout << hostValues[i] << " ";
     }*/
     std::cout << std::endl;
-    if(MP.AMR[0].CD[ind].type == 0){
-        std::vector<float> prop = MP.AMR[0].CD[ind].values;
+    if(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind].type == 0){
+        std::vector<float> prop = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind].values;
         size_t globalWorkSizelaplacian[1] = { (size_t)N };
         memC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * N, prop.data(), &err);
@@ -99,8 +109,8 @@ CLBuffer process::laplacian_full(std::string var){
         err |= clSetKernelArg(kernels::kernel[5], 2, sizeof(cl_float), &delta[0]);
         err |= clSetKernelArg(kernels::kernel[5], 3, sizeof(cl_float), &delta[1]);
         err |= clSetKernelArg(kernels::kernel[5], 4, sizeof(cl_float), &delta[2]);
-        err |= clSetKernelArg(kernels::kernel[5], 5, sizeof(cl_uint), &MP.n[0]);
-        err |= clSetKernelArg(kernels::kernel[5], 6, sizeof(cl_uint), &MP.n[1]);
+        err |= clSetKernelArg(kernels::kernel[5], 5, sizeof(cl_uint), &n[0]);
+        err |= clSetKernelArg(kernels::kernel[5], 6, sizeof(cl_uint), &n[1]);
         err |= clSetKernelArg(kernels::kernel[5], 7, sizeof(cl_float), &timestep);
         err |= clSetKernelArg(kernels::kernel[5], 8, sizeof(cl_uint), &N);
 
@@ -108,7 +118,7 @@ CLBuffer process::laplacian_full(std::string var){
     
     }
     else{
-        std::vector<float> prop = MP.AMR[0].CD[ind].values;
+        std::vector<float> prop = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind].values;
         size_t globalWorkSizelaplacian[1] = { (size_t)3 * N };
         memC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * 3 * N, prop.data(), &err);
@@ -118,8 +128,8 @@ CLBuffer process::laplacian_full(std::string var){
         err |= clSetKernelArg(kernels::kernel[9], 2, sizeof(cl_float), &delta[0]);
         err |= clSetKernelArg(kernels::kernel[9], 3, sizeof(cl_float), &delta[1]);
         err |= clSetKernelArg(kernels::kernel[9], 4, sizeof(cl_float), &delta[2]);
-        err |= clSetKernelArg(kernels::kernel[9], 5, sizeof(cl_uint), &MP.n[0]);
-        err |= clSetKernelArg(kernels::kernel[9], 6, sizeof(cl_uint), &MP.n[1]);
+        err |= clSetKernelArg(kernels::kernel[9], 5, sizeof(cl_uint), &n[0]);
+        err |= clSetKernelArg(kernels::kernel[9], 6, sizeof(cl_uint), &n[1]);
         err |= clSetKernelArg(kernels::kernel[9], 7, sizeof(cl_float), &timestep);
         err |= clSetKernelArg(kernels::kernel[9], 8, sizeof(cl_uint), &N);
 
@@ -144,7 +154,7 @@ std::vector<CLBuffer> process::laplacian_CSR(std::string var1, std::string var2)
     if(LAP_INIT == false){
         laplacian_CSR_init(); // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
         /*
-        if (MP.AMR[0].CD[ind].type == 0){
+        if (MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind].type == 0){
             // scale the values
             cl_int err;
             int N = MP.n[0] * MP.n[1] * MP.n[2];
@@ -170,13 +180,16 @@ std::vector<CLBuffer> process::laplacian_CSR(std::string var1, std::string var2)
 
 CLBuffer process::div_r(std::string var1, std::string var2){
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
     std::vector<float> delta = SP.getvalue<std::vector<float>>(Piro::SolveParams::DELTA);
     float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
     int ind1 = process::matchscalartovar(var1);
     int ind2 = process::matchscalartovar(var2);
     CLBuffer memC, multi;
-    int N = MP.n[0] * MP.n[1] * MP.n[2];
-    std::vector<float> prop = MP.AMR[0].CD[ind1].values;
+    int N = n[0] * n[1] * n[2];
+    std::vector<float> prop = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind1].values;
     
     if(ind1 == 0 && ind2 == 0){
         // std::cout << "selection" << std::endl;
@@ -194,7 +207,7 @@ CLBuffer process::div_r(std::string var1, std::string var2){
         // vector itself
         size_t globalWorkSizegradient[1] = { (size_t)N };
         multi.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-            sizeof(float) * 3 * N, MP.AMR[0].CD[ind2].values.data(), &err);
+            sizeof(float) * 3 * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind2].values.data(), &err);
 
         memC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * N, prop.data(), &err);
@@ -205,8 +218,8 @@ CLBuffer process::div_r(std::string var1, std::string var2){
         err |= clSetKernelArg(kernels::kernel[3], 3, sizeof(cl_float), &delta[0]);
         err |= clSetKernelArg(kernels::kernel[3], 4, sizeof(cl_float), &delta[1]);
         err |= clSetKernelArg(kernels::kernel[3], 5, sizeof(cl_float), &delta[2]);
-        err |= clSetKernelArg(kernels::kernel[3], 6, sizeof(cl_uint), &MP.n[0]);
-        err |= clSetKernelArg(kernels::kernel[3], 7, sizeof(cl_uint), &MP.n[1]);
+        err |= clSetKernelArg(kernels::kernel[3], 6, sizeof(cl_uint), &n[0]);
+        err |= clSetKernelArg(kernels::kernel[3], 7, sizeof(cl_uint), &n[1]);
         err |= clSetKernelArg(kernels::kernel[3], 8, sizeof(cl_float), &timestep);
         err |= clSetKernelArg(kernels::kernel[3], 9, sizeof(cl_uint), &N);
 
@@ -217,7 +230,7 @@ CLBuffer process::div_r(std::string var1, std::string var2){
         // var1 = vector, var2 = vector
         size_t globalWorkSizegradient[1] = { (size_t)3 * N };
         multi.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-            sizeof(float) * 3 * N, MP.AMR[0].CD[ind2].values.data(), &err);
+            sizeof(float) * 3 * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind2].values.data(), &err);
 
         memC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * 3 * N, prop.data(), &err);
@@ -228,8 +241,8 @@ CLBuffer process::div_r(std::string var1, std::string var2){
         err |= clSetKernelArg(kernels::kernel[4], 3, sizeof(cl_float), &delta[0]);
         err |= clSetKernelArg(kernels::kernel[4], 4, sizeof(cl_float), &delta[1]);
         err |= clSetKernelArg(kernels::kernel[4], 5, sizeof(cl_float), &delta[2]);
-        err |= clSetKernelArg(kernels::kernel[4], 6, sizeof(cl_uint), &MP.n[0]);
-        err |= clSetKernelArg(kernels::kernel[4], 7, sizeof(cl_uint), &MP.n[1]);
+        err |= clSetKernelArg(kernels::kernel[4], 6, sizeof(cl_uint), &n[0]);
+        err |= clSetKernelArg(kernels::kernel[4], 7, sizeof(cl_uint), &n[1]);
         err |= clSetKernelArg(kernels::kernel[4], 8, sizeof(cl_float), &timestep);
         err |= clSetKernelArg(kernels::kernel[4], 9, sizeof(cl_uint), &N);
 
@@ -249,7 +262,10 @@ void scalarMatrix::Solve(float currenttime){
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
     int totaltimesteps = SP.getvalue<int>(Piro::SolveParams::TOTALTIMESTEPS);
-    int N = MP.n[0] * MP.n[1] * MP.n[2];
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+    int N = n[0] * n[1] * n[2];
     ts = int(currenttime / timestep);
     Piro::logger::info("Timestep : ", ts + 1, " / ", totaltimesteps);
     // apply Boundary Conditions
@@ -259,7 +275,7 @@ void scalarMatrix::Solve(float currenttime){
     if((ts + 1) % SP.getvalue<int>(Piro::SolveParams::SAVE) == 0){
         Piro::logger::info("Post processing started");
         err = clEnqueueReadBuffer(kernels::queue, CDGPU.values_gpu[0].buffer, CL_TRUE, 0,
-                sizeof(float) * N, MP.AMR[0].CD[0].values.data(), 0, NULL, NULL);
+                sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[0].values.data(), 0, NULL, NULL);
         
         Piro::post::export_paraview(ts);
         Piro::logger::info("Post processing finished\n");

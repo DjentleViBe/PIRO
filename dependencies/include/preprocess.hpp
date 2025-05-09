@@ -6,8 +6,6 @@
 #include <string>
 #include <CL/opencl.h>
 
-extern Piro::MeshParams MP;
-extern Piro::DeviceParams DP;
 extern int ts;
 extern bool LAP_INIT;
 extern bool RHS_INIT;

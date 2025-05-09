@@ -23,12 +23,14 @@ cl_mem memD, memE;
 
 using namespace Piro;
 void bc::opencl_initBC(){
-    int N = MP.n[0] * MP.n[1] * MP.n[2];
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    int N = n[0] * n[1] * n[2];
     Q = Piro::vector_operations::flattenvector(indices).size();
     memE = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(uint) * Q, Piro::vector_operations::flattenvector(indices).data(), &err);
     memD = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                          sizeof(float) * N, MP.AMR[0].CD[0].values.data(), &err);
+                          sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[0].values.data(), &err);
     if (err != CL_SUCCESS){
         std::cout << "BC error" << std::endl;
         }
@@ -62,25 +64,29 @@ void bc::opencl_setBC(int ind){
 }
 
 void bc::setbc(){
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     for (int ind = 0; ind < 6; ind++){
         for(uint faces = 0; faces < indices[ind].size(); faces++){
             int msv = GS.matchscalartovar(BC_property[ind]);
-            MP.AMR[0].CD[msv].values[indices[ind][faces]] = BC_value[ind];
+            MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[msv].values[indices[ind][faces]] = BC_value[ind];
         }
     }
 }
 
 void bc::prepbc(){
     Piro::logger::info("Preparing cells to print");
-    for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
-        uint kd = ind / (MP.n[1] * MP.n[0]);
-        uint jd = (ind / MP.n[0]) % MP.n[1];
-        uint id = ind % MP.n[0];
-        if (id == 0 || id == MP.n[0] - 1 || jd == 0 || jd == MP.n[1] - 1 || kd == 0 || kd == MP.n[2] - 1){
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    // int N = n[0] * n[1] * n[2];
+    for(uint ind = 0; ind < n[0] * n[1] * n[2]; ind++){
+        uint kd = ind / (n[1] * n[0]);
+        uint jd = (ind / n[0]) % n[1];
+        uint id = ind % n[0];
+        if (id == 0 || id == n[0] - 1 || jd == 0 || jd == n[1] - 1 || kd == 0 || kd == n[2] - 1){
             indices_toprint.push_back(ind);
             indices_toprint_vec.push_back(ind);
-            indices_toprint_vec.push_back(ind + MP.n[0]*MP.n[1]*MP.n[2]);
-            indices_toprint_vec.push_back(ind + 2 * MP.n[0]*MP.n[1]*MP.n[2]);
+            indices_toprint_vec.push_back(ind + n[0]*n[1]*n[2]);
+            indices_toprint_vec.push_back(ind + 2 * n[0]*n[1]*n[2]);
             
         }
     }
@@ -90,36 +96,39 @@ void bc::prepbc(){
 
 void bc::initbc(){
     Piro::logger::info("Initialising boundary conditions");
+    Piro::logger::info("Preparing cells to print");
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     std::vector<int> BC_type;
     
-    for(uint ind = 0; ind < MP.n[0] * MP.n[1] * MP.n[2]; ind++){
-        uint kd = ind / (MP.n[1] * MP.n[0]);
-        uint jd = (ind % (MP.n[1] * MP.n[0])) / MP.n[0];
-        uint id = ind % MP.n[0];
+    for(uint ind = 0; ind < n[0] * n[1] * n[2]; ind++){
+        uint kd = ind / (n[1] * n[0]);
+        uint jd = (ind % (n[1] * n[0])) / n[0];
+        uint id = ind % n[0];
         
-        if(jd == 0 && (id != 0 && id != MP.n[0] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
+        if(jd == 0 && (id != 0 && id != n[0] - 1) && (kd != 0 && kd != n[2] - 1)){
             // 3 : XZ plane
             indices[3].push_back(ind);
         }
-        else if(jd == MP.n[1] - 1 && (id != 0 && id != MP.n[0] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
+        else if(jd == n[1] - 1 && (id != 0 && id != n[0] - 1) && (kd != 0 && kd != n[2] - 1)){
             // 2 : XZ plane + breadth
             indices[2].push_back(ind);
         }
         
-        if(kd == 0 && (id != 0 && id != MP.n[0] - 1) && (jd != 0 && jd != MP.n[1] - 1)){
+        if(kd == 0 && (id != 0 && id != n[0] - 1) && (jd != 0 && jd != n[1] - 1)){
             // 4 : XY plane 
             indices[4].push_back(ind);
         }
-        else if(kd == MP.n[2] - 1 && (id != 0 && id != MP.n[0] - 1) && (jd != 0 && jd != MP.n[1] - 1)){
+        else if(kd == n[2] - 1 && (id != 0 && id != n[0] - 1) && (jd != 0 && jd != n[1] - 1)){
             // 5 : XY plane + height
             indices[5].push_back(ind);
         }
 
-        if(id == 0 && (jd != 0 && jd != MP.n[1] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
+        if(id == 0 && (jd != 0 && jd != n[1] - 1) && (kd != 0 && kd != n[2] - 1)){
             // 1 : YZ plane
             indices[1].push_back(ind);
         }
-        else if(id == MP.n[0] - 1 && (jd != 0 && jd != MP.n[1] - 1) && (kd != 0 && kd != MP.n[2] - 1)){
+        else if(id == n[0] - 1 && (jd != 0 && jd != n[1] - 1) && (kd != 0 && kd != n[2] - 1)){
             // 0 : YZ plane + length
             indices[0].push_back(ind);
         }

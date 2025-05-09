@@ -18,7 +18,10 @@ namespace Piro{
     CLBuffer CLBuffer::operator=(const std::vector<CLBuffer>& other){
 
         cl_int err;
-        int N = MP.n[0] * MP.n[1] * MP.n[2];
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+        int N = n[0] * n[1] * n[2];
         int P = 1;
         std::vector<float>A(N, 0.0);
         CLBuffer partC, partD;
@@ -42,8 +45,8 @@ namespace Piro{
             err |= clSetKernelArg(kernels::kernel[8], 6, sizeof(cl_float), &timestep);
             err |= clSetKernelArg(kernels::kernel[8], 7, sizeof(cl_mem), &this->buffer);
             err |= clSetKernelArg(kernels::kernel[8], 8, sizeof(cl_mem), &partC.buffer);
-            err |= clSetKernelArg(kernels::kernel[8], 9, sizeof(cl_int), &MP.n[0]);
-            err |= clSetKernelArg(kernels::kernel[8], 10, sizeof(cl_int), &MP.n[1]);
+            err |= clSetKernelArg(kernels::kernel[8], 9, sizeof(cl_int), &n[0]);
+            err |= clSetKernelArg(kernels::kernel[8], 10, sizeof(cl_int), &n[1]);
             err |= clSetKernelArg(kernels::kernel[8], 11, sizeof(cl_int), &N);
             
             err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel[8], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
@@ -71,7 +74,10 @@ namespace Piro{
 
     CLBuffer operator*(CLBuffer partA, CLBuffer partB){
         cl_int err;
-        int N = MP.n[0] * MP.n[1] * MP.n[2];
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+        int N = n[0] * n[1] * n[2];
         std::vector<float>A(N, 0.0);
         CLBuffer partC;
         partC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -90,7 +96,10 @@ namespace Piro{
 
     CLBuffer operator*(const float partA, CLBuffer partB){
         cl_int err;
-        int N = MP.n[0] * MP.n[1] * MP.n[2];
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+        int N = n[0] * n[1] * n[2];
         std::vector<float>A(N, 0.0);
         CLBuffer partC;
         partC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -109,7 +118,10 @@ namespace Piro{
 
     CLBuffer operator+(CLBuffer partA, CLBuffer partB){
         cl_int err;
-        int N = MP.n[0] * MP.n[1] * MP.n[2];
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+        int N = n[0] * n[1] * n[2];
         std::vector<float>A(N, 0.0);
         CLBuffer partC;
         partC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -128,7 +140,10 @@ namespace Piro{
 
     CLBuffer operator+(const float partA, CLBuffer partB){
         cl_int err;
-        int N = MP.n[0] * MP.n[1] * MP.n[2];
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+        int N = n[0] * n[1] * n[2];
         std::vector<float>A(N, 0.0);
         CLBuffer partC;
         partC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -147,7 +162,10 @@ namespace Piro{
         
     CLBuffer operator-(CLBuffer partA, CLBuffer partB){
         cl_int err;
-        int N = MP.n[0] * MP.n[1] * MP.n[2];
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+        int N = n[0] * n[1] * n[2];
         std::vector<float>A(N, 0.0);
         CLBuffer partC;
         partC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -166,7 +184,10 @@ namespace Piro{
 
     CLBuffer operator-(const float partA, CLBuffer partB){
         cl_int err;
-        int N = MP.n[0] * MP.n[1] * MP.n[2];
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+        int N = n[0] * n[1] * n[2];
         std::vector<float>A(N, 0.0);
         CLBuffer partC;
         partC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -185,7 +206,10 @@ namespace Piro{
 
     CLBuffer operator/(CLBuffer partA, CLBuffer partB){
         cl_int err;
-        int N = MP.n[0] * MP.n[1] * MP.n[2];
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+        int N = n[0] * n[1] * n[2];
         std::vector<float>A(N, 0.0);
         CLBuffer partC;
         partC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -204,7 +228,10 @@ namespace Piro{
 
     CLBuffer operator/(const float partA, CLBuffer partB){
         cl_int err;
-        int N = MP.n[0] * MP.n[1] * MP.n[2];
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+        int N = n[0] * n[1] * n[2];
         std::vector<float>A(N, 0.0);
         CLBuffer partC;
         partC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
