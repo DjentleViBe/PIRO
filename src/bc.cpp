@@ -37,6 +37,7 @@ void bc::opencl_initBC(){
 }
 
 void bc::opencl_setBC(int ind){
+    Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
     // int N = MP.n[0] * MP.n[1] * MP.n[2];
     size_t globalWorkSizeBC[1] = { (size_t)Q };
     // std::vector<float> prop = MP.AMR[0].CD[ind].values;
@@ -46,7 +47,7 @@ void bc::opencl_setBC(int ind){
     // std::cout << "before setting BC" << std::endl;
     // printVector(prop);
 
-    err |= clSetKernelArg(kernels::kernel[0], 0, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
+    err |= clSetKernelArg(kernels::kernel[0], 0, sizeof(cl_mem), &CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[ind].buffer);
     err |= clSetKernelArg(kernels::kernel[0], 1, sizeof(cl_mem), &memD);
     err |= clSetKernelArg(kernels::kernel[0], 2, sizeof(cl_mem), &memE);
     err |= clSetKernelArg(kernels::kernel[0], 3, sizeof(cl_uint), &Q);

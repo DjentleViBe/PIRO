@@ -17,7 +17,6 @@
 #include <fileutilities.hpp>
 #include <openclutilities.hpp>
 
-Piro::CellDataGPU CDGPU;
 Piro::Equation RHS;
 Piro::CLBuffer CD_GPU;
 cl_mem RHSterms;
@@ -114,12 +113,14 @@ int Piro::preprocess(const std::string& name) {
     
 
     Piro::logger::info("Initialising scalars and vectors");
+    Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
     int j = 0;
     Piro::CellData CD;
     //CLBuffer CD_GPU;
     // total number of cells
     int N = n[0] * n[1] * n[2];
     Piro::logger::info("Total number of cells : ", N);
+    std::vector<Piro::CLBuffer> CDGPU_collect;
     for (int i = 0; i < MP.getvalue<int>(Piro::MeshParams::SCALARNUM); i++){
         
         CD.Scalars = MP.getvalue<std::vector<std::string>>(Piro::MeshParams::SCALARLIST)[i];
@@ -127,8 +128,8 @@ int Piro::preprocess(const std::string& name) {
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type = 0;
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values = initialcondition(i, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type);
         // push scalar data to gpu
-        CDGPU.values_gpu.push_back(CD_GPU);
-        CDGPU.values_gpu[i].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        CDGPU_collect.push_back(CD_GPU);
+        CDGPU_collect[i].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values.data(), &err);
         j += 1;
     }
@@ -139,11 +140,12 @@ int Piro::preprocess(const std::string& name) {
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type = 1;
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values = initialcondition(i, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type);
         // push vector data to gpu
-        CDGPU.values_gpu.push_back(CD_GPU);
-        CDGPU.values_gpu[i].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        CDGPU_collect.push_back(CD_GPU);
+        CDGPU_collect[i].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values.data(), &err);
         
     }
+    CDGPU.setvalue(Piro::CellDataGPU::VALUES_GPU, CDGPU_collect);
     Piro::logger::info("Initialising scalars and vectors completed!");
     std::vector<float> delta = {l[0] / float(n[0] - 2),
                                 l[1] / float(n[1] - 2),
@@ -188,17 +190,19 @@ bool isValidIndex(int index){
 
 int Piro::laplacian_CSR_init(){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     std::vector<float> l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
     int N = n[0] * n[1] * n[2];
     Piro::CellData CD;
+    std::vector<CLBuffer> laplacian_collect;
     MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
-    CDGPU.laplacian_csr.push_back(CD_GPU);
+    laplacian_collect.push_back(CD_GPU);
     MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].type = 2; // row pointers
     MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.assign(N + 1, 0.0);
-    CDGPU.laplacian_csr.push_back(CD_GPU);
+    laplacian_collect.push_back(CD_GPU);
     MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].type = 3; // columns
-    CDGPU.laplacian_csr.push_back(CD_GPU);
+    laplacian_collect.push_back(CD_GPU);
     MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].type = 4; // values
     float norm = pow((l[0] / float(n[0] - 2)), 2);
     // Iterate over all grid points
@@ -267,16 +271,20 @@ int Piro::laplacian_CSR_init(){
     }
     
 
-    CDGPU.laplacian_csr[0].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(int) * MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.size(), MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.data(), &err);
+    laplacian_collect[0].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        sizeof(int) * MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.size(), 
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.data(), &err);
 
-    CDGPU.laplacian_csr[1].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(int) *  MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.size(), MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.data(), &err);
+    laplacian_collect[1].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        sizeof(int) *  MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.size(), 
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.data(), &err);
 
-    CDGPU.laplacian_csr[2].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(float) *  MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size(), MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.data(), &err);
+    laplacian_collect[2].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        sizeof(float) *  MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size(), 
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.data(), &err);
     
     LAP_INIT = true;
+    CDGPU.setvalue(Piro::CellDataGPU::LAPLACIAN_CSR, laplacian_collect);
     RHS.sparsecount += MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size();
     // printVector(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers);
     // printVector(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns);

@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <variant>
 #include <iostream>
+#include <operatoroverload.hpp>
 
 typedef unsigned int uint;
 
@@ -79,6 +80,7 @@ namespace Piro{
             template<typename T>
             T& getvalue(const ParameterIndex paramindex) {
                 if (parameters.find(paramindex) == parameters.end()) {
+                    std::cout << "bad variant : " << paramindex;
                     throw std::runtime_error("Parameter not set");
                 }
                 if (!std::holds_alternative<T>(parameters.at(paramindex))) {
@@ -127,6 +129,7 @@ namespace Piro{
             template<typename T>
             T getvalue(const ParameterIndex paramindex) const {
                 if (parameters.find(paramindex) == parameters.end()) {
+                    std::cout << "bad variant : " << paramindex;
                     throw std::runtime_error("Parameter not set");
                 }
                 if (!std::holds_alternative<T>(parameters.at(paramindex))) {
@@ -164,6 +167,7 @@ namespace Piro{
             template<typename T>
             T getvalue(const ParameterIndex paramindex) const {
                 if (parameters.find(paramindex) == parameters.end()) {
+                    std::cout << "bad variant : " << paramindex;
                     throw std::runtime_error("Parameter not set");
                 }
                 return std::get<T>(parameters.at(paramindex));
@@ -174,6 +178,43 @@ namespace Piro{
             std::unordered_map<ParameterIndex, ParamValue> parameters;
         
     };
-};
 
+    class CellDataGPU{
+        public:
+            static CellDataGPU& getInstance(){
+                static CellDataGPU instance;
+                return instance;
+            }
+            enum ParameterIndex{
+                // int
+                VALUES_GPU, LAPLACIAN_CSR, GRADIENT
+            };
+
+            CellDataGPU(const CellDataGPU&) = delete;
+            CellDataGPU& operator=(const CellDataGPU&) = delete;
+
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const T& val) {
+                parameters[paramindex] = val;
+            }
+
+            template<typename T>
+            T& getvalue(const ParameterIndex paramindex) {
+                if (parameters.find(paramindex) == parameters.end()) {
+                    std::cout << "bad variant (CellData - GPU) : " << paramindex;
+                    throw std::runtime_error("Parameter not set");
+                }
+                return std::get<T>(parameters.at(paramindex));
+            }
+            
+        private:
+            // std::vector<Piro::CLBuffer> values_gpu;
+            // std::vector<Piro::CLBuffer> laplacian_csr;
+            // std::vector<Piro::CLBuffer> gradient;
+            CellDataGPU() = default;
+            using ParamValue = std::variant<std::vector<Piro::CLBuffer>>;
+            std::unordered_map<ParameterIndex, ParamValue> parameters;
+    };
+};
+// extern Piro::CellDataGPU CDGPU;
 #endif

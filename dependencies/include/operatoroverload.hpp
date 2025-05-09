@@ -23,15 +23,6 @@ namespace Piro{
 }
 
 namespace Piro{
-    class CellDataGPU{
-        public:
-            std::vector<Piro::CLBuffer> values_gpu;
-            std::vector<Piro::CLBuffer> laplacian_csr;
-            std::vector<Piro::CLBuffer> gradient;
-    };
-};
-
-namespace Piro{
     class Equation{
         public:
             cl_mem operandvalues;
@@ -42,7 +33,6 @@ namespace Piro{
     };
 };
 
-extern Piro::CellDataGPU CDGPU;
 extern Piro::Equation RHS;
 const float EPSILON = 1E-6;
 #endif // OPERATOR_OVERLOAD_HPP
