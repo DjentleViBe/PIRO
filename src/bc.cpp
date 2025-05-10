@@ -23,6 +23,7 @@ cl_mem memD, memE;
 
 using namespace Piro;
 void bc::opencl_initBC(){
+    cl_int err;
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     int N = n[0] * n[1] * n[2];
@@ -33,7 +34,7 @@ void bc::opencl_initBC(){
                           sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[0].values.data(), &err);
     if (err != CL_SUCCESS){
         std::cout << "BC error" << std::endl;
-        }
+    }
 }
 
 void bc::opencl_setBC(int ind){
@@ -46,11 +47,10 @@ void bc::opencl_setBC(int ind){
     //          sizeof(float) * N, prop.data(), 0, NULL, NULL);
     // std::cout << "before setting BC" << std::endl;
     // printVector(prop);
-
-    err |= clSetKernelArg(kernels::kernel[0], 0, sizeof(cl_mem), &CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[ind].buffer);
-    err |= clSetKernelArg(kernels::kernel[0], 1, sizeof(cl_mem), &memD);
-    err |= clSetKernelArg(kernels::kernel[0], 2, sizeof(cl_mem), &memE);
-    err |= clSetKernelArg(kernels::kernel[0], 3, sizeof(cl_uint), &Q);
+    cl_int err = clSetKernelArg(kernels::kernel[0], 0, sizeof(cl_mem), &CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[ind].buffer);
+    err = clSetKernelArg(kernels::kernel[0], 1, sizeof(cl_mem), &memD);
+    err = clSetKernelArg(kernels::kernel[0], 2, sizeof(cl_mem), &memE);
+    err = clSetKernelArg(kernels::kernel[0], 3, sizeof(cl_uint), &Q);
 
     err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel[0], 1, NULL, globalWorkSizeBC, NULL, 0, NULL, NULL);
     if (err != CL_SUCCESS){

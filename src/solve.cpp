@@ -8,10 +8,7 @@
 #include <logger.hpp>
 #include <datatypes.hpp>
 
-char* dt;
-std::time_t now;
-
-int solve(){
+int Piro::solve(){
     Piro::logger::info("Solving . . .\n");
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     float totaltime = SP.getvalue<float>(Piro::SolveParams::TOTALTIME);

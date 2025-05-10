@@ -6,12 +6,8 @@
 #include <ctime>
 #include <string>
 
-extern Piro::SolveParams SP;
-extern char* dt;
-extern std::time_t now;
-int solve();
-
 namespace Piro{
+    int solve();
     class math_operations{
         public:
             int idx(int i, int j, int k, int N_x, int N_y);

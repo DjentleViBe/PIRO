@@ -9,13 +9,9 @@
 #include <iostream>
 #include <immintrin.h>
 #include <ctime>
-#include <gpuinit.hpp>
 #include <CL/opencl.h>
 #include <logger.hpp>
 #include <openclutilities.hpp>
-
-extern char* dt;
-extern std::time_t now;
 
 using namespace Piro;
 
@@ -197,6 +193,7 @@ CLBuffer process::div_r(std::string var1, std::string var2){
     int ind1 = process::matchscalartovar(var1);
     int ind2 = process::matchscalartovar(var2);
     CLBuffer memC, multi;
+    cl_int err;
     int N = n[0] * n[1] * n[2];
     std::vector<float> prop = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind1].values;
     
@@ -221,16 +218,16 @@ CLBuffer process::div_r(std::string var1, std::string var2){
         memC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * N, prop.data(), &err);
     
-        err |= clSetKernelArg(kernels::kernel[3], 0, sizeof(cl_mem), &CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[ind1].buffer);
-        err |= clSetKernelArg(kernels::kernel[3], 1, sizeof(cl_mem), &memC.buffer);
-        err |= clSetKernelArg(kernels::kernel[3], 2, sizeof(cl_mem), &multi.buffer);
-        err |= clSetKernelArg(kernels::kernel[3], 3, sizeof(cl_float), &delta[0]);
-        err |= clSetKernelArg(kernels::kernel[3], 4, sizeof(cl_float), &delta[1]);
-        err |= clSetKernelArg(kernels::kernel[3], 5, sizeof(cl_float), &delta[2]);
-        err |= clSetKernelArg(kernels::kernel[3], 6, sizeof(cl_uint), &n[0]);
-        err |= clSetKernelArg(kernels::kernel[3], 7, sizeof(cl_uint), &n[1]);
-        err |= clSetKernelArg(kernels::kernel[3], 8, sizeof(cl_float), &timestep);
-        err |= clSetKernelArg(kernels::kernel[3], 9, sizeof(cl_uint), &N);
+        err = clSetKernelArg(kernels::kernel[3], 0, sizeof(cl_mem), &CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[ind1].buffer);
+        err = clSetKernelArg(kernels::kernel[3], 1, sizeof(cl_mem), &memC.buffer);
+        err = clSetKernelArg(kernels::kernel[3], 2, sizeof(cl_mem), &multi.buffer);
+        err = clSetKernelArg(kernels::kernel[3], 3, sizeof(cl_float), &delta[0]);
+        err = clSetKernelArg(kernels::kernel[3], 4, sizeof(cl_float), &delta[1]);
+        err = clSetKernelArg(kernels::kernel[3], 5, sizeof(cl_float), &delta[2]);
+        err = clSetKernelArg(kernels::kernel[3], 6, sizeof(cl_uint), &n[0]);
+        err = clSetKernelArg(kernels::kernel[3], 7, sizeof(cl_uint), &n[1]);
+        err = clSetKernelArg(kernels::kernel[3], 8, sizeof(cl_float), &timestep);
+        err = clSetKernelArg(kernels::kernel[3], 9, sizeof(cl_uint), &N);
 
         err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel[3], 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
         
@@ -244,16 +241,16 @@ CLBuffer process::div_r(std::string var1, std::string var2){
         memC.buffer = clCreateBuffer(kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
             sizeof(float) * 3 * N, prop.data(), &err);
     
-        err |= clSetKernelArg(kernels::kernel[4], 0, sizeof(cl_mem), &CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[ind1].buffer);
-        err |= clSetKernelArg(kernels::kernel[4], 1, sizeof(cl_mem), &memC.buffer);
-        err |= clSetKernelArg(kernels::kernel[4], 2, sizeof(cl_mem), &multi.buffer);
-        err |= clSetKernelArg(kernels::kernel[4], 3, sizeof(cl_float), &delta[0]);
-        err |= clSetKernelArg(kernels::kernel[4], 4, sizeof(cl_float), &delta[1]);
-        err |= clSetKernelArg(kernels::kernel[4], 5, sizeof(cl_float), &delta[2]);
-        err |= clSetKernelArg(kernels::kernel[4], 6, sizeof(cl_uint), &n[0]);
-        err |= clSetKernelArg(kernels::kernel[4], 7, sizeof(cl_uint), &n[1]);
-        err |= clSetKernelArg(kernels::kernel[4], 8, sizeof(cl_float), &timestep);
-        err |= clSetKernelArg(kernels::kernel[4], 9, sizeof(cl_uint), &N);
+        err = clSetKernelArg(kernels::kernel[4], 0, sizeof(cl_mem), &CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[ind1].buffer);
+        err = clSetKernelArg(kernels::kernel[4], 1, sizeof(cl_mem), &memC.buffer);
+        err = clSetKernelArg(kernels::kernel[4], 2, sizeof(cl_mem), &multi.buffer);
+        err = clSetKernelArg(kernels::kernel[4], 3, sizeof(cl_float), &delta[0]);
+        err = clSetKernelArg(kernels::kernel[4], 4, sizeof(cl_float), &delta[1]);
+        err = clSetKernelArg(kernels::kernel[4], 5, sizeof(cl_float), &delta[2]);
+        err = clSetKernelArg(kernels::kernel[4], 6, sizeof(cl_uint), &n[0]);
+        err = clSetKernelArg(kernels::kernel[4], 7, sizeof(cl_uint), &n[1]);
+        err = clSetKernelArg(kernels::kernel[4], 8, sizeof(cl_float), &timestep);
+        err = clSetKernelArg(kernels::kernel[4], 9, sizeof(cl_uint), &N);
 
         err = clEnqueueNDRangeKernel(kernels::queue, kernels::kernel[4], 1, NULL, globalWorkSizegradient, NULL, 0, NULL, NULL);
         
@@ -274,7 +271,7 @@ void scalarMatrix::Solve(float currenttime){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
-    
+    cl_int err;
     int N = n[0] * n[1] * n[2];
     ts = int(currenttime / timestep);
     Piro::logger::info("Timestep : ", ts + 1, " / ", totaltimesteps);
@@ -286,7 +283,9 @@ void scalarMatrix::Solve(float currenttime){
         Piro::logger::info("Post processing started");
         err = clEnqueueReadBuffer(kernels::queue, CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[0].buffer, CL_TRUE, 0,
                 sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[0].values.data(), 0, NULL, NULL);
-        
+        if (err != CL_SUCCESS){
+            std::cout << "Solve error" << std::endl;
+        }
         Piro::post::export_paraview(ts);
         Piro::logger::info("Post processing finished\n");
     }

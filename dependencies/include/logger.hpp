@@ -5,14 +5,20 @@
 #include <iostream>
 #include <printutilities.hpp>
 
-extern int debuginfo;
-
 namespace Piro{
     class logger {
         public:
+            int debuginfo;
+            static logger& getInstance(){
+                static logger instance;
+                return instance;
+            }
+            void setvalue(const int& logmsg){
+                debuginfo = logmsg;
+            }
             template<typename... Args>
             static void info(const Args&... args) {
-                if(debuginfo >= 0){
+                if(getInstance().debuginfo >= 0){
                     Piro::print_utilities::print_time();
                     ((std::cout << args << " "), ...);
                     std::cout << "" << std::endl;
@@ -21,7 +27,7 @@ namespace Piro{
             
             template<typename... Args>
             static void error(const Args&... args) {
-                if(debuginfo >= 3){
+                if(getInstance().debuginfo >= 3){
                     Piro::print_utilities::print_time();
                     ((std::cout << args << " "), ...);
                     std::cout << "" << std::endl;
@@ -30,7 +36,7 @@ namespace Piro{
 
             template<typename... Args>
             static void debug(const Args&... args) {
-                if(debuginfo >= 1){
+                if(getInstance().debuginfo >= 1){
                     Piro::print_utilities::print_time();
                     ((std::cout << args << " "), ...);
                     std::cout << "" << std::endl;
@@ -38,7 +44,7 @@ namespace Piro{
             }
             template<typename... Args>
             static void debug_print(const Args&... args) {
-                if(debuginfo >= 1){
+                if(getInstance().debuginfo >= 1){
                     ((std::cout << args << " "), ...);
                     // std::cout << "" << std::endl;
                 }
@@ -61,7 +67,7 @@ namespace Piro{
             // Variadic template version for multiple arguments
             template<typename T, typename... Args>
             static void warning(const T& first, const Args&... args) {
-                if(debuginfo >= 2){
+                if(getInstance().debuginfo >= 2){
                     Piro::print_utilities::print_time();
                     info_debug(first);  // Handle the first argument
                     info_debug(args...); // Recursive call for remaining arguments
@@ -69,6 +75,11 @@ namespace Piro{
                 }
                 
             }
+        private:
+            
+            logger() {}
+            logger(const logger&) = delete;
+            logger& operator=(const logger&) = delete;
         };
 }
 #endif

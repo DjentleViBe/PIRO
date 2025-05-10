@@ -20,7 +20,6 @@
 Piro::Equation RHS;
 Piro::CLBuffer CD_GPU;
 cl_mem RHSterms;
-int debuginfo;
 
 bool LAP_INIT = false;
 bool RHS_INIT = false;
@@ -32,6 +31,8 @@ int Piro::preprocess(const std::string& name) {
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     Piro::DeviceParams& DP = Piro::DeviceParams::getInstance();
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    Piro::logger& logg = Piro::logger::getInstance();
+
     Piro::logger::info("Setup file : ",name);
     Piro::file_utilities::IniReader reader(current_path.string() + "/assets/" + name);
     // Print all sections and key-value pairs
@@ -57,6 +58,7 @@ int Piro::preprocess(const std::string& name) {
     MP.setvalue(Piro::MeshParams::VECTORLIST, Piro::string_utilities::splitString(reader.get("Simulation", "Vectors", "default_value"), ' '));
     MP.setvalue(Piro::MeshParams::MESHTYPE, std::stoi(reader.get("Mesh", "MeshType", "default_value")));
     MP.setvalue(Piro::MeshParams::LEVELS, std::stoi(reader.get("Mesh", "levels", "default_value")));
+    logg.setvalue(std::stoi(reader.get("Debug", "Verbose", "default_value")));
 
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     std::vector<float> l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
@@ -116,6 +118,7 @@ int Piro::preprocess(const std::string& name) {
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
     int j = 0;
     Piro::CellData CD;
+    cl_int err;
     //CLBuffer CD_GPU;
     // total number of cells
     int N = n[0] * n[1] * n[2];
@@ -270,7 +273,7 @@ int Piro::laplacian_CSR_init(){
         }
     }
     
-
+    cl_int err;
     laplacian_collect[0].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(int) * MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.size(), 
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.data(), &err);

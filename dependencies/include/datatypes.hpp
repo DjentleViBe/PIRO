@@ -216,5 +216,5 @@ namespace Piro{
             std::unordered_map<ParameterIndex, ParamValue> parameters;
     };
 };
-// extern Piro::CellDataGPU CDGPU;
+
 #endif

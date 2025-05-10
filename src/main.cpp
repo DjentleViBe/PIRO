@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 	Piro::file_utilities::get_exec_directory();
 	Piro::preprocess(name);
 	if(compile == 0){
-		solve();
+		Piro::solve();
 	}
 
 	Piro::logger::info("End Program");

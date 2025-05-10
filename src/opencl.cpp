@@ -2,7 +2,6 @@
 #include <iostream>
 #include <CL/opencl.h>
 #include <vector>
-#include <gpuinit.hpp>
 #include <extras.hpp>
 #include <preprocess.hpp>
 #include <openclutilities.hpp>
@@ -14,7 +13,6 @@
 #include <sstream>
 #include <init.hpp>
 
-float* B_ptr;
 cl_int err;
 // cl_platform_id platform;
 cl_uint platformCount;

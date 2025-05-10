@@ -34,5 +34,4 @@ namespace Piro{
 };
 
 extern Piro::Equation RHS;
-const float EPSILON = 1E-6;
 #endif // OPERATOR_OVERLOAD_HPP
