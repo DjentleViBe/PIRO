@@ -11,6 +11,7 @@
 
 std::string Piro::paraview::writevti(Piro::AMR AMR){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    Piro::bc::indices& indval = Piro::bc::indices::getInstance();
     std::string level = "";
     level = "<VTKFile type=\"ImageData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
     level += "<ImageData WholeExtent=\""+
@@ -46,7 +47,7 @@ std::string Piro::paraview::writevti(Piro::AMR AMR){
         
         if(AMR.CD[l].type == 0){
             
-            for (int pos : indices_toprint) {
+            for (int pos : indval.getvalue<std::vector<int>>(Piro::bc::indices::INDTOPRINT)) {
                 if (pos >= 0 && pos < AMR.CD[l].values.size()) {
                     AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
                     }
@@ -58,7 +59,7 @@ std::string Piro::paraview::writevti(Piro::AMR AMR){
             level.append("</DataArray>\n");
         }
         else{
-            for (int pos : indices_toprint_vec) {
+            for (int pos : indval.getvalue<std::vector<int>>(Piro::bc::indices::INDTOPRINTVEC)) {
                 if (pos >= 0 && pos < AMR.CD[l].values.size()) {
                     AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
                     }

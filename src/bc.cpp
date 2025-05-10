@@ -12,9 +12,6 @@
 #include <logger.hpp>
 #include <openclutilities.hpp>
 
-std::vector<std::vector<int>> indices(6, std::vector<int>());
-std::vector<int> indices_toprint;
-std::vector<int> indices_toprint_vec;
 std::vector<std::string> BC_property;
 std::vector<float> BC_value;
 Piro::process GS;
@@ -24,11 +21,15 @@ cl_mem memD, memE;
 using namespace Piro;
 void bc::opencl_initBC(){
     cl_int err;
+    std::vector<std::vector<int>> indices(6, std::vector<int>());
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    Piro::bc::indices& ind = Piro::bc::indices::getInstance();
     Piro::kernels& kernels = Piro::kernels::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     int N = n[0] * n[1] * n[2];
+
     Q = Piro::vector_operations::flattenvector(indices).size();
+    ind.setvalue(Piro::bc::indices::IND, indices);
     memE = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(uint) * Q, Piro::vector_operations::flattenvector(indices).data(), &err);
     memD = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -69,17 +70,22 @@ void bc::opencl_setBC(int ind){
 
 void bc::setbc(){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    Piro::bc::indices& indval = Piro::bc::indices::getInstance();
+
     for (int ind = 0; ind < 6; ind++){
-        for(uint faces = 0; faces < indices[ind].size(); faces++){
+        for(uint faces = 0; faces < indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)[ind].size(); faces++){
             int msv = GS.matchscalartovar(BC_property[ind]);
-            MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[msv].values[indices[ind][faces]] = BC_value[ind];
+            MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[msv].values[indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)[ind][faces]] = BC_value[ind];
         }
     }
 }
 
 void bc::prepbc(){
     Piro::logger::info("Preparing cells to print");
+    std::vector<int> indices_toprint;
+    std::vector<int> indices_toprint_vec;
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    Piro::bc::indices& indval = Piro::bc::indices::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     // int N = n[0] * n[1] * n[2];
     for(uint ind = 0; ind < n[0] * n[1] * n[2]; ind++){
@@ -96,15 +102,20 @@ void bc::prepbc(){
     }
     std::sort(indices_toprint.rbegin(), indices_toprint.rend());
     std::sort(indices_toprint_vec.rbegin(), indices_toprint_vec.rend());
+    indval.setvalue(Piro::bc::indices::INDTOPRINT, indices_toprint);
+    indval.setvalue(Piro::bc::indices::INDTOPRINTVEC, indices_toprint_vec);
+
 }
 
 void bc::initbc(){
     Piro::logger::info("Initialising boundary conditions");
     Piro::logger::info("Preparing cells to print");
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    Piro::bc::indices& indval = Piro::bc::indices::getInstance();
+    
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     std::vector<int> BC_type;
-    
+    std::vector<std::vector<int>> indices(6, std::vector<int>());
     for(uint ind = 0; ind < n[0] * n[1] * n[2]; ind++){
         uint kd = ind / (n[1] * n[0]);
         uint jd = (ind % (n[1] * n[0])) / n[0];
@@ -137,7 +148,7 @@ void bc::initbc(){
             indices[0].push_back(ind);
         }
     }
-
+    indval.setvalue(Piro::bc::indices::IND, indices);
     file_utilities::IniReader reader(current_path.string() + "/assets/setup.ini");
     BC_type = Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("BC", "type", "default_value"), ' '));
     BC_property = Piro::string_utilities::splitString(reader.get("BC", "property", "default_value"), ' ');
