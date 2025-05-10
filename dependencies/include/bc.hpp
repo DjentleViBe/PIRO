@@ -26,7 +26,7 @@ namespace Piro::bc{
             indices& operator=(const indices&) = delete;
             enum ParameterIndex{
                 // int
-                IND, INDTOPRINT, INDTOPRINTVEC, 
+                IND, INDTOPRINT, INDTOPRINTVEC, BC_PROPERTY, BC_VALUE, BC_TYPE
             };
             template<typename T>
             void setvalue(const ParameterIndex paramindex, const T& val) {
@@ -43,7 +43,7 @@ namespace Piro::bc{
             }
         private:
             indices() = default;
-            using ParamValue = std::variant<std::vector<std::vector<int>>, std::vector<int>>;
+            using ParamValue = std::variant<int, std::vector<std::string>, std::vector<float>, std::vector<std::vector<int>>, std::vector<int>>;
             std::unordered_map<ParameterIndex, ParamValue> parameters;
 
     };   

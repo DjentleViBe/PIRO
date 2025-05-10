@@ -36,7 +36,7 @@ std::vector<float> Piro::initialcondition(int index, int valuetype){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     std::vector<float> MP_l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
-    Piro::file_utilities::IniReader icreader(current_path.string() + "/assets/IC/" + "distribution.ini");
+    Piro::file_utilities::IniReader icreader(Piro::file_utilities::current_path.string() + "/assets/IC/" + "distribution.ini");
     if(MP.getvalue<std::vector<std::string>>(Piro::MeshParams::ICFILES)[index] == "Gaussian"){
         values.assign(n[0] * n[1] * n[2], 0.0);
         Piro::logger::info("Gaussian initialisation");

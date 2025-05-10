@@ -30,7 +30,7 @@ int Piro::preprocess(const std::string& name) {
     Piro::logger& logg = Piro::logger::getInstance();
 
     Piro::logger::info("Setup file : ",name);
-    Piro::file_utilities::IniReader reader(current_path.string() + "/assets/" + name);
+    Piro::file_utilities::IniReader reader(Piro::file_utilities::current_path.string() + "/assets/" + name);
     // Print all sections and key-value pairs
     // reader.print();
     DP.setvalue(Piro::DeviceParams::ID, std::stoi(reader.get("Device", "id", "default_value")));
@@ -159,7 +159,7 @@ int Piro::preprocess(const std::string& name) {
     SP.setvalue(Piro::SolveParams::TOTALTIMESTEPS, static_cast<int>(std::ceil(SP.getvalue<float>(Piro::SolveParams::TOTALTIME) / SP.getvalue<float>(Piro::SolveParams::TIMESTEP))));
     
     if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
-        Piro::file_utilities::IniReader reader_data(current_path.string() + "/assets/Data/hashtable.ini");
+        Piro::file_utilities::IniReader reader_data(Piro::file_utilities::current_path.string() + "/assets/Data/hashtable.ini");
         SP.setvalue(Piro::SolveParams::PROBING, std::stoi(reader_data.get("Table", "Probing", "default_value")));
         SP.setvalue(Piro::SolveParams::LOADFACTOR, std::stof(reader_data.get("Table", "LoadFactor", "default_value")));
         SP.setvalue(Piro::SolveParams::A, std::stof(reader_data.get("Table", "a", "default_value")));

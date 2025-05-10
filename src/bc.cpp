@@ -12,26 +12,21 @@
 #include <logger.hpp>
 #include <openclutilities.hpp>
 
-std::vector<std::string> BC_property;
-std::vector<float> BC_value;
-Piro::process GS;
 uint Q;
 cl_mem memD, memE;
 
 using namespace Piro;
 void bc::opencl_initBC(){
     cl_int err;
-    std::vector<std::vector<int>> indices(6, std::vector<int>());
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
-    Piro::bc::indices& ind = Piro::bc::indices::getInstance();
+    Piro::bc::indices& indval = Piro::bc::indices::getInstance();
     Piro::kernels& kernels = Piro::kernels::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     int N = n[0] * n[1] * n[2];
 
-    Q = Piro::vector_operations::flattenvector(indices).size();
-    ind.setvalue(Piro::bc::indices::IND, indices);
+    Q = Piro::vector_operations::flattenvector(indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)).size();
     memE = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                          sizeof(uint) * Q, Piro::vector_operations::flattenvector(indices).data(), &err);
+                          sizeof(uint) * Q, Piro::vector_operations::flattenvector(indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)).data(), &err);
     memD = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[0].values.data(), &err);
     if (err != CL_SUCCESS){
@@ -71,11 +66,11 @@ void bc::opencl_setBC(int ind){
 void bc::setbc(){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     Piro::bc::indices& indval = Piro::bc::indices::getInstance();
-
+    Piro::process GS;
     for (int ind = 0; ind < 6; ind++){
         for(uint faces = 0; faces < indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)[ind].size(); faces++){
-            int msv = GS.matchscalartovar(BC_property[ind]);
-            MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[msv].values[indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)[ind][faces]] = BC_value[ind];
+            int msv = GS.matchscalartovar(indval.getvalue<std::vector<std::string>>(Piro::bc::indices::BC_PROPERTY)[ind]);
+            MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[msv].values[indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)[ind][faces]] = indval.getvalue<std::vector<float>>(Piro::bc::indices::BC_VALUE)[ind];
         }
     }
 }
@@ -149,10 +144,10 @@ void bc::initbc(){
         }
     }
     indval.setvalue(Piro::bc::indices::IND, indices);
-    file_utilities::IniReader reader(current_path.string() + "/assets/setup.ini");
-    BC_type = Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("BC", "type", "default_value"), ' '));
-    BC_property = Piro::string_utilities::splitString(reader.get("BC", "property", "default_value"), ' ');
-    BC_value = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("BC", "values", "default_value"), ' '));
+    file_utilities::IniReader reader(Piro::file_utilities::current_path.string() + "/assets/setup.ini");
+    indval.setvalue(Piro::bc::indices::BC_TYPE, Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("BC", "type", "default_value"), ' ')));
+    indval.setvalue(Piro::bc::indices::BC_PROPERTY, Piro::string_utilities::splitString(reader.get("BC", "property", "default_value"), ' '));
+    indval.setvalue(Piro::bc::indices::BC_VALUE, Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("BC", "values", "default_value"), ' ')));
     Piro::bc::setbc();
     Piro::bc::prepbc();
 
@@ -162,7 +157,7 @@ void bc::initbc(){
 
 void bc::readbc(){
     Piro::logger::info("Reading boundary conditions");
-    file_utilities::IniReader reader(current_path.string() + "/assets/setup.ini");
+    file_utilities::IniReader reader(Piro::file_utilities::current_path.string() + "/assets/setup.ini");
 
     if(Piro::string_utilities::countSpaces(reader.get("BC", "type", "default_value")) > 1){
         bc::initbc();

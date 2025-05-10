@@ -12,6 +12,7 @@
 #include <fstream>
 #include <sstream>
 #include <init.hpp>
+#include <fileutilities.hpp>
 
 cl_int err;
 // cl_platform_id platform;
@@ -19,14 +20,6 @@ cl_uint platformCount;
 cl_uint num_devices;
 cl_device_id *devices;
 cl_device_id device;
-
-/*
-namespace Piro::kernels {
-    std::vector<cl_program> program_math(9);
-    std::vector<cl_kernel> kernel_math(9);
-    std::vector<cl_program> program(14);
-    std::vector<cl_kernel> kernel(14);
-}*/
 
 std::vector<std::string> kernelSourcesmath;
 std::vector<std::string> kernelNamesmath;
@@ -61,9 +54,9 @@ void Piro::print_device_info(cl_device_id device){
 
 
 std::string Piro::readFile(const std::string& kernelName) {
-    std::ifstream file(current_path.string() + "/assets/kernels/" + kernelName + ".cl");  // Assume source file has the same name as the kernel
+    std::ifstream file(Piro::file_utilities::current_path.string() + "/assets/kernels/" + kernelName + ".cl");  // Assume source file has the same name as the kernel
     if (!file.is_open()) {
-        throw std::runtime_error("Failed to open kernel source file: " + current_path.string() + "/assets/kernels/" + kernelName + ".cl");
+        throw std::runtime_error("Failed to open kernel source file: " + Piro::file_utilities::current_path.string() + "/assets/kernels/" + kernelName + ".cl");
     }
 
     return std::string(
@@ -208,10 +201,10 @@ int Piro::opencl_build(){
     int kernelmathcount, kernelcount; 
     Piro::logger::info("Building program : initiated");
     Piro::kernels& kernels = Piro::kernels::getInstance();
-    Piro::logger::info("Reading kernel files from : ", current_path.string(), "/assets/kernels/0_kernels_math.txt");
-    kernelmathcount = Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels_math.txt",
+    Piro::logger::info("Reading kernel files from : ", Piro::file_utilities::current_path.string(), "/assets/kernels/0_kernels_math.txt");
+    kernelmathcount = Piro::loadKernelsFromFile(Piro::file_utilities::current_path.string() + "/assets/kernels/0_kernels_math.txt",
                              kernelNamesmath, kernelSourcesmath);
-    kernelcount = Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels.txt",
+    kernelcount = Piro::loadKernelsFromFile(Piro::file_utilities::current_path.string() + "/assets/kernels/0_kernels.txt",
                                 kernelNames, kernelSources);
     std::vector<cl_program> programs_math(kernelmathcount);
     std::vector<cl_program> programs(kernelcount);
@@ -237,7 +230,7 @@ int Piro::opencl_build(){
         std::vector<unsigned char> binary(binarySize);
         unsigned char* binaryPtr = binary.data();
         err = clGetProgramInfo(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH)[i], CL_PROGRAM_BINARIES, sizeof(unsigned char*), &binaryPtr, NULL);
-        saveBinary(current_path.string() + "/assets/kernels/" + kernelNamesmath[i] + "_program.bin", binary);
+        saveBinary(Piro::file_utilities::current_path.string() + "/assets/kernels/" + kernelNamesmath[i] + "_program.bin", binary);
         Piro::logger::info("Binary successfully saved to: ", kernelNamesmath[i]);
         Piro::logger::info("Binary size: " , binarySize , " bytes");
     }
@@ -257,7 +250,7 @@ int Piro::opencl_build(){
         std::vector<unsigned char> binary(binarySize);
         unsigned char* binaryPtr = binary.data();
         err = clGetProgramInfo(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i], CL_PROGRAM_BINARIES, sizeof(unsigned char*), &binaryPtr, NULL);
-        saveBinary(current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin", binary);
+        saveBinary(Piro::file_utilities::current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin", binary);
         Piro::logger::info("Binary successfully saved to: ", kernelNames[i]);
         Piro::logger::info("Binary size: " , binarySize , " bytes");
     }
@@ -293,10 +286,10 @@ int Piro::opencl_run(){
     // Create program objects
     Piro::logger::info("Reading program : initiated");
     Piro::kernels& kernels = Piro::kernels::getInstance();
-    Piro::logger::info("Reading kernel files from : ", current_path.string(), "/assets/kernels/0_kernels_math.txt");
-    kernelmathcount = Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels_math.txt",
+    Piro::logger::info("Reading kernel files from : ", Piro::file_utilities::current_path.string(), "/assets/kernels/0_kernels_math.txt");
+    kernelmathcount = Piro::loadKernelsFromFile(Piro::file_utilities::current_path.string() + "/assets/kernels/0_kernels_math.txt",
                              kernelNamesmath, kernelSourcesmath);
-    kernelcount = Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels.txt",
+    kernelcount = Piro::loadKernelsFromFile(Piro::file_utilities::current_path.string() + "/assets/kernels/0_kernels.txt",
                                 kernelNames, kernelSources);
     std::vector<cl_program> programs_math(kernelmathcount);
     std::vector<cl_program> programs(kernelcount);
@@ -309,8 +302,8 @@ int Piro::opencl_run(){
 
     for(size_t i = 0; i < kernelmathcount; i++){
         // Read binary from the file
-        Piro::logger::info("Kernel names : ", kernelNamesmath[i], ", reading : " , current_path.string() + "/assets/kernels/" + kernelNamesmath[i] + "_program.bin");
-        std::vector<unsigned char> binary = readBinaryFile(current_path.string() + "/assets/kernels/" + kernelNamesmath[i] + "_program.bin");
+        Piro::logger::info("Kernel names : ", kernelNamesmath[i], ", reading : " , Piro::file_utilities::current_path.string() + "/assets/kernels/" + kernelNamesmath[i] + "_program.bin");
+        std::vector<unsigned char> binary = readBinaryFile(Piro::file_utilities::current_path.string() + "/assets/kernels/" + kernelNamesmath[i] + "_program.bin");
         
         const unsigned char* binaryPtr = binary.data();
         size_t binarySize = binary.size();
@@ -324,8 +317,8 @@ int Piro::opencl_run(){
 
     for(size_t i = 0; i < kernelcount; i++){
         // Read binary from the file
-        Piro::logger::info("Kernel names : ", kernelNames[i], ", reading : " , current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin");
-        std::vector<unsigned char> binary = readBinaryFile(current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin");
+        Piro::logger::info("Kernel names : ", kernelNames[i], ", reading : " , Piro::file_utilities::current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin");
+        std::vector<unsigned char> binary = readBinaryFile(Piro::file_utilities::current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin");
         // Create program from binary
         const unsigned char* binaryPtr = binary.data();
         size_t binarySize = binary.size();

@@ -8,6 +8,7 @@ namespace Piro::file_utilities{
     int create_directory(std::string directoryname);
     int delete_directory(std::string folderPath);
     int get_exec_directory();
+    inline std::filesystem::path current_path;
     class IniReader {
         public:
             IniReader(const std::string& filename);

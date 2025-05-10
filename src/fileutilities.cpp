@@ -79,8 +79,8 @@ namespace Piro{
                 uint32_t size = sizeof(path);
                 if (_NSGetExecutablePath(path, &size) == 0) {
                     std::filesystem::path exe_path = path;
-                    current_path = exe_path.parent_path();
-                    //std::cout << "Executable directory: " current_path.string() << std::endl;
+                    Piro::file_utilities::current_path = exe_path.parent_path();
+                    //std::cout << "Executable directory: " Piro::file_utilities::current_path.string() << std::endl;
                 } else {
                     std::cerr << "Buffer size is too small; need size " << size << std::endl;
                 }
@@ -96,10 +96,10 @@ namespace Piro{
 
                 // Convert the modified string back to a filesystem path
                 std::filesystem::path modified_exe_path = exe_path_string;
-                current_path = modified_exe_path.parent_path();
+                Piro::file_utilities::current_path = modified_exe_path.parent_path();
 
                 std::cout << "Original executable path: " << exe_path.string() << std::endl;
-                std::cout << "Executable directory : " << current_path.string() << std::endl;
+                std::cout << "Executable directory : " << Piro::file_utilities::current_path.string() << std::endl;
             } else {
                 std::cerr << "Failed to retrieve executable path. Error code: " << GetLastError() << std::endl;
             }

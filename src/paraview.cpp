@@ -128,11 +128,11 @@ void Piro::paraview::writevth(int timestep){
                         std::to_string(n[2] - 2) + "\" ";
             vtkfile += "file=\"level/" + ts_string + "_level_" + std::to_string(j) + ".vti\">\n";
             vtkfile += "</DataSet>\n";
-            Piro::file_utilities::writefile(current_path.string() + "/" + SP.getvalue<std::string>(Piro::SolveParams::CASENAME) + "/mesh/level/" + ts_string + "_level_" + std::to_string(j) + ".vti", writevti(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[j]));
+            Piro::file_utilities::writefile(Piro::file_utilities::current_path.string() + "/" + SP.getvalue<std::string>(Piro::SolveParams::CASENAME) + "/mesh/level/" + ts_string + "_level_" + std::to_string(j) + ".vti", writevti(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[j]));
         }
         vtkfile += "</Block>\n";
     }
     vtkfile += "</vtkOverlappingAMR>\n</VTKFile>\n";
-    Piro::file_utilities::writefile(current_path.string() + "/" + SP.getvalue<std::string>(Piro::SolveParams::CASENAME) + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
+    Piro::file_utilities::writefile(Piro::file_utilities::current_path.string() + "/" + SP.getvalue<std::string>(Piro::SolveParams::CASENAME) + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
 
 }
