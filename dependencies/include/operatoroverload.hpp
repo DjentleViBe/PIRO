@@ -25,13 +25,22 @@ namespace Piro{
 namespace Piro{
     class Equation{
         public:
+            static Equation& getInstance() {
+                static Equation instance;
+                return instance;
+            }
+
+            Equation(const Equation&) = delete;
+            Equation& operator=(const Equation&) = delete;
             cl_mem operandvalues;
             cl_mem operandcolumns;
             cl_mem operandrowptr;
             cl_mem operandrows;
             int sparsecount;
+        private:
+            Equation() :
+                sparsecount(0) {};
     };
 };
 
-extern Piro::Equation RHS;
 #endif // OPERATOR_OVERLOAD_HPP

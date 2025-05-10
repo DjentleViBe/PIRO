@@ -7,7 +7,6 @@
 #include <string>
 #include <logger.hpp>
 #include <openclutilities.hpp>
-int compile;
 
 int main(int argc, char* argv[])
 {	
@@ -17,12 +16,13 @@ int main(int argc, char* argv[])
     }
     
     std::string name = argv[1];
-	compile = std::stoi(argv[2]);
+	Piro::kernels& kernel = Piro::kernels::getInstance();
+	kernel.setvalue(Piro::kernels::COMPILE, std::stoi(argv[2]));
 
 	Piro::logger::info("Start Program");
 	Piro::file_utilities::get_exec_directory();
 	Piro::preprocess(name);
-	if(compile == 0){
+	if(kernel.getvalue<int>(Piro::kernels::COMPILE) == 0){
 		Piro::solve();
 	}
 

@@ -22,8 +22,8 @@ void Piro::matrix_operations::lu_decomposition_HTLF(const std::vector<CLBuffer>&
     Piro::logger::debug("Buffer creation begin");
     
     MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].rowpointers = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), other[0].buffer, N + 1, &event7);
-    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].columns = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), other[1].buffer, RHS.sparsecount, &event8);
-    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].values = Piro::opencl_utilities::copyCL<float>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), other[2].buffer, RHS.sparsecount, &event9);
+    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].columns = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), other[1].buffer, Piro::Equation::getInstance().sparsecount, &event8);
+    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].values = Piro::opencl_utilities::copyCL<float>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), other[2].buffer, Piro::Equation::getInstance().sparsecount, &event9);
 
     
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -34,8 +34,8 @@ void Piro::matrix_operations::lu_decomposition_HTLF(const std::vector<CLBuffer>&
     // int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
     // int raw_size = cd.columns.size() / load;
     // int TABLE_SIZE = next_prime(raw_size);
-    int TABLE_SIZE = RHS.sparsecount / (load * SP.getvalue<float>(Piro::SolveParams::LOADFACTOR));
-    Piro::logger::debug("RHS_INIT begin, sparse count :", RHS.sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", load * SP.getvalue<float>(Piro::SolveParams::LOADFACTOR));
+    int TABLE_SIZE = Piro::Equation::getInstance().sparsecount / (load * SP.getvalue<float>(Piro::SolveParams::LOADFACTOR));
+    Piro::logger::debug("RHS_INIT begin, sparse count :", Piro::Equation::getInstance().sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", load * SP.getvalue<float>(Piro::SolveParams::LOADFACTOR));
     Piro::logger::warning("N * N :", N*N);
     
     LFvalues.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);

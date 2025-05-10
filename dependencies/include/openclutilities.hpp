@@ -15,7 +15,7 @@ namespace Piro{
             kernels& operator=(const kernels&) = delete;
             enum ParameterIndex{
                 PROGRAM_MATH, KERNEL_MATH, PROGRAM, KERNEL, CONTEXT, QUEUE,
-                MAXWORKGROUPSIZE
+                MAXWORKGROUPSIZE, COMPILE
             };
             template<typename T>
             void setvalue(const ParameterIndex paramindex, const T& val) {
@@ -39,16 +39,9 @@ namespace Piro{
             return std::get<T>(parameters.at(paramindex));
             }
 
-            /*extern std::vector<cl_program> program_math;
-            extern std::vector<cl_kernel> kernel_math;
-            extern std::vector<cl_program> program;
-            extern std::vector<cl_kernel> kernel;
-            extern cl_context   context;
-            extern cl_command_queue queue;
-            extern cl_uint maxWorkGroupSize; */
         private:
             kernels() = default;
-            using ParamValue = std::variant<std::vector<cl_kernel>, std::vector<cl_program>,
+            using ParamValue = std::variant<int, std::vector<cl_kernel>, std::vector<cl_program>,
                                             cl_context, cl_command_queue, cl_uint, cl_program, cl_kernel>;
             std::unordered_map<ParameterIndex, ParamValue> parameters;   
     };   
@@ -62,5 +55,4 @@ namespace Piro::opencl_utilities{
     int copyCL_offset(cl_command_queue queue, cl_mem memC, std::vector<U>& Lap, int offset, int N, cl_event *event6);
 }
 
-extern int compile;
 #endif

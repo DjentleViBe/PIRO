@@ -17,9 +17,7 @@
 #include <fileutilities.hpp>
 #include <openclutilities.hpp>
 
-Piro::Equation RHS;
 Piro::CLBuffer CD_GPU;
-cl_mem RHSterms;
 
 int Piro::preprocess(const std::string& name) {
     
@@ -28,6 +26,7 @@ int Piro::preprocess(const std::string& name) {
     Piro::DeviceParams& DP = Piro::DeviceParams::getInstance();
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     Piro::logger& logg = Piro::logger::getInstance();
+    Piro::kernels& kernels = Piro::kernels::getInstance();
 
     Piro::logger::info("Setup file : ",name);
     Piro::file_utilities::IniReader reader(Piro::file_utilities::current_path.string() + "/assets/" + name);
@@ -69,7 +68,7 @@ int Piro::preprocess(const std::string& name) {
 
     Piro::init();
     Piro::opencl_init();
-    if(compile == 0){
+    if(kernels.getvalue<int>(Piro::kernels::COMPILE) == 0){
         Piro::opencl_run();
     }
     else{
@@ -112,7 +111,6 @@ int Piro::preprocess(const std::string& name) {
 
     Piro::logger::info("Initialising scalars and vectors");
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
-    Piro::kernels& kernels = Piro::kernels::getInstance();
     int j = 0;
     Piro::CellData CD;
     cl_int err;
@@ -287,7 +285,7 @@ int Piro::laplacian_CSR_init(){
     INIT::getInstance().LAP_INIT = true;
 
     CDGPU.setvalue(Piro::CellDataGPU::LAPLACIAN_CSR, laplacian_collect);
-    RHS.sparsecount += MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size();
+    Piro::Equation::getInstance().sparsecount += MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size();
     // printVector(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers);
     // printVector(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns);
     // printVector(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values);
