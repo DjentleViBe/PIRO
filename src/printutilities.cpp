@@ -83,9 +83,10 @@ void Piro::print_utilities::printArray(float* array, uint size){
 }
 
 void Piro::print_utilities::printCL(cl_mem memC, int N, int type){
+    Piro::kernels& kernels = Piro::kernels::getInstance();
     if (type == 0){
         std::vector<int> hostValues(N);
-        clEnqueueReadBuffer(Piro::kernels::queue, memC, CL_TRUE, 0,
+        clEnqueueReadBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), memC, CL_TRUE, 0,
                                     sizeof(int) * N, hostValues.data(), 0, NULL, NULL);
         for (size_t i = 0; i < hostValues.size(); ++i) {
             Piro::logger::debug_print(hostValues[i], " ");
@@ -93,7 +94,7 @@ void Piro::print_utilities::printCL(cl_mem memC, int N, int type){
     }
     else if(type ==1){
         std::vector<float> hostValues(N);
-        clEnqueueReadBuffer(Piro::kernels::queue, memC, CL_TRUE, 0,
+        clEnqueueReadBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), memC, CL_TRUE, 0,
                                     sizeof(float) * N, hostValues.data(), 0, NULL, NULL);
         for (size_t i = 0; i < hostValues.size(); ++i) {
             Piro::logger::debug_print(round(hostValues[i] * 10) / 10.0, " ");
@@ -103,9 +104,10 @@ void Piro::print_utilities::printCL(cl_mem memC, int N, int type){
 }
 
 void Piro::print_utilities::printCLArray(cl_mem memC, int N, int type){
+    Piro::kernels& kernels = Piro::kernels::getInstance();
     if (type == 0){
         std::vector<int> hostValues(N * N);
-        clEnqueueReadBuffer(Piro::kernels::queue, memC, CL_TRUE, 0,
+        clEnqueueReadBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), memC, CL_TRUE, 0,
                                     sizeof(int) * N * N, hostValues.data(), 0, NULL, NULL);
         for (size_t i = 0; i < hostValues.size(); ++i) {
             Piro::logger::debug_print(hostValues[i], " ");
@@ -116,7 +118,7 @@ void Piro::print_utilities::printCLArray(cl_mem memC, int N, int type){
     }
     else if(type ==1){
         std::vector<float> hostValues(N * N);
-        clEnqueueReadBuffer(Piro::kernels::queue, memC, CL_TRUE, 0,
+        clEnqueueReadBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), memC, CL_TRUE, 0,
                                     sizeof(float) * N * N, hostValues.data(), 0, NULL, NULL);
         for (size_t i = 0; i < hostValues.size(); ++i) {
                 

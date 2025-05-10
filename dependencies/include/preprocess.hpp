@@ -21,7 +21,7 @@ namespace Piro{
     int opencl_run();
     std::vector<unsigned char> readBinaryFile(const std::string& filePath, size_t& binarySize);
     int opencl_cleanup();
-    void loadKernelsFromFile(const std::string& filename, 
+    int loadKernelsFromFile(const std::string& filename, 
         std::vector<std::string>& knm, 
         std::vector<std::string>& ksm);
     std::string readFile(const std::string& kernelName);

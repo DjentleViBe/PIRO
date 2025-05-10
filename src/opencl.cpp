@@ -19,16 +19,14 @@ cl_uint platformCount;
 cl_uint num_devices;
 cl_device_id *devices;
 cl_device_id device;
-cl_context Piro::kernels::context;
-cl_command_queue Piro::kernels::queue;
-cl_uint Piro::kernels::maxWorkGroupSize;
 
+/*
 namespace Piro::kernels {
     std::vector<cl_program> program_math(9);
     std::vector<cl_kernel> kernel_math(9);
     std::vector<cl_program> program(14);
     std::vector<cl_kernel> kernel(14);
-}
+}*/
 
 std::vector<std::string> kernelSourcesmath;
 std::vector<std::string> kernelNamesmath;
@@ -37,6 +35,7 @@ std::vector<std::string> kernelNames;
 cl_mem memBx, memCx, memDx, memEx;
 
 void Piro::print_device_info(cl_device_id device){
+    Piro::kernels& kernels = Piro::kernels::getInstance();
     char name[128];
     char vendor[128];
 
@@ -44,15 +43,18 @@ void Piro::print_device_info(cl_device_id device){
     clGetDeviceInfo(device, CL_DEVICE_VENDOR, 128, vendor, NULL);
     Piro::logger::info(name);
     Piro::logger::info(vendor);
+    
 
     cl_uint numComputeUnits;
+    cl_uint maxWorkGroupSize;
     clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(numComputeUnits), &numComputeUnits, NULL);
 
-    clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(Piro::kernels::maxWorkGroupSize), &Piro::kernels::maxWorkGroupSize, NULL);
-
-    clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &Piro::kernels::maxWorkGroupSize, NULL);
+    clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(kernels.getvalue<cl_uint>(Piro::kernels::MAXWORKGROUPSIZE)), 
+                    &maxWorkGroupSize, NULL);
+    kernels.setvalue(Piro::kernels::MAXWORKGROUPSIZE, maxWorkGroupSize);
+    clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &kernels.getvalue<cl_uint>(Piro::kernels::MAXWORKGROUPSIZE), NULL);
     Piro::logger::info("Compute Units: ", numComputeUnits);
-    Piro::logger::info("Max Work Group Size: ", Piro::kernels::maxWorkGroupSize);
+    Piro::logger::info("Max Work Group Size: ", kernels.getvalue<cl_uint>(Piro::kernels::MAXWORKGROUPSIZE));
     // std::cout << "Max Global Mem Size: " << globalMemSize << " bytes" << std::endl;
     // std::cout << "Max Alloc Size: " << maxAllocSize << " bytes" << std::endl;
 }
@@ -73,6 +75,7 @@ std::string Piro::readFile(const std::string& kernelName) {
 int Piro::opencl_init(){
     Piro::logger::info("Initialising OpenCL");
     Piro::DeviceParams& DP = Piro::DeviceParams::getInstance();
+    Piro::kernels& kernels = Piro::kernels::getInstance();
     // Initialize OpenCL
     clGetPlatformIDs(0, nullptr, &platformCount);
     std::vector<cl_platform_id> platforms(platformCount);
@@ -104,17 +107,17 @@ int Piro::opencl_init(){
     // Initialize OpenCL
     Piro::logger::info("Calling OpenCL");
     // Create OpenCL context
-    Piro::kernels::context = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
+    kernels.setvalue(Piro::kernels::CONTEXT, clCreateContext(NULL, 1, &device, NULL, NULL, &err));
     if (err != CL_SUCCESS) {
         Piro::logger::info("Failed to create OpenCL context");
         return 1;
     }
 
     // Create command queue
-    Piro::kernels::queue = clCreateCommandQueue(Piro::kernels::context, device, 0, &err);
+    kernels.setvalue(Piro::kernels::QUEUE, clCreateCommandQueue(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), device, 0, &err));
     if (err != CL_SUCCESS) {
         Piro::logger::info("Failed to create command queue");
-        clReleaseContext(Piro::kernels::context);
+        clReleaseContext(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT));
         return 1;
     }
     
@@ -122,16 +125,20 @@ int Piro::opencl_init(){
 }
 
 cl_program Piro::opencl_CreateProgram(const char* dialog){
-    cl_program program = clCreateProgramWithSource(Piro::kernels::context, 1, &dialog, NULL, &err);
+    Piro::kernels& kernels = Piro::kernels::getInstance();
+    kernels.setvalue(Piro::kernels::PROGRAM, 
+                    clCreateProgramWithSource(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), 1, 
+                    &dialog, NULL, &err));
     if (err != CL_SUCCESS) {
         Piro::logger::info("Failed to create program with source");
-        clReleaseCommandQueue(Piro::kernels::queue);
-        clReleaseContext(Piro::kernels::context);
+        clReleaseCommandQueue(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
+        clReleaseContext(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT));
     }
-    return program;
+    return kernels.getvalue<cl_program>(Piro::kernels::PROGRAM);
 }
 
 cl_int Piro::opencl_BuildProgram(cl_program program){
+    Piro::kernels& kernels = Piro::kernels::getInstance();
     err = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
     if (err != CL_SUCCESS) {
         Piro::logger::info("Failed to build program");
@@ -142,8 +149,8 @@ cl_int Piro::opencl_BuildProgram(cl_program program){
         Piro::logger::info("Build log:\n", log);
         free(log);
         clReleaseProgram(program);
-        clReleaseCommandQueue(Piro::kernels::queue);
-        clReleaseContext(Piro::kernels::context);
+        clReleaseCommandQueue(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
+        clReleaseContext(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT));
         return 1;
     }
     return err;
@@ -171,14 +178,14 @@ void saveBinary(const std::string& filename, const std::vector<unsigned char>& b
     file.write(reinterpret_cast<const char*>(binary.data()), binary.size());
 }
 
-void Piro::loadKernelsFromFile(const std::string& filename, 
+int Piro::loadKernelsFromFile(const std::string& filename, 
                                 std::vector<std::string>& knm, 
                                 std::vector<std::string>& ksm) {
     std::ifstream file(filename);
     if (!file.is_open()) {
     throw std::runtime_error("Failed to open kernel names file.");
     }
-
+    int linecount = 0;
     std::string line;
     while (std::getline(file, line)) {
         if (line.empty()) continue;  // Skip empty lines
@@ -189,55 +196,67 @@ void Piro::loadKernelsFromFile(const std::string& filename,
         // Load the corresponding kernel source from a separate file
         std::string kernelSource = Piro::readFile(line);
         ksm.push_back(kernelSource);
+        linecount++;
     }
 
     file.close();
+    return linecount;
 }
 
 int Piro::opencl_build(){
     // Create program objects
+    int kernelmathcount, kernelcount; 
     Piro::logger::info("Building program : initiated");
-
+    Piro::kernels& kernels = Piro::kernels::getInstance();
     Piro::logger::info("Reading kernel files from : ", current_path.string(), "/assets/kernels/0_kernels_math.txt");
-    Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels_math.txt",
+    kernelmathcount = Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels_math.txt",
                              kernelNamesmath, kernelSourcesmath);
-    Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels.txt",
+    kernelcount = Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels.txt",
                                 kernelNames, kernelSources);
-
-    for(size_t i = 0; i < Piro::kernels::program_math.size(); i++){
+    std::vector<cl_program> programs_math(kernelmathcount);
+    std::vector<cl_program> programs(kernelcount);
+    std::vector<cl_kernel> kernel_math(kernelmathcount);
+    std::vector<cl_kernel> kernel(kernelcount);
+    kernels.setvalue(Piro::kernels::PROGRAM_MATH, programs_math);
+    kernels.setvalue(Piro::kernels::PROGRAM, programs);
+    kernels.setvalue(Piro::kernels::KERNEL_MATH, kernel_math);
+    kernels.setvalue(Piro::kernels::KERNEL, kernel);
+    // read the number of lines
+    for(size_t i = 0; i < kernelmathcount; i++){
         const char* kernelSourcePtr = kernelSourcesmath[i].c_str();
         size_t kernelSourceSize = kernelSourcesmath[i].size();
 
-        Piro::kernels::program_math[i] = clCreateProgramWithSource(Piro::kernels::context, 1, &kernelSourcePtr, &kernelSourceSize, &err);
-        err = Piro::opencl_BuildProgram(Piro::kernels::program_math[i]);
-        Piro::kernels::kernel_math[i] = clCreateKernel(Piro::kernels::program_math[i], kernelNamesmath[i].c_str(), &err);
+        kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH)[i] = clCreateProgramWithSource(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), 1, &kernelSourcePtr, &kernelSourceSize, &err);
+        err = Piro::opencl_BuildProgram(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH)[i]);
+        kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[i] = clCreateKernel(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH)[i],
+                                                                                    kernelNamesmath[i].c_str(), &err);
 
         // Export the compiled program binary
         size_t binarySize;
-        err = clGetProgramInfo(Piro::kernels::program_math[i], CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binarySize, NULL);
+        err = clGetProgramInfo(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH)[i], CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binarySize, NULL);
         std::vector<unsigned char> binary(binarySize);
         unsigned char* binaryPtr = binary.data();
-        err = clGetProgramInfo(Piro::kernels::program_math[i], CL_PROGRAM_BINARIES, sizeof(unsigned char*), &binaryPtr, NULL);
+        err = clGetProgramInfo(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH)[i], CL_PROGRAM_BINARIES, sizeof(unsigned char*), &binaryPtr, NULL);
         saveBinary(current_path.string() + "/assets/kernels/" + kernelNamesmath[i] + "_program.bin", binary);
         Piro::logger::info("Binary successfully saved to: ", kernelNamesmath[i]);
         Piro::logger::info("Binary size: " , binarySize , " bytes");
     }
 
-    for(size_t i = 0; i < Piro::kernels::program.size(); i++){
+    for(size_t i = 0; i < kernelcount; i++){
 
         const char* kernelSourcePtr = kernelSources[i].c_str();
         size_t kernelSourceSize = kernelSources[i].size();
 
-        Piro::kernels::program[i] = clCreateProgramWithSource(Piro::kernels::context, 1, &kernelSourcePtr, &kernelSourceSize, &err);
-        err = Piro::opencl_BuildProgram(Piro::kernels::program[i]);
-        Piro::kernels::kernel[i] = clCreateKernel(Piro::kernels::program[i], kernelNames[i].c_str(), &err);
+        kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i] = clCreateProgramWithSource(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), 1, &kernelSourcePtr, &kernelSourceSize, &err);
+        err = Piro::opencl_BuildProgram(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i]);
+        kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[i] = clCreateKernel(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i], kernelNames[i].c_str(), &err);
 
         // Export the compiled program binary
         size_t binarySize;
-        err = clGetProgramInfo(Piro::kernels::program[i], CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binarySize, NULL);
+        err = clGetProgramInfo(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i], CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binarySize, NULL);
         std::vector<unsigned char> binary(binarySize);
         unsigned char* binaryPtr = binary.data();
-        err = clGetProgramInfo(Piro::kernels::program[i], CL_PROGRAM_BINARIES, sizeof(unsigned char*), &binaryPtr, NULL);
+        err = clGetProgramInfo(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i], CL_PROGRAM_BINARIES, sizeof(unsigned char*), &binaryPtr, NULL);
         saveBinary(current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin", binary);
         Piro::logger::info("Binary successfully saved to: ", kernelNames[i]);
         Piro::logger::info("Binary size: " , binarySize , " bytes");
@@ -270,16 +289,25 @@ std::vector<unsigned char> Piro::readBinaryFile(const std::string& filename) {
 }
 
 int Piro::opencl_run(){
+    int kernelmathcount, kernelcount;
     // Create program objects
     Piro::logger::info("Reading program : initiated");
-
+    Piro::kernels& kernels = Piro::kernels::getInstance();
     Piro::logger::info("Reading kernel files from : ", current_path.string(), "/assets/kernels/0_kernels_math.txt");
-    Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels_math.txt",
+    kernelmathcount = Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels_math.txt",
                              kernelNamesmath, kernelSourcesmath);
-    Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels.txt",
+    kernelcount = Piro::loadKernelsFromFile(current_path.string() + "/assets/kernels/0_kernels.txt",
                                 kernelNames, kernelSources);
+    std::vector<cl_program> programs_math(kernelmathcount);
+    std::vector<cl_program> programs(kernelcount);
+    std::vector<cl_kernel> kernel_math(kernelmathcount);
+    std::vector<cl_kernel> kernel(kernelcount);
+    kernels.setvalue(Piro::kernels::PROGRAM_MATH, programs_math);
+    kernels.setvalue(Piro::kernels::PROGRAM, programs);
+    kernels.setvalue(Piro::kernels::KERNEL_MATH, kernel_math);
+    kernels.setvalue(Piro::kernels::KERNEL, kernel);
 
-    for(size_t i = 0; i < Piro::kernels::program_math.size(); i++){
+    for(size_t i = 0; i < kernelmathcount; i++){
         // Read binary from the file
         Piro::logger::info("Kernel names : ", kernelNamesmath[i], ", reading : " , current_path.string() + "/assets/kernels/" + kernelNamesmath[i] + "_program.bin");
         std::vector<unsigned char> binary = readBinaryFile(current_path.string() + "/assets/kernels/" + kernelNamesmath[i] + "_program.bin");
@@ -287,14 +315,14 @@ int Piro::opencl_run(){
         const unsigned char* binaryPtr = binary.data();
         size_t binarySize = binary.size();
         cl_int binaryStatus;
-        Piro::kernels::program_math[i]  = clCreateProgramWithBinary(Piro::kernels::context, 1, &device, &binarySize,
+        kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH)[i]  = clCreateProgramWithBinary(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), 1, &device, &binarySize,
                                                      &binaryPtr, &binaryStatus, &err);
-        err = clBuildProgram(Piro::kernels::program_math[i], 1, &device, NULL, NULL, NULL);
-        Piro::kernels::kernel_math[i] = clCreateKernel(Piro::kernels::program_math[i], kernelNamesmath[i].c_str(), &err);
+        err = clBuildProgram(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH)[i], 1, &device, NULL, NULL, NULL);
+        kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[i] = clCreateKernel(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH)[i], kernelNamesmath[i].c_str(), &err);
     }
 
 
-    for(size_t i = 0; i < Piro::kernels::program.size(); i++){
+    for(size_t i = 0; i < kernelcount; i++){
         // Read binary from the file
         Piro::logger::info("Kernel names : ", kernelNames[i], ", reading : " , current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin");
         std::vector<unsigned char> binary = readBinaryFile(current_path.string() + "/assets/kernels/" + kernelNames[i] + "_program.bin");
@@ -302,22 +330,22 @@ int Piro::opencl_run(){
         const unsigned char* binaryPtr = binary.data();
         size_t binarySize = binary.size();
         cl_int binaryStatus;
-        Piro::kernels::program[i]  = clCreateProgramWithBinary(Piro::kernels::context, 1, &device, &binarySize,
+        kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i]  = clCreateProgramWithBinary(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), 1, &device, &binarySize,
                                                      &binaryPtr, &binaryStatus, &err);
         if (err != CL_SUCCESS) {
             Piro::logger::info("Failed to create program with binary", err);
         }
-        err = clBuildProgram(Piro::kernels::program[i], 1, &device, NULL, NULL, NULL);
+        err = clBuildProgram(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i], 1, &device, NULL, NULL, NULL);
         if (err != CL_SUCCESS) {
             // If loading failed, print build log
             size_t logSize;
-            clGetProgramBuildInfo(Piro::kernels::program[i], device, CL_PROGRAM_BUILD_LOG, 0, NULL, &logSize);
+            clGetProgramBuildInfo(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i], device, CL_PROGRAM_BUILD_LOG, 0, NULL, &logSize);
             std::vector<char> buildLog(logSize);
-            clGetProgramBuildInfo(Piro::kernels::program[i], device, CL_PROGRAM_BUILD_LOG, logSize, buildLog.data(), NULL);
+            clGetProgramBuildInfo(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i], device, CL_PROGRAM_BUILD_LOG, logSize, buildLog.data(), NULL);
             std::cerr << "Build Error: " << buildLog.data() << std::endl;
             throw std::runtime_error("Failed to build program");
         }
-        Piro::kernels::kernel[i] = clCreateKernel(Piro::kernels::program[i], kernelNames[i].c_str(), &err);
+        kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[i] = clCreateKernel(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i], kernelNames[i].c_str(), &err);
         if (err != CL_SUCCESS) {
             Piro::logger::info("Failed to create program with binary", err);
         }
@@ -332,6 +360,7 @@ int Piro::opencl_run(){
 int Piro::opencl_cleanup(){
     
     Piro::logger::info("Cleanup started");
+    Piro::kernels& kernels = Piro::kernels::getInstance();
     // Clean up
     free(devices);
     // Cleanup
@@ -340,16 +369,16 @@ int Piro::opencl_cleanup(){
     clReleaseMemObject(memDx);
     clReleaseMemObject(memEx);
 
-    for(size_t i = 0; i < Piro::kernels::program_math.size(); i++){
-        clReleaseKernel(Piro::kernels::kernel_math[i]);
-        clReleaseProgram(Piro::kernels::program_math[i]);
+    for(size_t i = 0; i < kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH).size(); i++){
+        clReleaseKernel(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[i]);
+        clReleaseProgram(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM_MATH)[i]);
     }
-    for(size_t i = 0; i < Piro::kernels::program.size(); i++){
-        clReleaseKernel(Piro::kernels::kernel[i]);
-        clReleaseProgram(Piro::kernels::program[i]);
+    for(size_t i = 0; i < kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM).size(); i++){
+        clReleaseKernel(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[i]);
+        clReleaseProgram(kernels.getvalue<std::vector<cl_program>>(Piro::kernels::PROGRAM)[i]);
     }
-    clReleaseCommandQueue(Piro::kernels::queue);
-    clReleaseContext(Piro::kernels::context);
+    clReleaseCommandQueue(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
+    clReleaseContext(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT));
 
     Piro::logger::info("Cleanup ended");
     return 0;

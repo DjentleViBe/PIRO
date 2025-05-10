@@ -4,14 +4,54 @@
 #include <vector>
 #include <CL/opencl.h>
 
-namespace Piro::kernels{
-    extern std::vector<cl_program> program_math;
-    extern std::vector<cl_kernel> kernel_math;
-    extern std::vector<cl_program> program;
-    extern std::vector<cl_kernel> kernel;
-    extern cl_context   context;
-    extern cl_command_queue queue;
-    extern cl_uint maxWorkGroupSize;
+namespace Piro{
+    class kernels{
+        public:
+            static kernels& getInstance(){
+                static kernels instance;
+                return instance;
+            }
+            kernels(const kernels&) = delete;
+            kernels& operator=(const kernels&) = delete;
+            enum ParameterIndex{
+                PROGRAM_MATH, KERNEL_MATH, PROGRAM, KERNEL, CONTEXT, QUEUE,
+                MAXWORKGROUPSIZE
+            };
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const T& val) {
+                parameters[paramindex] = val;
+            }
+            // Specialization for arrays (e.g., std::vector)
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const std::vector<T>& val) {
+                parameters[paramindex] = val;
+            }
+            template<typename T>
+            T& getvalue(const ParameterIndex paramindex) {
+                if (parameters.find(paramindex) == parameters.end()) {
+                    std::cout << "bad variant : " << paramindex;
+                    throw std::runtime_error("Parameter not set");
+                }
+                if (!std::holds_alternative<T>(parameters.at(paramindex))) {
+                    std::cout << "bad variant : " << paramindex;
+                    throw std::bad_variant_access(); // Throwing a specific exception for mismatched types
+                }
+            return std::get<T>(parameters.at(paramindex));
+            }
+
+            /*extern std::vector<cl_program> program_math;
+            extern std::vector<cl_kernel> kernel_math;
+            extern std::vector<cl_program> program;
+            extern std::vector<cl_kernel> kernel;
+            extern cl_context   context;
+            extern cl_command_queue queue;
+            extern cl_uint maxWorkGroupSize; */
+        private:
+            kernels() = default;
+            using ParamValue = std::variant<std::vector<cl_kernel>, std::vector<cl_program>,
+                                            cl_context, cl_command_queue, cl_uint, cl_program, cl_kernel>;
+            std::unordered_map<ParameterIndex, ParamValue> parameters;   
+    };   
 }
 
 namespace Piro::opencl_utilities{

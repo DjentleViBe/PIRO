@@ -116,6 +116,7 @@ int Piro::preprocess(const std::string& name) {
 
     Piro::logger::info("Initialising scalars and vectors");
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
+    Piro::kernels& kernels = Piro::kernels::getInstance();
     int j = 0;
     Piro::CellData CD;
     cl_int err;
@@ -132,7 +133,7 @@ int Piro::preprocess(const std::string& name) {
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values = initialcondition(i, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type);
         // push scalar data to gpu
         CDGPU_collect.push_back(CD_GPU);
-        CDGPU_collect[i].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        CDGPU_collect[i].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values.data(), &err);
         j += 1;
     }
@@ -144,7 +145,7 @@ int Piro::preprocess(const std::string& name) {
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values = initialcondition(i, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type);
         // push vector data to gpu
         CDGPU_collect.push_back(CD_GPU);
-        CDGPU_collect[i].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        CDGPU_collect[i].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                         sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values.data(), &err);
         
     }
@@ -194,6 +195,7 @@ bool isValidIndex(int index){
 int Piro::laplacian_CSR_init(){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
+    Piro::kernels& kernels = Piro::kernels::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     std::vector<float> l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
     int N = n[0] * n[1] * n[2];
@@ -274,15 +276,15 @@ int Piro::laplacian_CSR_init(){
     }
     
     cl_int err;
-    laplacian_collect[0].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    laplacian_collect[0].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(int) * MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.size(), 
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.data(), &err);
 
-    laplacian_collect[1].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    laplacian_collect[1].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(int) *  MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.size(), 
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.data(), &err);
 
-    laplacian_collect[2].buffer = clCreateBuffer(Piro::kernels::context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+    laplacian_collect[2].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(float) *  MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size(), 
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.data(), &err);
     
