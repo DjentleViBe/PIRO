@@ -21,10 +21,6 @@ Piro::Equation RHS;
 Piro::CLBuffer CD_GPU;
 cl_mem RHSterms;
 
-bool LAP_INIT = false;
-bool RHS_INIT = false;
-int ts = 0;
-
 int Piro::preprocess(const std::string& name) {
     
     Piro::logger::info("Preprocess step initiated");
@@ -288,7 +284,8 @@ int Piro::laplacian_CSR_init(){
         sizeof(float) *  MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size(), 
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.data(), &err);
     
-    LAP_INIT = true;
+    INIT::getInstance().LAP_INIT = true;
+
     CDGPU.setvalue(Piro::CellDataGPU::LAPLACIAN_CSR, laplacian_collect);
     RHS.sparsecount += MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size();
     // printVector(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers);

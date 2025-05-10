@@ -153,7 +153,7 @@ CLBuffer process::laplacian_full(std::string var){
 std::vector<CLBuffer> process::laplacian_CSR(std::string var1, std::string var2){
     // int ind = matchscalartovar(var2);
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
-    if(LAP_INIT == false){
+    if(INIT::getInstance().LAP_INIT == false){
         laplacian_CSR_init(); // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
         /*
         if (MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind].type == 0){
@@ -277,20 +277,20 @@ void scalarMatrix::Solve(float currenttime){
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
     cl_int err;
     int N = n[0] * n[1] * n[2];
-    ts = int(currenttime / timestep);
-    Piro::logger::info("Timestep : ", ts + 1, " / ", totaltimesteps);
+    INIT::getInstance().ts = int(currenttime / timestep);
+    Piro::logger::info("Timestep : ", INIT::getInstance().ts + 1, " / ", totaltimesteps);
     // apply Boundary Conditions
     err = clEnqueueCopyBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), smatrix.buffer, CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[0].buffer, 0, 0, sizeof(float) * N, 0, NULL, NULL);
     Piro::bc::opencl_setBC(0);
     
-    if((ts + 1) % SP.getvalue<int>(Piro::SolveParams::SAVE) == 0){
+    if((INIT::getInstance().ts + 1) % SP.getvalue<int>(Piro::SolveParams::SAVE) == 0){
         Piro::logger::info("Post processing started");
         err = clEnqueueReadBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[0].buffer, CL_TRUE, 0,
                 sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[0].values.data(), 0, NULL, NULL);
         if (err != CL_SUCCESS){
             std::cout << "Solve error" << std::endl;
         }
-        Piro::post::export_paraview(ts);
+        Piro::post::export_paraview(INIT::getInstance().ts);
         Piro::logger::info("Post processing finished\n");
     }
 }

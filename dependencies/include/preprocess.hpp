@@ -6,10 +6,6 @@
 #include <string>
 #include <CL/opencl.h>
 
-extern int ts;
-extern bool LAP_INIT;
-extern bool RHS_INIT;
-
 namespace Piro{
     int laplacian_CSR_init();
     int preprocess(const std::string& name);
@@ -26,6 +22,21 @@ namespace Piro{
         std::vector<std::string>& ksm);
     std::string readFile(const std::string& kernelName);
     std::vector<unsigned char> readBinaryFile(const std::string& filename);
+    class INIT{
+        public:
+            static INIT& getInstance() {
+                static INIT instance;
+                return instance;
+            }
+            INIT(const INIT&) = delete;
+            INIT& operator=(const INIT&) = delete;
+            bool RHS_INIT;
+            bool LAP_INIT;
+            int ts;
+        private:
+            INIT() 
+                : RHS_INIT(false), LAP_INIT(false), ts(0) {}
+    };
 }
 
 #endif

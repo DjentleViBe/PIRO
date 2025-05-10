@@ -62,9 +62,9 @@ namespace Piro{
             // std::cout << "Backward Euler" << std::endl;
                 if(SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME) == 27){
                     Piro::logger::info("LU Decomposition");
-                    if(RHS_INIT == false){
+                    if(INIT::getInstance().RHS_INIT == false){
                         Piro::matrix_operations::lu_decomposition_HTLF(other);
-                        RHS_INIT = true;
+                        INIT::getInstance().RHS_INIT = true;
                     }
                     Piro::logger::debug("RHS_INIT end" );
                 }
