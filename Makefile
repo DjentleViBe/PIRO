@@ -1,6 +1,15 @@
 OS := $(shell uname)
 $(info Detected OS: $(OS))
 
+# Directories
+SRCDIRS = $(MAKEFILE_DIR)/src
+SRCDIR = src
+BCKNDS = $(MAKEFILE_DIR)/dependencies/backends
+INCDIR = $(MAKEFILE_DIR)/dependencies/include
+OBJDIR = $(MAKEFILE_DIR)/bin/
+BINDIR = $(MAKEFILE_DIR)/bin/
+#LIBS = -lglfw.3.3 -lportaudio
+
 ifeq ($(OS), Darwin)
     CC = /usr/bin/clang++
     MAKEFILE_DIR := $(CURDIR)
@@ -8,26 +17,26 @@ ifeq ($(OS), Darwin)
 	CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64
 	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library/
 	LIBS = 
-	EXENAME = GIRO_devices
+	EXENAME = PIRO_devices
 	FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
-else
+else ifeq ($(OS),Windows)
     CC = g++
     MAKEFILE_DIR=.
     $(info Current Directory: $(MAKEFILE_DIR))
 	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library
 	CFLAGS = -std=c++23 -Wno-deprecated -static
 	LIBS = -lOpenCL
-	EXENAME = GIRO_devices.exe
+	EXENAME = PIRO_devices.exe
+else
+	CC = g++
+    MAKEFILE_DIR=$(CURDIR)
+    $(info Current Directory: $(MAKEFILE_DIR))
+	INCDIR += -I/usr/include/CL
+	LIBDIR =
+	CFLAGS = -std=c++23 -Wno-deprecated
+	LIBS = -lOpenCL
+	EXENAME = PIRO_devices
 endif
-
-# Directories
-SRCDIRS := $(MAKEFILE_DIR)/src $(MAKEFILE_DIR)/dependencies/backends
-SRCDIR = src
-BCKNDS = $(MAKEFILE_DIR)/dependencies/backends
-INCDIR = $(MAKEFILE_DIR)/dependencies/include
-OBJDIR = $(MAKEFILE_DIR)/bin/
-BINDIR = $(MAKEFILE_DIR)/bin/
-#LIBS = -lglfw.3.3 -lportaudio
 
 SHAREDLIB = $(MAKEFILE_DIR)/sharedlib
 # Source files

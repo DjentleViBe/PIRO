@@ -24,4 +24,4 @@ detect_os
 cp -r ./dependencies/assets ./bin/.
 mkdir -p logs
 
-./bin/GIRO_devices$extension &> ./logs/devices.txt
+./bin/PIRO_devices$extension &> ./logs/devices.txt
