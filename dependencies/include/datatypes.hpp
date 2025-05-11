@@ -2,10 +2,14 @@
 #define datatypes_hpp
 #include <vector>
 #include <string>
+#include <unordered_map>
+#include <variant>
+#include <iostream>
+#include <operatoroverload.hpp>
 
 typedef unsigned int uint;
 
-namespace Giro{
+namespace Piro{
     class fvMatrix{
         public:
             typedef int d1scalar_i;
@@ -45,51 +49,171 @@ namespace Giro{
 
     class MeshParams{
         public:
-            int meshtype;
-            int levels;
-            int scalarnum;
-            int vectornum;
-            std::vector<int> ICtype;
-            std::vector<std::string> ICfiles;
-            std::string ICfile;
-            std::vector<uint> n;
-            std::vector<float> o;
-            std::vector<float> s;
-            std::vector<float> l;
-            std::vector<int> index;
-            std::vector<std::string> constantslist;
-            std::vector<float> constantsvalues;
-            std::vector<std::string> scalarlist;
-            std::vector<std::string> vectorlist;
-            std::vector<AMR> AMR;
+            static MeshParams& getInstance(){
+                static MeshParams instance;
+                return instance;
+            }
+            MeshParams(const MeshParams&) = delete;
+            MeshParams& operator=(const MeshParams&) = delete;
+            enum ParameterIndex{
+                // int
+                num_cells, MESHTYPE, LEVELS, SCALARNUM, VECTORNUM, INDEX, ICTYPE,
+                // float
+                O, S, L, CONSTANTSVALUES,
+                // string
+                CONSTANTSLIST, SCALARLIST, VECTORLIST, ICFILES,
+                // custom
+                AMR
+            };
+
+
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const T& val) {
+                parameters[paramindex] = val;
+            }
+            // Specialization for arrays (e.g., std::vector)
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const std::vector<T>& val) {
+                parameters[paramindex] = val;
+            }
+
+            template<typename T>
+            T& getvalue(const ParameterIndex paramindex) {
+                if (parameters.find(paramindex) == parameters.end()) {
+                    std::cout << "bad variant : " << paramindex;
+                    throw std::runtime_error("Parameter not set");
+                }
+                if (!std::holds_alternative<T>(parameters.at(paramindex))) {
+                    std::cout << "bad variant : " << paramindex;
+                    throw std::bad_variant_access(); // Throwing a specific exception for mismatched types
+                }
+            return std::get<T>(parameters.at(paramindex));
+            }
+            /*
+            std::vector<AMR> AMR;*/
+        
+        private:
+            MeshParams() = default;
+            using ParamValue = std::variant<int, uint, float, std::string, std::vector<int>, std::vector<uint>, std::vector<float>, std::vector<std::string>, std::vector<Piro::AMR>>;
+            std::unordered_map<ParameterIndex, ParamValue> parameters;
     };
 
     class SolveParams{
         public:
-            int solverscheme;
-            int timescheme;
-            int spacescheme;
-            std::string casename;
-            int restart;
-            float timestep;
-            float totaltime;
-            float delta[3];
-            float deltaT;
-            int totaltimesteps;
-            int save;
-            int datatype;
-            int probing;
-            float loadfactor;
-            float a;
-            float b;
-            float c;
+            static SolveParams& getInstance(){
+                static SolveParams instance;
+                return instance;
+            }
+
+            SolveParams(const SolveParams&) = delete;
+            SolveParams& operator=(const SolveParams&) = delete;
+            enum ParameterIndex{
+                // int 
+                SOLVERSCHEME, TIMESCHEME, SPACESCHEME, RESTART, TOTALTIMESTEPS,
+                SAVE, DATATYPE, PROBING, 
+                // float
+                A, B, C, TIMESTEP, TOTALTIME, DELTA, DELTAT, LOADFACTOR,
+                // string
+                CASENAME
+            };
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const T& val) {
+                parameters[paramindex] = val;
+            }
+            // Specialization for arrays (e.g., std::vector)
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const std::vector<T>& val) {
+                parameters[paramindex] = val;
+            }
+
+            template<typename T>
+            T getvalue(const ParameterIndex paramindex) const {
+                if (parameters.find(paramindex) == parameters.end()) {
+                    std::cout << "bad variant : " << paramindex;
+                    throw std::runtime_error("Parameter not set");
+                }
+                if (!std::holds_alternative<T>(parameters.at(paramindex))) {
+                    std::cout << "bad variant : " << paramindex;
+                    throw std::bad_variant_access(); // Throwing a specific exception for mismatched types
+                }
+                return std::get<T>(parameters.at(paramindex));
+            }
+
+        private:
+            SolveParams() = default;
+            using ParamValue = std::variant<int, float, std::string, std::vector<int>, std::vector<float>, std::vector<std::string>>;
+            std::unordered_map<ParameterIndex, ParamValue> parameters;
+        
     };
-    
+
     class DeviceParams{
         public:
-            int id;
-            int platformid;
-            int type;
+            static DeviceParams& getInstance(){
+                static DeviceParams instance;
+                return instance;
+            }
+
+            DeviceParams(const DeviceParams&) = delete;
+            DeviceParams& operator=(const DeviceParams&) = delete;
+            enum ParameterIndex{
+                // int
+                ID, PLATFORMID, TYPE
+            };
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const T& val) {
+                parameters[paramindex] = val;
+            }
+
+            template<typename T>
+            T getvalue(const ParameterIndex paramindex) const {
+                if (parameters.find(paramindex) == parameters.end()) {
+                    std::cout << "bad variant : " << paramindex;
+                    throw std::runtime_error("Parameter not set");
+                }
+                return std::get<T>(parameters.at(paramindex));
+            }
+        private:
+            DeviceParams() = default;
+            using ParamValue = std::variant<int, double, std::string>;
+            std::unordered_map<ParameterIndex, ParamValue> parameters;
+        
+    };
+
+    class CellDataGPU{
+        public:
+            static CellDataGPU& getInstance(){
+                static CellDataGPU instance;
+                return instance;
+            }
+            enum ParameterIndex{
+                // int
+                VALUES_GPU, LAPLACIAN_CSR, GRADIENT
+            };
+
+            CellDataGPU(const CellDataGPU&) = delete;
+            CellDataGPU& operator=(const CellDataGPU&) = delete;
+
+            template<typename T>
+            void setvalue(const ParameterIndex paramindex, const T& val) {
+                parameters[paramindex] = val;
+            }
+
+            template<typename T>
+            T& getvalue(const ParameterIndex paramindex) {
+                if (parameters.find(paramindex) == parameters.end()) {
+                    std::cout << "bad variant (CellData - GPU) : " << paramindex;
+                    throw std::runtime_error("Parameter not set");
+                }
+                return std::get<T>(parameters.at(paramindex));
+            }
+            
+        private:
+            // std::vector<Piro::CLBuffer> values_gpu;
+            // std::vector<Piro::CLBuffer> laplacian_csr;
+            // std::vector<Piro::CLBuffer> gradient;
+            CellDataGPU() = default;
+            using ParamValue = std::variant<std::vector<Piro::CLBuffer>>;
+            std::unordered_map<ParameterIndex, ParamValue> parameters;
     };
 };
 

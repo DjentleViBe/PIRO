@@ -1,39 +1,37 @@
-#include "../dependencies/include/bc.hpp"
-#include "../dependencies/include/solve.hpp"
-#include "../dependencies/include/extras.hpp"
-#include "../dependencies/include/operatoroverload.hpp"
-
+#include <bc.hpp>
+#include <process.hpp>
+#include <extras.hpp>
+#include <operatoroverload.hpp>
+#include <printutilities.hpp>
 #include <iostream>
 #include <ctime>
+#include <logger.hpp>
+#include <datatypes.hpp>
 
-char* dt;
-std::time_t now;
-
-int solve(){
-    std::cout << "Solving . . ." << std::endl;
+int Piro::solve(){
+    Piro::logger::info("Solving . . .\n");
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    float totaltime = SP.getvalue<float>(Piro::SolveParams::TOTALTIME);
     // solve equations
-    Giro::Solve solver;
+    Piro::process solver;
     float time = 0.0;
-    float totaltime = SP.totaltime;
-    print_time();
     while(time < totaltime){
         // Heat Equation
-        // Giro::scalarMatrix UEqn(solver.ddt_r("U") + (solver.ddc_r("Alpha") * solver.laplacian_full("U")));
+        // Piro::scalarMatrix UEqn(solver.ddt_r("U") + (solver.ddc_r("Alpha") * solver.laplacian_full("U")));
         // Advection equation 
-        // Giro::scalarMatrix UEqn(solver.ddt_r("T") - solver.div_r("T", "U"));        
-        // Giro::scalarMatrix UEqn(solver.ddt_r("U") + solver.div_r("U", "U") - solver.laplacian_r("U"));        
-        // Giro::scalarMatrix UEqn(solver.ddc_r("Hbar") * solver.ddt_r("Psi") + \
+        // Piro::scalarMatrix UEqn(solver.ddt_r("T") - solver.div_r("T", "U"));        
+        // Piro::scalarMatrix UEqn(solver.ddt_r("U") + solver.div_r("U", "U") - solver.laplacian_r("U"));        
+        // Piro::scalarMatrix UEqn(solver.ddc_r("Hbar") * solver.ddt_r("Psi") + \
         //                        solver.ddc_r("Hbar2m") * solver.laplacian_r("Psi") - \
         //                        solver.r("Psi"));    
-         Giro::scalarMatrix UEqn(solver.ddt_r("U") = solver.laplacian_CSR("U", "Alpha")); 
-        //Giro::scalarMatrix UEqn(solver.ddt_r("U") = solver.laplacian_CSR("U")); 
+        Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.laplacian_CSR("U", "Alpha")); 
+        //Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.laplacian_CSR("U")); 
         UEqn.Solve(time);
-        time += SP.timestep;
+        time += SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
         
         //if(DP.type != 0){
         //    break;
         //}
     }
-    print_time();
     return 0;
 }

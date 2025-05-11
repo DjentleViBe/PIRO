@@ -1,0 +1,14 @@
+setBC
+gradcalc1
+gradcalc2
+gradcalc3
+gradcalc4
+laplacianscalar
+lu_decompose_dense
+sparseMatrixMultiplyCSR
+laplaciansparseMatrixMultiplyCSR
+laplacianvector
+filter_array
+filter_row
+forward_substitution_csr
+backward_substitution_csr

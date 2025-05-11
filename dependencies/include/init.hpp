@@ -1,7 +1,16 @@
 #ifndef init_hpp
 #define init_hpp
 #include <filesystem>
-extern std::filesystem::path current_path;
-void init();
+
+namespace Piro{
+    /**
+     * @brief INIT function.
+     *
+     * This function calls all necessary functions required for 
+     * project initialisation.
+     *
+     */
+    void init();
+}
 
 #endif

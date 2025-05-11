@@ -1,18 +1,21 @@
 #include <iostream>
 #include <filesystem>
-#include "../dependencies/include/init.hpp"
-#include "../dependencies/include/extras.hpp"
-#include "../dependencies/include/solve.hpp"
+#include <init.hpp>
+#include <extras.hpp>
+#include <process.hpp>
+#include <fileutilities.hpp>
+#include <logger.hpp>
+#include <datatypes.hpp>
 
-std::filesystem::path current_path;
-
-void init(){
-
-    if(SP.restart){
-        delete_directory(current_path.string() + "/" + SP.casename);
+void Piro::init(){
+    Piro::logger::info("Directory INIT");
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    std::string casename = SP.getvalue<std::string>(Piro::SolveParams::CASENAME);
+    if(SP.getvalue<int>(Piro::SolveParams::RESTART)){
+        Piro::file_utilities::delete_directory(Piro::file_utilities::current_path.string() + "/" + casename);
     }
-    create_directory(current_path.string() + "/" + SP.casename);
-    create_directory(current_path.string() + "/" + SP.casename + "/mesh");
-    create_directory(current_path.string() + "/" + SP.casename + "/mesh/level");
-
+    Piro::file_utilities::create_directory(Piro::file_utilities::current_path.string() + "/" + casename);
+    Piro::file_utilities::create_directory(Piro::file_utilities::current_path.string() + "/" + casename + "/mesh");
+    Piro::file_utilities::create_directory(Piro::file_utilities::current_path.string() + "/" + casename + "/mesh/level");
+    Piro::logger::info("Directory INIT completed\n");
 }

@@ -1,59 +1,130 @@
 #ifndef preprocess_hpp
 #define preprocess_hpp
 
-#include "datatypes.hpp"
+#include <datatypes.hpp>
 #include <vector>
 #include <string>
-#ifdef __APPLE__
-    #include <OpenCL/opencl.h>
-#elif _WIN32
-    #include "./CL/opencl.h"
-#else
-    #include "./CL/opencl.h"
-#endif
+#include <CL/opencl.h>
 
-extern Giro::MeshParams MP;
-extern Giro::SolveParams SP;
-extern Giro::DeviceParams DP;
-extern int ts;
-extern bool LAP_INIT;
-extern bool RHS_INIT;
+namespace Piro{
+    /**
+     * @brief Laplacian generation.
+     *
+     * This function generates a laplacian matrix in CSR format.
+     *
+     * @return 0 upon SUCCESS.
+     */
+    int laplacian_CSR_init();
+    /**
+     * @brief Preprocessing step of the simulation.
+     *
+     * This function read parameters set in the setup file.
+     * @param name steup file name with filepath appended
+     *
+     * @return 0 upon SUCCESS.
+     */
+    int preprocess(const std::string& name);
+    /**
+     * @brief CPU / GPU device info.
+     * @param device device ID
+     *
+     * This function prints device info geenrated by OpenCL libraries.
+     *
+     */
+    void print_device_info(cl_device_id device);
+    /**
+     * @brief Program build.
+     * @param program Program name
+     *
+     * This function builds program for OpenCL.
+     *
+     * @return 0 upon SUCCESS.
+     */
+    cl_int opencl_BuildProgram(cl_program program);
+    /**
+     * @brief program creation.
+     * @param dialog An array of count pointers to optionally null-terminated character strings that make up the source code. 
+     *
+     * This function creates a program for OpenCL.
+     *
+     * @return 0 upon SUCCESS.
+     */
+    cl_program opencl_CreateProgram(const char* dialog);
+    /**
+     * @brief OpenCL initialisation.
+     *
+     * This function does initialisations required for OpenCL launch.
+     *
+     * @return 0 upon SUCCESS.
+     */
+    int opencl_init();
+    /**
+     * @brief OpenCL Compile time commands.
+     *
+     * This function executes commands required during OpenCL building, *.cl file 
+     * are output to the kernel folder 
+     *
+     * @return 0 upon SUCCESS.
+     */
+    int opencl_build();
+    /**
+     * @brief OpenCL Run time commands.
+     *
+     * This function executes commands required during OpenCL run, *.cl files
+     * are rn from the kernel folder
+     *
+     * @return 0 upon SUCCESS.
+     */
+    int opencl_run();
+    /**
+     * @brief Read a binary program.
+     *
+     * This function reads a compiled program in binary format.
+     * @param filePath filelocation
+     * @param binarySize size of the binary file
+     *
+     * @return content of the binary file.
+     */
+    std::vector<unsigned char> readBinaryFile(const std::string& filePath, size_t&);
+    std::vector<unsigned char> readBinaryFile(const std::string& filename);
+    int opencl_cleanup();
+    /**
+     * @brief Load kernel from source.
+     *
+     * This function loads a pre-compiled kernel from source.
+     * @param filename file location
+     * @param knm vector containing kernel names
+     * @param ksm vector containing kernel source
+     *
+     * @return 0 upon SUCCESS.
+     */
+    int loadKernelsFromFile(const std::string& filename, 
+                            std::vector<std::string>& knm, 
+                            std::vector<std::string>& ksm);
+    /**
+     * @brief Read a file.
+     *
+     * This function reads a precompiled kernel file.
+     *
+     * @return contents of the file.
+     */
+    std::string readFile(const std::string& kernelName);
+    
+    class INIT{
+        public:
+            static INIT& getInstance() {
+                static INIT instance;
+                return instance;
+            }
+            INIT(const INIT&) = delete;
+            INIT& operator=(const INIT&) = delete;
+            bool RHS_INIT;
+            bool LAP_INIT;
+            int ts;
+        private:
+            INIT() 
+                : RHS_INIT(false), LAP_INIT(false), ts(0) {}
+    };
+}
 
-extern std::vector<cl_program> program_math;
-extern std::vector<cl_kernel> kernel_math;
-
-extern cl_program   program_gradient_scalar, 
-                    program_gradient_vector, 
-                    program_laplacian_scalar,
-                    program_sparseMatrixMultiplyCSR,
-                    program_lu_decompose_dense,
-                    program_laplacian_vector,
-                    program_setBC,
-                    program_filter_array,
-                    program_filter_row,
-                    program_forward_substitution_csr,
-                    program_backward_substitution_csr;
-extern cl_kernel    kernelgradient_type1,
-                    kernelgradient_type2,
-                    kernelgradient_type3,
-                    kernelgradient_type4,
-                    kernellaplacianscalar,
-                    kernellu_decompose_dense,
-                    kernelsparseMatrixMultiplyCSR,
-                    kernellaplaciansparseMatrixMultiplyCSR,
-                    kernellaplacianvector,
-                    kernelBC,
-                    kernelfilterarray,
-                    kernelfilterrow,
-                    kernelforward_substitution_csr,
-                    kernelbackward_substitution_csr;
-
-extern cl_context   context;
-extern cl_command_queue queue;
-extern cl_uint maxWorkGroupSize;
-int preprocess(const std::string& name);
-int idx(int i, int j, int k, int N_x, int N_y);
-int opencl_init();
-int opencl_build();
-int laplacian_CSR_init();
 #endif
