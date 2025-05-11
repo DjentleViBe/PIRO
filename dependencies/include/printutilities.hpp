@@ -6,8 +6,6 @@
     #include <mach-o/dyld.h>
 #elif _WIN32
     #include "windows.h"
-#else 
-    #include "windows.h"
 #endif
 #include <datatypes.hpp>
 

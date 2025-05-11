@@ -13,8 +13,9 @@
     #include <mach-o/dyld.h>
 #elif _WIN32
     #include "windows.h"
-#else 
-    #include "windows.h"
+#else
+    #include <unistd.h>
+    #include <limits.h>
 #endif
 
 namespace Piro{
@@ -84,25 +85,36 @@ namespace Piro{
                 } else {
                     std::cerr << "Buffer size is too small; need size " << size << std::endl;
                 }
-            #else
+            #elif _WIN32
                 char path[1024];
                 // Get the executable path
                 DWORD size = GetModuleFileName(NULL, path, 1024);
                 if (size > 0 && size < MAX_PATH) {
-                std::filesystem::path exe_path(path);
+                    std::filesystem::path exe_path(path);
 
-                std::string exe_path_string = exe_path.string();
-                std::replace(exe_path_string.begin(), exe_path_string.end(), '\\', '/');
+                    std::string exe_path_string = exe_path.string();
+                    std::replace(exe_path_string.begin(), exe_path_string.end(), '\\', '/');
 
-                // Convert the modified string back to a filesystem path
-                std::filesystem::path modified_exe_path = exe_path_string;
-                Piro::file_utilities::current_path = modified_exe_path.parent_path();
+                    // Convert the modified string back to a filesystem path
+                    std::filesystem::path modified_exe_path = exe_path_string;
+                    Piro::file_utilities::current_path = modified_exe_path.parent_path();
 
-                std::cout << "Original executable path: " << exe_path.string() << std::endl;
-                std::cout << "Executable directory : " << Piro::file_utilities::current_path.string() << std::endl;
-            } else {
-                std::cerr << "Failed to retrieve executable path. Error code: " << GetLastError() << std::endl;
-            }
+                    std::cout << "Original executable path: " << exe_path.string() << std::endl;
+                    std::cout << "Executable directory : " << Piro::file_utilities::current_path.string() << std::endl;
+                } 
+                else {
+                    std::cerr << "Failed to retrieve executable path. Error code: " << GetLastError() << std::endl;
+                }
+            #else
+                char path[PATH_MAX];
+                ssize_t count = readlink("/proc/self/exe", path, PATH_MAX);
+                if (count != -1) {
+                    std::filesystem::path exe_path(std::string(path, count));
+                    Piro::file_utilities::current_path = exe_path.parent_path();
+                } 
+                else {
+                    std::cerr << "Failed to retrieve executable path using /proc/self/exe" << std::endl;
+                }
 
             #endif
             return 0;

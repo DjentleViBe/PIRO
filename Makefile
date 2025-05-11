@@ -1,6 +1,15 @@
 OS := $(shell uname)
 $(info Detected OS: $(OS))
 
+# Directories
+SRCDIRS = $(MAKEFILE_DIR)/src
+SRCDIR = src
+BCKNDS = $(MAKEFILE_DIR)/dependencies/backends
+INCDIR = $(MAKEFILE_DIR)/dependencies/include
+OBJDIR = $(MAKEFILE_DIR)/bin/
+BINDIR = $(MAKEFILE_DIR)/bin/
+#LIBS = -lglfw.3.3 -lportaudio
+
 ifeq ($(OS), Darwin)
     CC = /usr/bin/clang++
     MAKEFILE_DIR := $(CURDIR)
@@ -10,7 +19,7 @@ ifeq ($(OS), Darwin)
 	LIBS = 
 	EXENAME = PIRO
 	FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
-else
+else ifeq ($(OS),Windows)
     CC = g++
     MAKEFILE_DIR=.
     $(info Current Directory: $(MAKEFILE_DIR))
@@ -18,16 +27,16 @@ else
 	CFLAGS = -std=c++23 -Wno-deprecated -static
 	LIBS = -lOpenCL
 	EXENAME = PIRO.exe
+else
+	CC = g++
+    MAKEFILE_DIR=$(CURDIR)
+    $(info Current Directory: $(MAKEFILE_DIR))
+	INCDIR += -I/usr/include/CL
+	LIBDIR =
+	CFLAGS = -std=c++23 -Wno-deprecated
+	LIBS = -lOpenCL
+	EXENAME = PIRO
 endif
-
-# Directories
-SRCDIRS := $(MAKEFILE_DIR)/src $(MAKEFILE_DIR)/dependencies/backends
-SRCDIR = src
-BCKNDS = $(MAKEFILE_DIR)/dependencies/backends
-INCDIR = $(MAKEFILE_DIR)/dependencies/include
-OBJDIR = $(MAKEFILE_DIR)/bin/
-BINDIR = $(MAKEFILE_DIR)/bin/
-#LIBS = -lglfw.3.3 -lportaudio
 
 SHAREDLIB = $(MAKEFILE_DIR)/sharedlib
 # Source files

@@ -42,7 +42,7 @@ namespace Piro{
         private:
             kernels() = default;
             using ParamValue = std::variant<int, std::vector<cl_kernel>, std::vector<cl_program>,
-                                            cl_context, cl_command_queue, cl_uint, cl_program, cl_kernel>;
+                                            cl_context, cl_command_queue, unsigned int, cl_program, cl_kernel>;
             std::unordered_map<ParameterIndex, ParamValue> parameters;   
     };   
 }
