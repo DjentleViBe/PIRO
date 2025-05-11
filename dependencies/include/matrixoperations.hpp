@@ -5,6 +5,13 @@
 #include <vector>
 
 namespace Piro::matrix_operations{
+    /**
+     * @brief LU dcomposition function.
+     *
+     * This function prepares matrix for the LU decomposition method.
+     *
+     * @param other Open CL buffer to the RHS side of the equation. 
+     */
     void lu_decomposition_HTLF(const std::vector<CLBuffer>& other);
 }
 #endif

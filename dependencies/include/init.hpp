@@ -3,6 +3,13 @@
 #include <filesystem>
 
 namespace Piro{
+    /**
+     * @brief INIT function.
+     *
+     * This function calls all necessary functions required for 
+     * project initialisation.
+     *
+     */
     void init();
 }
 

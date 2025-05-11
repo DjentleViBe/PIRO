@@ -124,7 +124,7 @@ int Piro::preprocess(const std::string& name) {
         CD.Scalars = MP.getvalue<std::vector<std::string>>(Piro::MeshParams::SCALARLIST)[i];
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type = 0;
-        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values = initialcondition(i, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type);
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values = initialcondition(i);
         // push scalar data to gpu
         CDGPU_collect.push_back(CD_GPU);
         CDGPU_collect[i].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -136,7 +136,7 @@ int Piro::preprocess(const std::string& name) {
         CD.Scalars = MP.getvalue<std::vector<std::string>>(Piro::MeshParams::VECTORLIST)[i - j];
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type = 1;
-        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values = initialcondition(i, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type);
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values = initialcondition(i);
         // push vector data to gpu
         CDGPU_collect.push_back(CD_GPU);
         CDGPU_collect[i].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,

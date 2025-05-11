@@ -27,7 +27,7 @@ float Piro::calculatecoulomb(std::vector<float> coord, std::vector<float> center
     return -(Z * 1E15 * pow(e, 2)) / (4 * M_PI * epsilon_0 * (r + 1E-10));
 }
 
-std::vector<float> Piro::initialcondition(int index, int valuetype){
+std::vector<float> Piro::initialcondition(int index){
     Piro::logger::info("Initialisation started");
     std::vector<float> values;
     std::srand(std::time(0));

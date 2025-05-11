@@ -5,6 +5,12 @@
 #include <CL/opencl.h>
 
 namespace Piro{
+    /**
+     * @brief kernel class.
+     *
+     * Collection of global methods for kernel setup.
+     *
+     */
     class kernels{
         public:
             static kernels& getInstance(){

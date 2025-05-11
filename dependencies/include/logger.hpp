@@ -6,6 +6,13 @@
 #include <printutilities.hpp>
 
 namespace Piro{
+    /**
+     * @brief logger class.
+     *
+     * This class formulates functions required for printing messages to the
+     * console.
+     *
+     */
     class logger {
         public:
             int debuginfo;
