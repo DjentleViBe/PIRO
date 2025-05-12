@@ -76,10 +76,11 @@ git clone https://github.com/DjentleViBe/PIRO.git
 
 6. Make the required changes to the appropriate files as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format.
 
-7. Execute the command ```./runall.sh -f setup.ini 1``` to initiate the simulation. Log files are stored in the [logs](./logs) folder with the name used for setup file. If the setup file is renamed, update the filename in the command accordingly.
+7. Execute the command ```./runall.sh -f setup.ini 0``` to initiate the simulation. Log files are stored in the [logs](./logs) folder with the name used for setup file. 
 
 8. Results are stored in the [bin](./bin) directory in a folder with the casename value given in the setup file.
 
+If the setup file(setup.ini) is renamed, update the filename in the command accordingly. The log file output will then match the renamed file.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## How to Build
@@ -119,13 +120,13 @@ git checkout <branch-name>
 
 To compile just the kernels run:
 ```bash
-./runall.sh -f setup.ini 0
+./runall.sh -f setup.ini 1
 ```
 The binaries are saved to the [./bin/assets/kernels](./bin/assets/kernels) folder.
 The logs are saved to the [logs](./logs/setup.ini.txt) folder.
+
 Go to [step 7](#running) for running the program.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 ## Documentation
