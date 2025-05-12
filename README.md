@@ -70,7 +70,7 @@ git clone https://github.com/DjentleViBe/PIRO.git
 
 | File | Operating Sytem |
 | --- | --- |
-|```Piro_devices_MacOS``` | MacOS (x64) |
+|```Piro_devices_MACOS``` | MacOS (x64) |
 |```Piro_devices_WIN```   | Windows(x64)|
 |```Piro_devices_LIN```   | Linux (x64) |
 
@@ -84,7 +84,7 @@ git clone https://github.com/DjentleViBe/PIRO.git
 
 ## How to Build
 ### Requirements
-make
+Refer to [Build](./BUILD.md)
 ### Instructions
 1. To avoid Git changing line endings when you clone or commit, run:
 ```bash
