@@ -70,7 +70,7 @@ git config --global core.autocrlf false
 ```bash
 git clone https://github.com/DjentleViBe/PIRO.git
 ```
-3. Download ```bin.zip``` for your Operating System from the latest [release](https://github.com/DjentleViBe/PIRO/releases/new). Extract and copy the ```bin``` folder to the project directory.
+3. Download the ```.zip``` file for your Operating System from the latest [release](https://github.com/DjentleViBe/PIRO/releases/new). Extract and copy the ```bin``` folder to the project directory.
 4. From the project root directory, execute the command (Refer [Building](#how-to-build) instructions for compiling the program on your own):
 ```bash
 ./bin/<program name>
@@ -89,7 +89,7 @@ Device details are printed to the console.
 6. Execute the run command ```./runall.sh -f setup.ini 0``` to initiate the simulation. Log file is saved in the [logs](./logs) folder, using the same name as the setup file.
 7. The results are saved in the [bin](./bin) directory, within a folder named after the casename parameter specified in the setup file.
 
-If the setup file is renamed, the filename argument in the run command needs to be updated accordingly. The log file output and the results folder name will then match the renamed setup file.
+*If the setup file is renamed, the filename argument(```setup.ini```) in the run command needs to be updated accordingly. The log file output and the results folder name will then match the renamed setup file.*
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## How to Build
@@ -125,7 +125,6 @@ git checkout <branch-name>
 3. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
 
 ## Kernel programs
-[Kernel source files](./dependencies/assets/kernels/) can be updated inside ```0_kernels_math.txt``` and ```0_kernels.txt```. Kernel source filenames should have a ```.cl``` extension and the entries in the list should match the kernel function name. Make sure there are no trailing whitespaces or empty lines in the ```.txt``` file
 
 To compile just the kernels run:
 ```bash
@@ -135,6 +134,8 @@ The binaries are saved to the [./bin/assets/kernels](./bin/assets/kernels) folde
 The logs are saved to the [logs](./logs/setup.ini.txt) folder.
 
 Go to [step 6](#running) for running the program.
+
+*[Kernel source files](./dependencies/assets/kernels/) can be updated inside ```0_kernels_math.txt``` and ```0_kernels.txt```. Kernel source filenames should have a ```.cl``` extension and the entries in the list should match the kernel function name. Make sure there are no trailing whitespaces or empty lines in the ```.txt``` file*
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
