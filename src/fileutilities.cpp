@@ -11,7 +11,7 @@
 
 #ifdef __APPLE__
     #include <mach-o/dyld.h>
-#elif _WIN32
+#elif _WIN32 || __CYGWIN__
     #include "windows.h"
 #else
     #include <unistd.h>
@@ -85,7 +85,7 @@ namespace Piro{
                 } else {
                     std::cerr << "Buffer size is too small; need size " << size << std::endl;
                 }
-            #elif _WIN32
+            #elif _WIN32 || __CYGWIN__
                 char path[1024];
                 // Get the executable path
                 DWORD size = GetModuleFileName(NULL, path, 1024);
