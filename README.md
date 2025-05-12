@@ -89,7 +89,7 @@ Device details are printed to the console.
 6. Execute the run command ```./runall.sh -f setup.ini 0``` to initiate the simulation. Log file is saved in the [logs](./logs) folder, using the same name as the setup file.
 7. The results are saved in the [bin](./bin) directory, within a folder named after the casename parameter specified in the setup file.
 
-If the setup file is renamed, the filename argument in the run command needs to be updated accordingly. The log file output will then match the renamed setup file.
+If the setup file is renamed, the filename argument in the run command needs to be updated accordingly. The log file output and the results folder name will then match the renamed setup file.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## How to Build
@@ -122,7 +122,7 @@ git checkout device_list
 git checkout <branch-name>
 ``` 
 2. Make sure Step 5. under [Devices program](#devices-program) is set properly after changing the branch.
-2. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
+3. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
 
 ## Kernel programs
 [Kernel source files](./dependencies/assets/kernels/) can be updated inside ```0_kernels_math.txt``` and ```0_kernels.txt```. Kernel source filenames should have a ```.cl``` extension and the entries in the list should match the kernel function name. Make sure there are no trailing whitespaces or empty lines in the ```.txt``` file
