@@ -44,7 +44,7 @@
 | Name | Description | Number | Status |
 | --- | --- | --- | --- |
 | 1st order upwind | Space | 1 | `Plan` |
-| 1st order upwind | Space | 2 | `Plan` |
+| 1st order downwind | Space | 2 | `Plan` |
 | 1st order central difference | Space | 3 | `Release` |
 | Forward Euler | Time | 11 | `Release` |
 | Backward Euler | Time | 12 | `Dev` |
@@ -76,7 +76,7 @@ git clone https://github.com/DjentleViBe/PIRO.git
 
 6. Make the required changes to the appropriate files as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format.
 
-7. Execute the command ```./runall.sh -f <setup.ini> 0``` to initiate the simulation. Log files are stored in the [logs](./logs) folder with the name used for setup file. If the setup file is renamed, update the filename in the command accordingly.
+7. Execute the command ```./runall.sh -f setup.ini 1``` to initiate the simulation. Log files are stored in the [logs](./logs) folder with the name used for setup file. If the setup file is renamed, update the filename in the command accordingly.
 
 8. Results are stored in the [bin](./bin) directory in a folder with the casename value given in the setup file.
 
@@ -122,9 +122,11 @@ To compile just the kernels run:
 ./runall.sh -f setup.ini 0
 ```
 The binaries are saved to the [./bin/assets/kernels](./bin/assets/kernels) folder.
-The logs are saved to the [logs](./logs/setup.ini.txt) folder
-
+The logs are saved to the [logs](./logs/setup.ini.txt) folder.
+Go to [step 7](#running) for running the program.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
 
 ## Documentation
 List of manuals:
