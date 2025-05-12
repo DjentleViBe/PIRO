@@ -17,7 +17,7 @@ ifeq ($(OS), Darwin)
 	CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64
 	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library/
 	LIBS = 
-	EXENAME = PIRO_devices
+	EXENAME = PIRO_devices_MacOS
 	FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
 else ifeq ($(OS),Windows)
     CC = g++
@@ -26,7 +26,7 @@ else ifeq ($(OS),Windows)
 	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library
 	CFLAGS = -std=c++23 -Wno-deprecated -static
 	LIBS = -lOpenCL
-	EXENAME = PIRO_devices.exe
+	EXENAME = PIRO_devices_WIN.exe
 else
 	CC = g++
     MAKEFILE_DIR=$(CURDIR)
@@ -35,7 +35,7 @@ else
 	LIBDIR =
 	CFLAGS = -std=c++23 -Wno-deprecated
 	LIBS = -lOpenCL
-	EXENAME = PIRO_devices
+	EXENAME = PIRO_devices_LIN
 endif
 
 SHAREDLIB = $(MAKEFILE_DIR)/sharedlib
