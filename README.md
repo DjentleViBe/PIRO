@@ -101,7 +101,10 @@ git clone https://github.com/DjentleViBe/PIRO.git
 ```bash
 git checkout device_list
 ``` 
-2. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
+2. Check if the build [requirements](./BUILD.md) are met.
+3. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
+4. Run the command ```./runall.sh```. The device list is printed to [logs](./logs/devices.txt)
+5. Modify the [setup](./dependencies/assets/setup.ini) file for id and platform_id based on the [logs](./logs/devices.txt). Refer to [setup](./dependencies/assets/setup.md) for detailed instructions.
 
 ## Simulation program
 1. Switch to the branch of interest using 
