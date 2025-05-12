@@ -99,7 +99,7 @@ git clone https://github.com/DjentleViBe/PIRO.git
 ## Devices program
 1. Switch to the ```devices_list``` branch. 
 ```bash
-git checkout devices_list
+git checkout device_list
 ``` 
 2. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
 
