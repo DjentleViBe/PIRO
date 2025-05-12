@@ -57,6 +57,11 @@
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Running
+### Requirements
+- git
+
+If you're using Windows, run the commands in [Git Bash](https://git-scm.com/downloads).
+### Instructions
 1. To avoid Git changing line endings when you clone or commit, run:
 ```bash
 git config --global core.autocrlf false
@@ -65,22 +70,26 @@ git config --global core.autocrlf false
 ```bash
 git clone https://github.com/DjentleViBe/PIRO.git
 ```
-3. Download the bin directory from the latest [release](https://github.com/DjentleViBe/PIRO/releases/new) to the root directory.
-4. Run the following program to get device details. Refer [Building](#how-to-build) instructions for compiling the program on your own.
+3. Download ```bin.zip``` for your Operating System from the latest [release](https://github.com/DjentleViBe/PIRO/releases/new). Extract and copy the ```bin``` folder to the project directory.
+4. From the project root directory, execute the command (Refer [Building](#how-to-build) instructions for compiling the program on your own):
+```bash
+./bin/<program name>
+``` 
 
-| File | Operating Sytem |
+| program name              | Operating Sytem |
 | --- | --- |
-|```Piro_devices_MACOS``` | MacOS (x64) |
-|```Piro_devices_WIN```   | Windows(x64)|
-|```Piro_devices_LIN```   | Linux (x64) |
+|```Piro_devices_MACOS```   | MacOS (x64) |
+|```Piro_devices_WIN.exe``` | Windows(x64)|
+|```Piro_devices_LIN```     | Linux (x64) |
 
-6. Make the required changes to the appropriate files as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format.
+Device details are printed to the console. 
 
-7. Execute the command ```./runall.sh -f setup.ini 0``` to initiate the simulation. Log files are stored in the [logs](./logs) folder with the name used for setup file. 
+5. Make the required changes to the setup file as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format (they should be if Step 1. was successful).
 
-8. Results are stored in the [bin](./bin) directory in a folder with the casename value given in the setup file.
+6. Execute the run command ```./runall.sh -f setup.ini 0``` to initiate the simulation. Log file is saved in the [logs](./logs) folder, using the same name as the setup file.
+7. The results are saved in the [bin](./bin) directory, within a folder named after the casename parameter specified in the setup file.
 
-If the setup file(setup.ini) is renamed, update the filename in the command accordingly. The log file output will then match the renamed file.
+If the setup file is renamed, the filename argument in the run command needs to be updated accordingly. The log file output will then match the renamed setup file.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## How to Build
@@ -125,7 +134,7 @@ To compile just the kernels run:
 The binaries are saved to the [./bin/assets/kernels](./bin/assets/kernels) folder.
 The logs are saved to the [logs](./logs/setup.ini.txt) folder.
 
-Go to [step 7](#running) for running the program.
+Go to [step 6](#running) for running the program.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 

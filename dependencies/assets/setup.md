@@ -17,15 +17,11 @@ This section sets the device used for the simulation. The following parameters c
 
 Table: Executable files for different Operating Systems.
 
-+-------------------------+--------------------------+
-| **Filename**            |**Operating System**      |
-+=========================+==========================+
-|```Piro_devices_MacOS``` | MacOS (x64)              |
-+-------------------------+--------------------------+
-|```Piro_devices_WIN```   | Windows(x64)             |
-+-------------------------+--------------------------+
-|```Piro_devices_LIN```   | Linux (x64)              |
-+-------------------------+--------------------------+
+| program name              | Operating Sytem |
+| --- | --- |
+|```Piro_devices_MACOS```   | MacOS (x64) |
+|```Piro_devices_WIN.exe``` | Windows(x64)|
+|```Piro_devices_LIN```     | Linux (x64) |
 
 ### id
 Set the id parameter retreived after running the file from Table 1.
