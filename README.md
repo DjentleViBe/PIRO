@@ -119,9 +119,10 @@ git checkout <branch-name>
 
 To compile just the kernels run:
 ```bash
-./runall.sh -f <setup.ini> 0
+./runall.sh -f setup.ini 0
 ```
 The binaries are saved to the [./bin/assets/kernels](./bin/assets/kernels) folder.
+The logs are saved to the [logs](./logs/setup.ini.txt) folder
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
