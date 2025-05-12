@@ -111,6 +111,7 @@ git checkout device_list
 ```bash
 git checkout <branch-name>
 ``` 
+2. Make sure Step 5. under [Devices program](#devices-program) is set properly after changing the branch.
 2. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
 
 ## Kernel programs
