@@ -17,7 +17,7 @@ ifeq ($(OS), Darwin)
 	CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64
 	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library/
 	LIBS = 
-	EXENAME = PIRO_devices_MacOS
+	EXENAME = PIRO_devices_MACOS
 	FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
 else ifeq ($(OS),Windows)
     CC = g++
@@ -72,8 +72,8 @@ $(OBJDIR):
 setup:
 	@echo "Running setup commands..."
 #	cp prefs.json bin/.
-	mkdir -p $(MAKEFILE_DIR)/bin/assets
-	cp -r $(MAKEFILE_DIR)/dependencies/assets/* $(MAKEFILE_DIR)/bin/assets/.
+#   mkdir -p $(MAKEFILE_DIR)/bin/assets
+#	cp -r $(MAKEFILE_DIR)/dependencies/assets/* $(MAKEFILE_DIR)/bin/assets/.
 
 .PHONY: clean
 # Clean up

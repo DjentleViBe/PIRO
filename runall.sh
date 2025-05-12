@@ -1,27 +1,24 @@
 #!/bin/bash
 
+cp -r ./dependencies/assets ./bin/.
+mkdir -p logs
+
 detect_os() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        echo "Operating System: Linux"
+        ./bin/PIRO_devices_LIN &> ./logs/devices.txt
     elif [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "Operating System: macOS"
+        ./bin/PIRO_devices_MACOS &> ./logs/devices.txt
     elif [[ "$OSTYPE" == "cygwin" ]]; then
-        echo "Operating System: Cygwin (POSIX compatibility layer on Windows)"
+        ./bin/PIRO_devices_WIN &> ./logs/devices.txt
     elif [[ "$OSTYPE" == "msys" ]]; then
-        extension=".exe"
-        echo "Operating System: MinGW (Minimal GNU for Windows)"
+        ./bin/PIRO_devices_WIN &> ./logs/devices.txt
     elif [[ "$OSTYPE" == "win32" ]]; then
-        echo "Operating System: Windows"
+        ./bin/PIRO_devices_WIN &> ./logs/devices.txt
     elif [[ "$OSTYPE" == "freebsd"* ]]; then
         echo "Operating System: FreeBSD"
     else
         echo "Operating System: Unknown"
     fi
 }
-
 detect_os
 
-cp -r ./dependencies/assets ./bin/.
-mkdir -p logs
-
-./bin/PIRO_devices$extension &> ./logs/devices.txt
