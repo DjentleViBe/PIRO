@@ -19,7 +19,7 @@ ifeq ($(OS), Darwin)
 	LIBS = 
 	EXENAME = PIRO_devices_MACOS
 	FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
-else ifeq ($(OS),Windows)
+else ifeq ($(findstring MINGW64,$(shell uname -s)),MINGW64)
     CC = g++
     MAKEFILE_DIR=.
     $(info Current Directory: $(MAKEFILE_DIR))

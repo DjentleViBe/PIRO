@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cp -r ./dependencies/assets ./bin/.
+# cp -r ./dependencies/assets ./bin/.
 mkdir -p logs
 
 detect_os() {
