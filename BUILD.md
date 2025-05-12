@@ -1,5 +1,5 @@
 ## Project compilation requirements
-Requirement listed in the following table have been tested.
+The following table lists the requirements that have been tested.
 
 | Category                    | Sub-category          |MacOS                              | Windows          | Linux                     |
 |-----------------------------|-----------------------|-----------------------------------|------------------|---------------------------|
