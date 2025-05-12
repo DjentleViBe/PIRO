@@ -107,7 +107,7 @@ git clone https://github.com/DjentleViBe/PIRO.git
 ```
 
 ## Devices program
-1. Switch to the ```devices_list``` branch. 
+1. Switch to the ```device_list``` branch. 
 ```bash
 git checkout device_list
 ``` 
