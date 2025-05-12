@@ -9,3 +9,5 @@ Requirement listed in the following table have been tested.
 |                             | Compiler              |Apple clang version 17.0.0         | g++ (GCC) 11.4.0 | g++ (GCC) 15.1.1 20250425       
 | **Build tools**             | make                  |GNUmake 3.81                       | GNU Make 4.4.1         | GNU Make 4.4.1
 | **External dependencies**   | frameworks & libraries|Corefoundation, Accelerate, OpenCL | gitbash, cygwin          | opencl-nvidia 570.144-3
+
+For windows, ```gcc-g++``` and ```make``` can be installed through [cygwin](https://www.cygwin.com)
