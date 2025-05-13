@@ -156,15 +156,17 @@ std::vector<CLBuffer> process::laplacian(std::string var1, std::string var2){
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     if(INIT::getInstance().LAP_INIT == false){
+        Piro::logger::info("Generating laplacian");
+        // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
         if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
-            Piro::matrix_generations::CSR::laplacian(); // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
+            Piro::matrix_generations::CSR::laplacian();
             return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[0], 
                     CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[1], 
                     CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[2]};
         }
         else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
             Piro::matrix_generations::DENSE::laplacian();
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_DENSE)};
+            return {CDGPU.getvalue<Piro::CLBuffer>(Piro::CellDataGPU::LAPLACIAN_DENSE)};
         }
         else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
             Piro::matrix_generations::HT::laplacian();
@@ -190,7 +192,7 @@ std::vector<CLBuffer> process::laplacian(std::string var1, std::string var2){
                     CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[2]};
         }
         else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_DENSE)};
+            return {CDGPU.getvalue<Piro::CLBuffer>(Piro::CellDataGPU::LAPLACIAN_DENSE)};
         }
         else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
             return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_HT)[0], 

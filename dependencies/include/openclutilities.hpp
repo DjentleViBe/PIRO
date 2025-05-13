@@ -3,6 +3,9 @@
 
 #include <vector>
 #include <CL/opencl.h>
+#include <iostream>
+#include <variant>
+#include <unordered_map>
 
 namespace Piro{
     /**
@@ -35,11 +38,11 @@ namespace Piro{
             template<typename T>
             T& getvalue(const ParameterIndex paramindex) {
                 if (parameters.find(paramindex) == parameters.end()) {
-                    std::cout << "bad variant : " << paramindex;
+                    std::cout << "bad variant(kernels) : " << paramindex;
                     throw std::runtime_error("Parameter not set");
                 }
                 if (!std::holds_alternative<T>(parameters.at(paramindex))) {
-                    std::cout << "bad variant : " << paramindex;
+                    std::cout << "bad variant(kernels) : " << paramindex;
                     throw std::bad_variant_access(); // Throwing a specific exception for mismatched types
                 }
             return std::get<T>(parameters.at(paramindex));

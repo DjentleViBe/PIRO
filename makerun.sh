@@ -1,5 +1,3 @@
 #./makerun.sh
-make clean
-make
-make setup
-./runall.sh -f "setup.ini"
+./makeall.sh
+./runall.sh -f setup.ini 0

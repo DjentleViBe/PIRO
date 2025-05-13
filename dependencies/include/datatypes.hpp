@@ -168,7 +168,7 @@ namespace Piro{
             template<typename T>
             T getvalue(const ParameterIndex paramindex) const {
                 if (parameters.find(paramindex) == parameters.end()) {
-                    std::cout << "bad variant : " << paramindex;
+                    std::cout << "bad variant(Device params) : " << paramindex;
                     throw std::runtime_error("Parameter not set");
                 }
                 return std::get<T>(parameters.at(paramindex));

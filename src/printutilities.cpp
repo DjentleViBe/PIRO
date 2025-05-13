@@ -8,6 +8,7 @@
 #include <chrono>
 #include <CL/opencl.h>
 #include <openclutilities.hpp>
+#include <iostream>
 
 void Piro::print_utilities::printMatrix(const std::vector<std::vector<float>>& matrix) {
     int rows = matrix.size();
@@ -75,11 +76,15 @@ void Piro::print_utilities::print_time() {
             << std::setfill('0') << std::setw(1) << microseconds / 100 << "\t";
 }
 
-void Piro::print_utilities::printArray(float* array, uint size){
+void Piro::print_utilities::printArray(const float *matrix, int rows, int cols){
     std::cout << "Printing array" << std::endl;
-    for (uint i = 0; i < size; i++) {
-        Piro::logger::debug_print(array[i], " ");
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%.1f ", matrix[i * cols + j]);
+        }
+        printf("\n");
     }
+    std::cout << "\n";
 }
 
 void Piro::print_utilities::printCL(cl_mem memC, int N, int type){
