@@ -34,8 +34,6 @@ namespace Piro{
         float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
         if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 11){
             // Forward Euler
-            // std::cout << "Forward Euler" << std::endl;
-
             err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 0, sizeof(cl_int), &N);
             err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 1, sizeof(cl_int), &N);
             err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 2, sizeof(cl_int), &P);
@@ -60,14 +58,14 @@ namespace Piro{
 
         else if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 12){
             // std::cout << "Backward Euler" << std::endl;
-                if(SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME) == 27){
-                    Piro::logger::info("LU Decomposition");
-                    if(INIT::getInstance().RHS_INIT == false){
-                        Piro::matrix_operations::lu_decomposition_HTLF(other);
-                        INIT::getInstance().RHS_INIT = true;
-                    }
-                    Piro::logger::debug("RHS_INIT end" );
+            if(SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME) == 27){
+                Piro::logger::info("LU Decomposition");
+                if(INIT::getInstance().RHS_INIT == false){
+                    Piro::matrix_operations::lu_decomposition_HTLF(other);
+                    INIT::getInstance().RHS_INIT = true;
                 }
+                Piro::logger::debug("RHS_INIT end" );
+            }
         }
         return partD;
     }

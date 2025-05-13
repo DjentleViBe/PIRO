@@ -164,3 +164,14 @@ void bc::readbc(){
     }
 
 }
+
+bool bc::isBoundaryPoint(int x, int y, int z) {
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    
+    // Check if the point is on the boundary of any axis
+    if (x == 0 || x == n[0] - 1 || y == 0 || y == n[1] - 1 || z == 0 || z == n[2] - 1) {
+        return true;
+    }
+    return false;
+}

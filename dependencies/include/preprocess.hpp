@@ -8,14 +8,6 @@
 
 namespace Piro{
     /**
-     * @brief Laplacian generation.
-     *
-     * This function generates a laplacian matrix in CSR format.
-     *
-     * @return 0 upon SUCCESS.
-     */
-    int laplacian_CSR_init();
-    /**
      * @brief Preprocessing step of the simulation.
      *
      * This function read parameters set in the setup file.

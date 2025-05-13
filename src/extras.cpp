@@ -10,4 +10,14 @@ namespace Piro::vector_operations{
         }
         return flatVector;
     }
+
+    std::vector<float> flattenvector(std::vector<std::vector<float>> twoDVector){
+        std::vector<float> flatVector;
+        for (const auto& row : twoDVector) {
+            for (int elem : row) {
+                flatVector.push_back(elem);
+            }
+        }
+        return flatVector;
+    }
 }

@@ -29,12 +29,13 @@ namespace Piro{
 
     class CellData{
         public:
-            int type; // 0 : Scalars, 1 : Vectors, 2 : CSR row pointers, 3 : CSR columns, 4 : CSR values
+            int type; // 0 : Scalars, 1 : Vectors, 2 : CSR , 3 : COO, 4 : DENSE
             std::string Scalars;
             std::vector<float> values;
             std::vector<int> columns;
             std::vector<int> rows;
             std::vector<int> rowpointers;
+            std::vector<float> matrix;
     };
 
     class AMR{
@@ -80,11 +81,11 @@ namespace Piro{
             template<typename T>
             T& getvalue(const ParameterIndex paramindex) {
                 if (parameters.find(paramindex) == parameters.end()) {
-                    std::cout << "bad variant : " << paramindex;
+                    std::cout << "bad variant(Mesh Params) : " << paramindex;
                     throw std::runtime_error("Parameter not set");
                 }
                 if (!std::holds_alternative<T>(parameters.at(paramindex))) {
-                    std::cout << "bad variant : " << paramindex;
+                    std::cout << "bad variant(Mesh Params) : " << paramindex;
                     throw std::bad_variant_access(); // Throwing a specific exception for mismatched types
                 }
             return std::get<T>(parameters.at(paramindex));
@@ -129,11 +130,11 @@ namespace Piro{
             template<typename T>
             T getvalue(const ParameterIndex paramindex) const {
                 if (parameters.find(paramindex) == parameters.end()) {
-                    std::cout << "bad variant : " << paramindex;
+                    std::cout << "bad variant(Solve Params) : " << paramindex;
                     throw std::runtime_error("Parameter not set");
                 }
                 if (!std::holds_alternative<T>(parameters.at(paramindex))) {
-                    std::cout << "bad variant : " << paramindex;
+                    std::cout << "bad variant(Solve Params) : " << paramindex;
                     throw std::bad_variant_access(); // Throwing a specific exception for mismatched types
                 }
                 return std::get<T>(parameters.at(paramindex));
@@ -187,7 +188,9 @@ namespace Piro{
             }
             enum ParameterIndex{
                 // int
-                VALUES_GPU, LAPLACIAN_CSR, GRADIENT
+                VALUES_GPU, 
+                LAPLACIAN_CSR, LAPLACIAN_DENSE, LAPLACIAN_COO, LAPLACIAN_HT,
+                GRADIENT_CSR, GRADIEN_DENSE, GRADIENT_COO
             };
 
             CellDataGPU(const CellDataGPU&) = delete;
@@ -212,7 +215,7 @@ namespace Piro{
             // std::vector<Piro::CLBuffer> laplacian_csr;
             // std::vector<Piro::CLBuffer> gradient;
             CellDataGPU() = default;
-            using ParamValue = std::variant<std::vector<Piro::CLBuffer>>;
+            using ParamValue = std::variant<Piro::CLBuffer, std::vector<Piro::CLBuffer>>;
             std::unordered_map<ParameterIndex, ParamValue> parameters;
     };
 };

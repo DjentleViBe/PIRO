@@ -17,10 +17,10 @@
 #include <fileutilities.hpp>
 #include <openclutilities.hpp>
 
-Piro::CLBuffer CD_GPU;
+
 
 int Piro::preprocess(const std::string& name) {
-    
+    Piro::CLBuffer CD_GPU;
     Piro::logger::info("Preprocess step initiated");
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     Piro::DeviceParams& DP = Piro::DeviceParams::getInstance();
@@ -169,127 +169,8 @@ int Piro::preprocess(const std::string& name) {
     return 0;
 }
 
-bool isBoundaryPoint(int x, int y, int z) {
-    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
-    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
-    
-    // Check if the point is on the boundary of any axis
-    if (x == 0 || x == n[0] - 1 || y == 0 || y == n[1] - 1 || z == 0 || z == n[2] - 1) {
-        return true;
-    }
-    return false;
-}
-
 bool isValidIndex(int index){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     return (index >= 0 && index < n[0] * n[1] * n[2]);
     }
-
-int Piro::laplacian_CSR_init(){
-    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
-    Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
-    Piro::kernels& kernels = Piro::kernels::getInstance();
-    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
-    std::vector<float> l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
-    int N = n[0] * n[1] * n[2];
-    Piro::CellData CD;
-    std::vector<CLBuffer> laplacian_collect;
-    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
-    laplacian_collect.push_back(CD_GPU);
-    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].type = 2; // row pointers
-    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.assign(N + 1, 0.0);
-    laplacian_collect.push_back(CD_GPU);
-    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].type = 3; // columns
-    laplacian_collect.push_back(CD_GPU);
-    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].type = 4; // values
-    float norm = pow((l[0] / float(n[0] - 2)), 2);
-    // Iterate over all grid points
-    for (int z = 0; z < n[2]; ++z) {
-        for (int y = 0; y < n[1]; ++y) {
-            for (int x = 0; x < n[0]; ++x) {
-                int i = math_operations::index(x, y, z, n[0], n[1]); // 1D index of the (x, y, z) point
-                
-                // Self connection (central point)
-                MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.push_back(i);
-                MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.push_back(-6.0/norm);
-                
-                // Neighbors in the x-direction (x±1)
-                if (x > 0) {
-                    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.push_back(math_operations::index(x-1, y, z, n[0], n[1]));
-                    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.push_back(1.0/norm);
-                    
-                }
-                if (x < n[0] - 1) {
-                    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.push_back(math_operations::index(x+1, y, z, n[0], n[1]));
-                    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.push_back(1.0/norm);
-                
-                }
-
-                // Neighbors in the y-direction (y±1)
-                if (y > 0) {
-                    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.push_back(math_operations::index(x, y-1, z, n[0], n[1]));
-                    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.push_back(1.0/norm);
-                    
-                }
-                    if (y < n[1] - 1) {
-                        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.push_back(math_operations::index(x, y+1, z, n[0], n[1]));
-                        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.push_back(1.0/norm);
-                        
-                    }
-
-                    // Neighbors in the z-direction (z±1)
-                    if (z > 0) {
-                        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.push_back(math_operations::index(x, y, z-1, n[0], n[1]));
-                        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.push_back(1.0/norm);
-                        
-                    }
-                    if (z < n[2] - 1) {
-                        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.push_back(math_operations::index(x, y, z+1, n[0], n[1]));
-                        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.push_back(1.0/norm);
-                    }
-                
-                    if (isBoundaryPoint(x, y, z)) {
-                        auto it = std::find(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.begin(),
-                        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.end(), i);
-        
-                        if (it == MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.end()) {
-                            // Add the boundary point if not already in the matrix.
-                            MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.push_back(i); // for diagonal entry
-                            MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.push_back(10.0); // large value to enforce the BC
-                        }
-                        else{
-                            size_t index = std::distance(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.begin(), it);
-                            MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values[index] = 10.0;
-                        }
-                    }
-
-                MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers[i + 1] = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.size();
-            }
-        }
-    }
-    
-    cl_int err;
-    laplacian_collect[0].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(int) * MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.size(), 
-        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers.data(), &err);
-
-    laplacian_collect[1].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(int) *  MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.size(), 
-        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns.data(), &err);
-
-    laplacian_collect[2].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(float) *  MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size(), 
-        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.data(), &err);
-    
-    INIT::getInstance().LAP_INIT = true;
-
-    CDGPU.setvalue(Piro::CellDataGPU::LAPLACIAN_CSR, laplacian_collect);
-    Piro::Equation::getInstance().sparsecount += MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size();
-    // printVector(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].rowpointers);
-    // printVector(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].columns);
-    // printVector(MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values);
-    // std::cout << MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size() << std::endl;
-    return 0;
-}
-

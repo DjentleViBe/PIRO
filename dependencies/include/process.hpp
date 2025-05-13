@@ -69,7 +69,7 @@ namespace Piro{
              * @param var2  Constant name
              * @return CLBuffer vector <rowpointers, coluns, values> of the CSR matrix.
              */
-            std::vector<CLBuffer> laplacian_CSR(std::string var1, std::string var2);
+            std::vector<CLBuffer> laplacian(std::string var1, std::string var2);
             /**
              * @brief OpenCL function to calulate divergence matrix of a variable.
              *
