@@ -36,6 +36,8 @@ namespace Piro{
             std::vector<int> rows;
             std::vector<int> rowpointers;
             std::vector<float> matrix;
+            std::vector<int> Hash_keys_V;
+            std::vector<float> Hash_val_V;
     };
 
     class AMR{
@@ -111,7 +113,7 @@ namespace Piro{
             enum ParameterIndex{
                 // int 
                 SOLVERSCHEME, TIMESCHEME, SPACESCHEME, RESTART, TOTALTIMESTEPS,
-                SAVE, DATATYPE, PROBING, 
+                SAVE, DATATYPE, PROBING, TABLE_SIZE,
                 // float
                 A, B, C, TIMESTEP, TOTALTIME, DELTA, DELTAT, LOADFACTOR,
                 // string

@@ -21,7 +21,9 @@ namespace Piro::kernelmethods{
                         Piro::CLBuffer partD);
    }
    namespace HT{
-      void TIMESCHEME_11();
+      void TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, 
+                        int TABLE_SIZE, cl_mem partB, Piro::CLBuffer partC,
+                        Piro::CLBuffer partD, float timestep);
    }
 }
 #endif

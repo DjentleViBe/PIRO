@@ -44,7 +44,7 @@ namespace Piro{
 
             }
             else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
-                Piro::kernelmethods::HT::TIMESCHEME_11();
+                Piro::kernelmethods::HT::TIMESCHEME_11(other, N, SP.getvalue<int>(Piro::SolveParams::TABLE_SIZE), this->buffer, partC, partD, timestep);
 
             }
             else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){

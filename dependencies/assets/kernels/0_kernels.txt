@@ -13,3 +13,4 @@ filter_row
 forward_substitution_csr
 backward_substitution_csr
 matrixMultiplyDENSE
+matrixMultiplyHT
