@@ -41,12 +41,12 @@
 | $\frac{d}{dx}$ | First order spatial derivative | `solver.grad_r("U")` | `Plan` |
 ***
 ### Schemes
-| Name | Description | Number | Status |
-| --- | --- | --- | --- |
+| Name | Description | Number | Status | DataType |
+| --- | --- | --- | --- | --- |
 | 1st order upwind | Space | 1 | `Plan` |
 | 1st order downwind | Space | 2 | `Plan` |
-| 1st order central difference | Space | 3 | `Release` |
-| Forward Euler | Time | 11 | `Release` |
+| 1st order central difference | Space | 3 | `Release` | ```DENSE``` ```CSR``` ```HT```
+| Forward Euler | Time | 11 | `Release` | ```DENSE``` ```CSR``` ```HT```
 | Backward Euler | Time | 12 | `Dev` |
 | Crank-Nicholson | Time | 13 | `Plan` |
 | Leapfrog | Time | 14 | `Plan` |
