@@ -13,6 +13,7 @@
 #include <cmath>
 #include <operatoroverload.hpp>
 #include <matrixoperations.hpp>
+#include <kernelprocess.hpp>
 
 namespace Piro{
     CLBuffer CLBuffer::operator=(const std::vector<CLBuffer>& other){
@@ -22,6 +23,7 @@ namespace Piro{
         std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     
         int N = n[0] * n[1] * n[2];
+        int nnz = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size();
         int P = 1;
         std::vector<float>A(N, 0.0);
         CLBuffer partC, partD;
@@ -29,45 +31,55 @@ namespace Piro{
                         sizeof(float) * N, A.data(), &err);
         partD.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(float) * N, A.data(), &err);
-        size_t globalWorkSize[1] = { (size_t)N };
+        
         Piro::SolveParams& SP = Piro::SolveParams::getInstance();
         float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
+
         if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 11){
             // Forward Euler
-            // std::cout << "Forward Euler" << std::endl;
+            if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
+                Piro::kernelmethods::CSR::TIMESCHEME_11(other, N, P, n, timestep, partC, partD, this->buffer);
+            }
+            else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
+                Piro::kernelmethods::DENSE::TIMESCHEME_11(other, N, P, timestep, this->buffer, partC, partD);
 
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 0, sizeof(cl_int), &N);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 1, sizeof(cl_int), &N);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 2, sizeof(cl_int), &P);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 3, sizeof(cl_mem), &other[2].buffer);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 4, sizeof(cl_mem), &other[1].buffer);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 5, sizeof(cl_mem), &other[0].buffer);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 6, sizeof(cl_float), &timestep);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 7, sizeof(cl_mem), &this->buffer);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 8, sizeof(cl_mem), &partC.buffer);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 9, sizeof(cl_int), &n[0]);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 10, sizeof(cl_int), &n[1]);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 11, sizeof(cl_int), &N);
-            
-            err = clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[8], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-            clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[0], 0, sizeof(cl_mem), &partD.buffer);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[0], 2, sizeof(cl_mem), &partC.buffer);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[0], 1, sizeof(cl_mem), &this->buffer);
-            err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[0], 3, sizeof(cl_uint), &N);
-            err = clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[0], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+            }
+            else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
+                Piro::kernelmethods::HT::TIMESCHEME_11(other, N, SP.getvalue<int>(Piro::SolveParams::TABLE_SIZE), this->buffer, partC, partD, timestep);
+
+            }
+            else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){
+                Piro::kernelmethods::COO::TIMESCHEME_11(other, N, nnz, n, timestep, partC, partD, this->buffer);
+
+            }
+            else{
+                Piro::logger::info("Wrong data type");
+                std::exit(1);
+            }
         }
 
         else if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 12){
-            // std::cout << "Backward Euler" << std::endl;
-                if(SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME) == 27){
-                    Piro::logger::info("LU Decomposition");
-                    if(INIT::getInstance().RHS_INIT == false){
-                        Piro::matrix_operations::lu_decomposition_HTLF(other);
-                        INIT::getInstance().RHS_INIT = true;
+            // Backward euler
+            if(SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME) == 27){
+                Piro::logger::info("LU Decomposition");
+                if(INIT::getInstance().RHS_INIT == false){
+                    if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
                     }
-                    Piro::logger::debug("RHS_INIT end" );
+                    else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
+                    }
+                    else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
+                        Piro::matrix_operations::HT::lu_decomposition(other);
+                    }
+                    else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){
+                    }
+                    else{
+                        Piro::logger::info("Wrong data type");
+                        std::exit(1);
+                    }
+                    INIT::getInstance().RHS_INIT = true;
                 }
+                Piro::logger::debug("RHS_INIT end" );
+            }
         }
         return partD;
     }

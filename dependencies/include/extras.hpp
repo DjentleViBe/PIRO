@@ -14,5 +14,6 @@ namespace Piro::vector_operations{
      * @return Flattened vector.
      */
     std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector);
+    std::vector<float> flattenvector(std::vector<std::vector<float>> twoDVector);
 }
 #endif

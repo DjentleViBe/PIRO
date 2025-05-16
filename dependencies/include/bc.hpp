@@ -58,6 +58,15 @@ namespace Piro::bc{
      */
     void opencl_setBC(int ind);
     /**
+     * @brief Check if the point is on boundary.
+     * @param x x index 
+     * @param y y index 
+     * @param z z index 
+     * This function compues whether a given point lies on the boundary of the domain
+     * @return TRUE if cell exists on boundary.
+     */
+    bool isBoundaryPoint(int x, int y, int z);
+    /**
      * @brief [Cell indices to print.]
      *
      * [Boundary values and cell indices to export.]

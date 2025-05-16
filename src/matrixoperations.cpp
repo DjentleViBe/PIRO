@@ -7,90 +7,39 @@
 #include <cmath>
 #include <matrixoperations.hpp>
 
-void Piro::matrix_operations::lu_decomposition_HTLF(const std::vector<CLBuffer>& other){
+void Piro::matrix_operations::HT::lu_decomposition(const std::vector<CLBuffer>& other){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     Piro::kernels& kernels = Piro::kernels::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     
     int N = n[0] * n[1] * n[2];
-    int index = MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM);
-    cl_int err;
+    int TS = SP.getvalue<int>(Piro::SolveParams::TABLE_SIZE);
+    // int index = MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM);
     cl_event event0 = nullptr;
     cl_event event1 = nullptr; 
-    cl_event event4, event5, event7, event8, event9;
+    cl_event event4, event5;
     cl_event events[] = {event0, event1};
     Piro::logger::debug("Buffer creation begin");
-    
-    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].rowpointers = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), other[0].buffer, N + 1, &event7);
-    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].columns = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), other[1].buffer, Piro::Equation::getInstance().sparsecount, &event8);
-    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index].values = Piro::opencl_utilities::copyCL<float>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), other[2].buffer, Piro::Equation::getInstance().sparsecount, &event9);
-
-    
     /////////////////////////////////////////////////////////////////////////////////////////
-    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[index];
-    CLBuffer LFvalues, LFkeys;
-    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
-    float load = SP.getvalue<float>(Piro::SolveParams::A) * pow(N, SP.getvalue<float>(Piro::SolveParams::B)) + SP.getvalue<float>(Piro::SolveParams::C);
-    // int TABLE_SIZE = nextPowerOf2(cd.columns.size() / load);
-    // int raw_size = cd.columns.size() / load;
-    // int TABLE_SIZE = next_prime(raw_size);
-    int TABLE_SIZE = Piro::Equation::getInstance().sparsecount / (load * SP.getvalue<float>(Piro::SolveParams::LOADFACTOR));
-    Piro::logger::debug("RHS_INIT begin, sparse count :", Piro::Equation::getInstance().sparsecount, ", Table size :" , TABLE_SIZE, ", Load factor :", load * SP.getvalue<float>(Piro::SolveParams::LOADFACTOR));
-    Piro::logger::warning("N * N :", N*N);
-    
-    LFvalues.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_WRITE , sizeof(float) * TABLE_SIZE, nullptr, &err);
-    LFkeys.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_WRITE , sizeof(int) * TABLE_SIZE, nullptr, &err);
-    err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 0, sizeof(cl_mem), &LFkeys.buffer);
-    err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 1, sizeof(cl_mem), &LFvalues.buffer);
-    err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 2, sizeof(cl_int), &N);
-    err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 4, sizeof(cl_int), &TABLE_SIZE);
+
+    clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 0, sizeof(cl_mem), &other[0]);
+    clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 1, sizeof(cl_mem), &other[1]);
+    clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 2, sizeof(cl_int), &N);
+    clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 4, sizeof(cl_int), &TS);
     Piro::logger::debug("Buffer creation end");
     size_t globalWorkSize[1];
     size_t localWorkSize[1];
-    int ind;
     Piro::logger::debug("Loop begin");
-    
-    std::vector<float> Hash_val_V(TABLE_SIZE, 0.0);
-    std::vector<int> Hash_keys_V(TABLE_SIZE, -1);
-    /////////////////////////////////////// Generate hash tables ///////////////////////////////////////////
-    for (int i = 0; i < N; i++){
-        int start = cd.rowpointers[i];
-        int end = cd.rowpointers[i + 1];
-        for(int j = start; j < end; j++){
-            int col = cd.columns[j];
-            int row = i;
+    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)];
 
-            ind = row * N + col;
-            Piro::methods::sethash(ind, cd.values[j], TABLE_SIZE, Hash_keys_V, Hash_val_V);
-        }
-    }
-    // hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
-    err = clEnqueueWriteBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), LFkeys.buffer, CL_FALSE, 
-                                0, 
-                                sizeof(int) * TABLE_SIZE,
-                                Hash_keys_V.data(), 
-                                0, nullptr, &event0);
-    // assert(Lap_rowptr_V.data() + rowouter != nullptr);
-    
-    err = clEnqueueWriteBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), LFvalues.buffer, CL_FALSE, 
-                                0, 
-                                sizeof(float) * TABLE_SIZE,
-                                Hash_val_V.data(), 
-                                0, nullptr, &event1);
-
-    // Wait for all transfers to complete
-    clWaitForEvents(2, events);
     int limit;
     for (int rowouter = 0; rowouter < N - 1; rowouter++){
-        Piro::logger::info("rowouter :", rowouter, ", HashTable size :", TABLE_SIZE);
+        Piro::logger::info("rowouter :", rowouter, ", HashTable size :", TS);
         std::vector<int> rowouter_cols;
-        
-        //Piro::logger::warning("Hashkeys:", Hash_keys_V);
-        //Piro::logger::warning("Hashvalues:", Hash_val_V);
-        // std::cout << Hash_val_V[141] << ", "<< Hash_keys_V[141] <<std::endl;
-        // extract rowouter
+
         for(int co = rowouter; co < N; co++){
-            float valofrow = Piro::methods::lookup(rowouter, co, N, Hash_keys_V, Hash_val_V, TABLE_SIZE);
+            float valofrow = Piro::methods::lookup(rowouter, co, N, cd.Hash_keys_V, cd.Hash_val_V, TS);
             if(std::abs(valofrow) > 1E-6){
                 rowouter_cols.push_back(co);
             }
@@ -98,47 +47,32 @@ void Piro::matrix_operations::lu_decomposition_HTLF(const std::vector<CLBuffer>&
         Piro::logger::warning("row outer", rowouter_cols);
         
         for (int r = rowouter + 1; r < N; ++r) {
-            if(Piro::methods::lookup(r, rowouter, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
+            if(Piro::methods::lookup(r, rowouter, N, cd.Hash_keys_V, cd.Hash_val_V, TS) == 0.0){
                 continue;
             }
 
             for (int col : rowouter_cols) {
                 // std::cout << col << ", ";
                 // if(col < rowouter) continue;
-                Piro::methods::lookupandset(r, col, N, 0.0f, Hash_keys_V, Hash_val_V, TABLE_SIZE);
-                /*
-                if(lookup(r, col, N, Hash_keys_V, Hash_val_V, TABLE_SIZE) == 0.0){
-                    // set the col in the hash table directly
-                    ind = r * N + col;
-                    // std::cout << "ind = " << ind << std::endl;
-                    sethash(ind, 0.0f, TABLE_SIZE, Hash_keys_V, Hash_val_V);
-                    // std::cout << col << ", ";
-                    
-                }*/
+                Piro::methods::lookupandset(r, col, N, 0.0f, cd.Hash_keys_V, cd.Hash_val_V, TS);
             }
 
         }
         
         Piro::logger::debug("Inserting 0s finished");
-        //Piro::logger::warning("Hashkeys:", Hash_keys_V);
-        //Piro::logger::warning("Hashvalues:", Hash_val_V);
-        // query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
-        //hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
-        //Piro::logger::warning("Hashkeys:", Hash_keys_V);
-        //Piro::logger::warning("Hashvalues:", Hash_val_V);
-        err = clEnqueueWriteBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
-                                    LFkeys.buffer, CL_FALSE, 
+        clEnqueueWriteBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
+                                    other[0].buffer, CL_FALSE, 
                                     0, 
-                                    sizeof(int) * TABLE_SIZE,
-                                    Hash_keys_V.data(), 
+                                    sizeof(int) * TS,
+                                    cd.Hash_keys_V.data(), 
                                     0, nullptr, &event0);
         // assert(Lap_rowptr_V.data() + rowouter != nullptr);
 
-        err = clEnqueueWriteBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
-                                    LFvalues.buffer, CL_FALSE, 
+        clEnqueueWriteBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
+                                    other[1].buffer, CL_FALSE, 
                                     0, 
-                                    sizeof(float) * TABLE_SIZE,
-                                    Hash_val_V.data(), 
+                                    sizeof(float) * TS,
+                                    cd.Hash_val_V.data(), 
                                     0, nullptr, &event1);
 
         // Wait for all transfers to complete
@@ -153,20 +87,19 @@ void Piro::matrix_operations::lu_decomposition_HTLF(const std::vector<CLBuffer>&
         globalWorkSize[0] = ((nnz + local - 1) / local) * local;
         localWorkSize[0] = local;
         // size_t localWorkSize[1] = { globalWorkSize[0] / 4 };
-        err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 5, sizeof(cl_int), &limit);
-        err |= clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 3, sizeof(cl_int), &rowouter);
-        err = clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 5, sizeof(cl_int), &limit);
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 3, sizeof(cl_int), &rowouter);
+        clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
                                     kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[10], 1, NULL, 
                                     globalWorkSize, localWorkSize, 0, NULL, NULL);
         clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
         Piro::logger::debug("Kernel finished");
-        Piro::opencl_utilities::copyCL_offset<float>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), LFvalues.buffer, Hash_val_V, 0, TABLE_SIZE, &event4);
-        Piro::opencl_utilities::copyCL_offset<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), LFkeys.buffer, Hash_keys_V, 0, TABLE_SIZE, &event5);
+        Piro::opencl_utilities::copyCL_offset<float>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), other[1].buffer, cd.Hash_val_V, 0, TS, &event4);
+        Piro::opencl_utilities::copyCL_offset<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), other[0].buffer, cd.Hash_keys_V, 0, TS, &event5);
         Piro::logger::debug("CopyCL");
         Piro::logger::debug("Erased");
-        //hash_to_dense_and_print(Hash_keys_V, Hash_val_V, N, TABLE_SIZE);
-        // query(83, Hash_keys_V, Hash_val_V, TABLE_SIZE);
         
     }
+    Piro::print_utilities::hash_to_dense_and_print(cd.Hash_keys_V, cd.Hash_val_V, N, TS);
 }
 

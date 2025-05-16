@@ -7,3 +7,4 @@ subtractVectors_constant
 multiplyVectors_constant
 divideVectors_constant
 subtractVectors_self
+matrixMultiply

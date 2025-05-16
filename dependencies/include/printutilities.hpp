@@ -43,9 +43,10 @@ namespace Piro::print_utilities{
      *
      * Prints an array to the console.
      * @param array a pointer to the array location.
-     * @param size size of the array.
+     * @param row number of rows of the array.
+     * @param cols number of columns of the array.
      */
-    void printArray(float* array, uint size);
+    void printArray(const float *matrix, int rows, int cols);
     /**
      * @brief print array of int / float type.
      *

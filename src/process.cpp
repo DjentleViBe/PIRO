@@ -12,6 +12,7 @@
 #include <CL/opencl.h>
 #include <logger.hpp>
 #include <openclutilities.hpp>
+#include <matrixgenerations.hpp>
 
 using namespace Piro;
 
@@ -150,37 +151,62 @@ CLBuffer process::laplacian_full(std::string var){
     return memC;
     }
 
-std::vector<CLBuffer> process::laplacian_CSR(std::string var1, std::string var2){
+std::vector<CLBuffer> process::laplacian(std::string var1, std::string var2){
     // int ind = matchscalartovar(var2);
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     if(INIT::getInstance().LAP_INIT == false){
-        laplacian_CSR_init(); // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
-        /*
-        if (MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[ind].type == 0){
-            // scale the values
-            cl_int err;
-            int N = MP.n[0] * MP.n[1] * MP.n[2];
-            std::vector<float>A(N, 0.0);
-            CLBuffer partC;
-            partC.buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                        sizeof(float) * N, A.data(), &err);
+        Piro::logger::info("Generating laplacian");
+        // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
+        if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
+            Piro::matrix_generations::CSR::laplacian();
+            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[0], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[1], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[2]};
+        }
+        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
+            Piro::matrix_generations::DENSE::laplacian();
+            return {CDGPU.getvalue<Piro::CLBuffer>(Piro::CellDataGPU::LAPLACIAN_DENSE)};
+        }
+        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
+            Piro::matrix_generations::HT::laplacian();
+            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_HT)[0], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_HT)[1]};
+        }
+        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){
+            Piro::matrix_generations::COO::laplacian();
+            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_COO)[0], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_COO)[1], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_COO)[2]};
+        }
+        else{
+            Piro::logger::info("Invlid DataType");
+            exit(1);
+        }
 
-            
-            size_t globalWorkSize[1] = { (size_t)N };
-            err |= clSetKernelArg(kernel_math[2], 0, sizeof(cl_mem), &partC.buffer);
-            err |= clSetKernelArg(kernel_math[2], 1, sizeof(cl_mem), &CDGPU.values_gpu[ind].buffer);
-            err |= clSetKernelArg(kernel_math[2], 2, sizeof(cl_mem), &CDGPU.laplacian_csr[2].buffer);
-            err |= clSetKernelArg(kernel_math[2], 3, sizeof(cl_uint), &N);
-            err = clEnqueueNDRangeKernel(queue, kernel_math[2], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-            */
-        return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[0], 
-                CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[1], 
-                CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[2]};
     }
     else{
-        return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[0], 
-                CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[1], 
-                CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[2]};
+        if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
+            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[0], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[1], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_CSR)[2]};
+        }
+        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
+            return {CDGPU.getvalue<Piro::CLBuffer>(Piro::CellDataGPU::LAPLACIAN_DENSE)};
+        }
+        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
+            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_HT)[0], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_HT)[1]};
+        }
+        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){
+            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_COO)[0], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_COO)[1], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::LAPLACIAN_COO)[2]};
+        }
+        else{
+            Piro::logger::info("Invlid DataType");
+            exit(1);
+        }
     }
 }
 

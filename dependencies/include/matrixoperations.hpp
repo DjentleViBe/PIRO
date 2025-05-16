@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace Piro::matrix_operations{
+    namespace HT{
     /**
      * @brief LU dcomposition function.
      *
@@ -12,6 +13,7 @@ namespace Piro::matrix_operations{
      *
      * @param other Open CL buffer to the RHS side of the equation. 
      */
-    void lu_decomposition_HTLF(const std::vector<CLBuffer>& other);
+    void lu_decomposition(const std::vector<CLBuffer>& other);
+    }
 }
 #endif
