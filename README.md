@@ -47,7 +47,7 @@
 | 1st order downwind | Space | 2 | `Plan` |
 | 1st order central difference | Space | 3 | `Release` | ```DENSE``` ```CSR``` ```HT```
 | Forward Euler | Time | 11 | `Release` | ```DENSE``` ```CSR``` ```HT```
-| Backward Euler | Time | 12 | `Dev` |
+| Backward Euler | Time | 12 | `Dev` |```HT```
 | Crank-Nicholson | Time | 13 | `Plan` |
 | Leapfrog | Time | 14 | `Plan` |
 | RK2 | Time | 15 | `Plan` |
