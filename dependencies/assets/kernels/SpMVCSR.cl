@@ -1,4 +1,4 @@
-__kernel void laplaciansparseMatrixMultiplyCSR(const int M,
+__kernel void SpMVCSR(const int M,
                                             const int K,
                                             const int R,
                                             __global const float* values_A,

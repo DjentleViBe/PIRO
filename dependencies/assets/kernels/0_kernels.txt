@@ -6,12 +6,12 @@ gradcalc4
 laplacianscalar
 lu_decompose_dense
 sparseMatrixMultiplyCSR
-laplaciansparseMatrixMultiplyCSR
+SpMVCSR
 laplacianvector
-filter_array
+lu_decompHT
 filter_row
 forward_substitution_csr
 backward_substitution_csr
-matrixMultiplyDENSE
-matrixMultiplyHT
-matrixMultiplyCOO
+SpMVDENSE
+SpMVHT
+SpMVCOO

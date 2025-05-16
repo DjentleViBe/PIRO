@@ -19,7 +19,7 @@ inline void lookup(int index, float* val, int* hk, __global float* Hash_val_V, _
     *hk = -1;
     }
 
-__kernel void matrixMultiplyHT(__global int *hashkey,
+__kernel void SpMVHT(__global int *hashkey,
                         __global float *hashvalue,
                         __global const float *B,
                         __global float *C, int N, const int TABLE_SIZE, float deltat){

@@ -1,4 +1,4 @@
-__kernel void matrixMultiplyDENSE(__global const float *A,
+__kernel void SpMVDENSE(__global const float *A,
                         __global const float *B,
                         __global float *C,
                         uint N, uint M, uint P, float deltat) {

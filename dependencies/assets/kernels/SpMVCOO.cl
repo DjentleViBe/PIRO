@@ -1,4 +1,4 @@
-__kernel void matrixMultiplyCOO(const int M,
+__kernel void SpMVCOO(const int M,
                                 const int K,
                                 const int nnz,
                                 __global const float* values_A,

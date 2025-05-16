@@ -19,7 +19,7 @@ void lookup(int index, float* val, int* hk, __global float* Hash_val_V, __global
     *hk = -1;
     }
 
-__kernel void filter_array(
+__kernel void lu_decompHT(
     __global int* hashkey,
     __global float* hashvalue,
     const int N,
