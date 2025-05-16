@@ -23,6 +23,7 @@ namespace Piro{
         std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     
         int N = n[0] * n[1] * n[2];
+        int nnz = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size();
         int P = 1;
         std::vector<float>A(N, 0.0);
         CLBuffer partC, partD;
@@ -48,7 +49,7 @@ namespace Piro{
 
             }
             else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){
-                Piro::kernelmethods::COO::TIMESCHEME_11();
+                Piro::kernelmethods::COO::TIMESCHEME_11(other, N, nnz, n, timestep, partC, partD, this->buffer);
 
             }
             else{
@@ -58,7 +59,7 @@ namespace Piro{
         }
 
         else if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 12){
-            // std::cout << "Backward Euler" << std::endl;
+            // Backward euler
             if(SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME) == 27){
                 Piro::logger::info("LU Decomposition");
                 if(INIT::getInstance().RHS_INIT == false){
