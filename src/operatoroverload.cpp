@@ -63,7 +63,19 @@ namespace Piro{
             if(SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME) == 27){
                 Piro::logger::info("LU Decomposition");
                 if(INIT::getInstance().RHS_INIT == false){
-                    Piro::matrix_operations::lu_decomposition_HTLF(other);
+                    if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
+                    }
+                    else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
+                    }
+                    else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
+                        Piro::matrix_operations::HT::lu_decomposition(other);
+                    }
+                    else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){
+                    }
+                    else{
+                        Piro::logger::info("Wrong data type");
+                        std::exit(1);
+                    }
                     INIT::getInstance().RHS_INIT = true;
                 }
                 Piro::logger::debug("RHS_INIT end" );
