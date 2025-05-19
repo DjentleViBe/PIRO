@@ -116,15 +116,7 @@ namespace Piro{
             clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[17], 5, sizeof(cl_mem), &partA[0].buffer);
             clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[17], 6, sizeof(cl_int), &ind2);
             clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[17], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-
-            std::vector<float> val = Piro::opencl_utilities::copyCL<float>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
-                                            partB[5].buffer, nnz, NULL);
-            std::vector<int> col = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
-                                            partB[4].buffer, nnz, NULL);
-            std::vector<int> rpt = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
-                                            partB[3].buffer, (N+1), NULL);
             
-            // Piro::print_utilities::csr_to_dense_and_print(rpt, col, val, N);
             clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[17], 0, sizeof(cl_int), &nnz);
             clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[17], 1, sizeof(cl_int), &N);
             clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[17], 2, sizeof(cl_mem), &partB[8].buffer);
@@ -176,8 +168,6 @@ namespace Piro{
                 clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
             }
 
-            Piro::INIT::getInstance().DOT_INIT = true;
-
             clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[20], 0, sizeof(cl_mem), &partB[2].buffer);
             clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[20], 1, sizeof(cl_mem), &partB[1].buffer);
             clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[20], 2, sizeof(cl_mem), &partB[0].buffer);
@@ -192,18 +182,10 @@ namespace Piro{
 
             clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[20], 1, NULL, globalWork, NULL, 0, NULL, NULL);
             clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
-
-            val = Piro::opencl_utilities::copyCL<float>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
-                                            partE[2].buffer, nnz*3, NULL);
-            col = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
-                                            partE[1].buffer, nnz*3, NULL);
-            rpt = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), 
-                                            partE[0].buffer, (N+1), NULL);
-            // Piro::print_utilities::csr_to_dense_and_print(rpt, col, val, N);
+            
             CDGPU.setvalue(Piro::CellDataGPU::RHS, partE);
-
+            Piro::INIT::getInstance().DOT_INIT = true;
         }
-        // Piro::logger::info("RHS : ");
         return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
