@@ -137,7 +137,6 @@ std::vector<CLBuffer> process::gradient(std::string var1){
     }
     else{
         if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
-            Piro::matrix_generations::CSR::gradient();
             return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[0], 
                     CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[1], 
                     CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[2],
