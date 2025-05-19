@@ -198,7 +198,6 @@ int Piro::CSR::gradient_uw(){
             }
         }
     }
-    Piro::logger::info("X num", cd.values.size());
     gradient_collect_x[0].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                                     sizeof(int) * cd.rowpointers.size(), 
                                                     cd.rowpointers.data(), &err);
@@ -239,7 +238,6 @@ int Piro::CSR::gradient_uw(){
             }
         }
     }
-    Piro::logger::info("Y num", cd.values.size());
     gradient_collect_y[0].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                                     sizeof(int) * cd.rowpointers.size(), 
                                                     cd.rowpointers.data(), &err);
@@ -281,7 +279,6 @@ int Piro::CSR::gradient_uw(){
             }
         }
     }
-    Piro::logger::info("Z num", cd.values.size());
     gradient_collect_z[0].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                                     sizeof(int) * cd.rowpointers.size(), 
                                                     cd.rowpointers.data(), &err);

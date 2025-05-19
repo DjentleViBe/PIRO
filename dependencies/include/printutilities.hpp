@@ -77,6 +77,10 @@ namespace Piro::print_utilities{
                                 const std::vector<int>& columns,
                                 const std::vector<float>& values,
                                 int N);
+    void csr_to_dense_and_print_2(std::vector<int>& row_pointer,
+                                const std::vector<int>& columns,
+                                const std::vector<float>& values,
+                                int N);
     /**
      * @brief print a dense matrix from a Hash Table.
      *

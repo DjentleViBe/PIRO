@@ -17,3 +17,6 @@ SpMVHT
 SpMVCOO
 SpMSCSR
 SpMACSR
+csrgeam_1
+csrgeam_2
+prefixsum

@@ -22,7 +22,7 @@ __kernel void SpMSCSR(const int M,
                         __global float* values_A,
                         __global const int* columns_A,
                         __global const int* rowPointers_A,
-                        __global float* B,
+                        __global const float* B,
                         const int ind) {
     int index = get_global_id(0);
     if(index > M) return;

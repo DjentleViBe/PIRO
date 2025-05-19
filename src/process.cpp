@@ -50,7 +50,7 @@ int process::matchvectortovar(std::string var){
 
 CLBuffer process::ddt_r(std::string var){
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
-    int ind = process::matchscalartovar(var);
+    int ind = process::matchscalartovar(var);            
     return CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[ind];
 }
 
