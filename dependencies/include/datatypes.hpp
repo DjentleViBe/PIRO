@@ -192,7 +192,7 @@ namespace Piro{
                 // int
                 VALUES_GPU, 
                 LAPLACIAN_CSR, LAPLACIAN_DENSE, LAPLACIAN_COO, LAPLACIAN_HT,
-                GRADIENT_CSR, GRADIEN_DENSE, GRADIENT_COO
+                GRADIENT_CSR, GRADIEN_DENSE, GRADIENT_COO, RHS
             };
 
             CellDataGPU(const CellDataGPU&) = delete;

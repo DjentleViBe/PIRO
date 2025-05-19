@@ -15,3 +15,5 @@ backward_substitution_csr
 SpMVDENSE
 SpMVHT
 SpMVCOO
+SpMSCSR
+SpMACSR

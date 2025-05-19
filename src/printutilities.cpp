@@ -148,9 +148,9 @@ void Piro::print_utilities::hash_to_dense_and_print(std::vector<int> Hashkeys, s
 }
 
 void Piro::print_utilities::csr_to_dense_and_print(const std::vector<int>& row_pointer,
-    const std::vector<int>& columns,
-    const std::vector<float>& values,
-    int N) {
+                                                    const std::vector<int>& columns,
+                                                    const std::vector<float>& values,
+                                                    int N) {
     // Initialize a dense matrix with zeros
     std::vector<std::vector<float>> dense_matrix(N, std::vector<float>(N, 0.0f));
 

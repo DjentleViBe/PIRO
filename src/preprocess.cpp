@@ -140,7 +140,7 @@ int Piro::preprocess(const std::string& name) {
         // push vector data to gpu
         CDGPU_collect.push_back(CD_GPU);
         CDGPU_collect[i].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                        sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values.data(), &err);
+                        sizeof(float) * N * 3, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values.data(), &err);
         
     }
     CDGPU.setvalue(Piro::CellDataGPU::VALUES_GPU, CDGPU_collect);
@@ -165,6 +165,12 @@ int Piro::preprocess(const std::string& name) {
         SP.setvalue(Piro::SolveParams::C, std::stof(reader_data.get("Table", "c", "default_value")));
     }
     Piro::bc::readbc();
+    // laplacian operator
+    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
+    // gradient operator
+    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
+    // divergence operator
+    MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
     Piro::logger::info("Preprocess step completed");
     return 0;
 }

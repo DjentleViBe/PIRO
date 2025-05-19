@@ -31,6 +31,7 @@ void Piro::kernelmethods::CSR::TIMESCHEME_11(const std::vector<CLBuffer>& other,
     clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[0], 2, sizeof(cl_mem), &partC.buffer);
     clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[0], 3, sizeof(cl_uint), &N);
     clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[0], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+    clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
 }
 
 void Piro::kernelmethods::DENSE::TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int P, float timestep, 

@@ -112,6 +112,9 @@ namespace Piro{
             INIT& operator=(const INIT&) = delete;
             bool RHS_INIT;
             bool LAP_INIT;
+            bool GRAD_INIT;
+            bool DIV_INIT;
+            bool DOT_INIT;
             int ts;
         private:
             INIT() 

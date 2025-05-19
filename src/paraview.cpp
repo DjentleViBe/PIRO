@@ -43,7 +43,7 @@ std::string Piro::paraview::writevti(Piro::AMR AMR){
     level += "</PointData>\n";
     level += "<CellData>\n";
     
-    for(int l = 0; l < AMR.CD.size(); l++){
+    for(int l = 0; l < AMR.CD.size() - 3; l++){
         
         if(AMR.CD[l].type == 0){
             
