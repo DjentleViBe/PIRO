@@ -118,7 +118,7 @@ namespace Piro{
             int ts;
         private:
             INIT() 
-                : RHS_INIT(false), LAP_INIT(false), ts(0) {}
+                : RHS_INIT(false), LAP_INIT(false), GRAD_INIT(false), DOT_INIT(false), ts(0) {}
     };
 }
 
