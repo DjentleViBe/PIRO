@@ -37,13 +37,14 @@
 | Name | Description | Syntax | Status |
 | --- | --- | --- | --- |
 | $\frac{d}{dt}$ | First order time derivative | `solver.ddt_r("U")` | `Release` |
-| $\alpha$ . $\nabla^2$ | Laplacian | `solver.laplacian_CSR("U", "Alpha")` | `Release` |
-| $\frac{d}{dx}$ | First order spatial derivative | `solver.grad_r("U")` | `Plan` |
+| $\alpha$ . $\nabla^2$ | Laplacian | `solver.laplacian("U", "Alpha")` | `Release` |
+| $\frac{d}{dx}$ | First order spatial derivative | `solver.gradient("U")` | `Release` |
+| $\vec{v}$ . $\nabla$ | Directional derivative along $\vec{v}$  | `solver.vector("v") & solver.gradient("U")` | `Release` |
 ***
 ### Schemes
 | Name | Description | Number | Status | DataType |
 | --- | --- | --- | --- | --- |
-| 1st order upwind | Space | 1 | `Plan` |
+| 1st order upwind | Space | 1 | `Release` |```CSR```
 | 1st order downwind | Space | 2 | `Plan` |
 | 1st order central difference | Space | 3 | `Release` | ```DENSE``` ```CSR``` ```HT```
 | Forward Euler | Time | 11 | `Release` | ```DENSE``` ```CSR``` ```HT```
