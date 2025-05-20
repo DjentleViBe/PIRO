@@ -33,12 +33,12 @@ __kernel void csrgeam_2(__global const float* values_A,
     int i = a_start;
     int j = b_start;
     int k = c_start;
-    while(i < a_end && j < b_end){
+    while(i < a_end && j < b_end && k < c_end){
         
         int colA = columns_A[i];
         int colB = columns_B[j];
         int colC = columns_C[k];
-        int min_col = min(colA, colB);
+        int min_col = min(colA, min(colC, colB));
         if(colA == min_col){
             // printf("values[%d] = %f\n", i, values_A[i]);
             columns_D[d_index] = colA;
@@ -51,11 +51,18 @@ __kernel void csrgeam_2(__global const float* values_A,
             values_D[d_index]  = values_B[j];
             j++;
         }
+        else if(colC == min_col){
+            // printf("values[%d] = %f\n", i, values_B[i]);
+            columns_D[d_index] = colC;
+            values_D[d_index]  = values_C[k];
+            k++;
+        }
         else{
-            columns_D[d_index] = colA;  // colA == colB
-            values_D[d_index]  = values_A[i] + values_B[j];
+            columns_D[d_index] = colA;  // colA == colB == colC
+            values_D[d_index]  = values_A[i] + values_B[j] + values_C[k];
             i++;
             j++;
+            k++;
         }
         d_index++;
     }
@@ -70,6 +77,12 @@ __kernel void csrgeam_2(__global const float* values_A,
         columns_D[d_index] = columns_B[j];
         values_D[d_index]  = values_B[j];
         j++;
+        d_index++;
+    }
+    while(k < c_end){
+        columns_D[d_index] = columns_C[k];
+        values_D[d_index]  = values_C[k];
+        k++;
         d_index++;
     }
 }

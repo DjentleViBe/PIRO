@@ -24,12 +24,12 @@ __kernel void csrgeam_1(__global const int* columns_A,
     int j = b_start;
     int k = c_start;
     int count = 0;
-    while(i < a_end && j < b_end){
+    while(i < a_end && j < b_end && k < c_end){
         
         int colA = columns_A[i];
         int colB = columns_B[j];
         int colC = columns_C[k];
-        int min_col = min(colA, colB);
+        int min_col = min(colA, min(colC, colB));
 
         if(colA == min_col){
             i++;
@@ -39,10 +39,15 @@ __kernel void csrgeam_1(__global const int* columns_A,
             j++;
             count++;
         }
+        else if(colC == min_col){
+            k++;
+            count++;
+        }
         else{
             count++;
             i++;
             j++;
+            k++;
         }
     }
 
@@ -53,6 +58,10 @@ __kernel void csrgeam_1(__global const int* columns_A,
     while(j < b_end){
         count++;
         j++;
+    }
+    while(k < c_end){
+        count++;
+        k++;
     }
 
     phase_one[row] = count;
