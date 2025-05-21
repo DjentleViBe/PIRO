@@ -163,38 +163,44 @@ std::vector<CLBuffer> process::vector(std::string var1){
 std::vector<CLBuffer> process::div(std::string var1, std::string var2){
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    Piro::kernels& kernels = Piro::kernels::getInstance();
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    int N = 3 * (n[0] * n[1] * n[2]);
+    size_t globalWorkSize[1] = { (size_t)N };
+    int token1 = process::matchscalartovar(var1);
     int token2 = process::matchscalartovar(var2);
-    if(INIT::getInstance().DIV_INIT == false){
-        Piro::logger::info("Generating divergence");
-        // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
-        if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
+        
+    // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
+    if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
+        if(INIT::getInstance().DIV_INIT == false){
+            Piro::logger::info("Generating divergence");
             Piro::matrix_generations::CSR::div();
-            auto& partA = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[token2];
-            auto& partB = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR);
-            Piro::kernelmethods::csrgeam({partA}, partB);
+            Piro::logger::info("Generating divergence : complete");
+        }
+        auto& partA = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[token2];
+        auto& partB = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR);
+        auto& partC = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[token1];
+        // scale token 2 by token 1
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 0, sizeof(cl_mem), &partC);
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 1, sizeof(cl_mem), &partA);
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 2, sizeof(cl_uint), &N);
+        clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+        clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
+        
+        Piro::kernelmethods::csrgeam({partA}, partB);
 
-            partB[0].ind = token2;
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
-        }
-        else{
-            Piro::logger::info("Invalid DataType");
-            exit(1);
-        }
+        partB[0].ind = token2;
+        return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
+                CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
+                CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
     }
     else{
-        if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
-        }
-        else{
-            Piro::logger::info("Invalid DataType");
-            exit(1);
-        }
+        Piro::logger::info("Invalid DataType");
+        exit(1);
     }
 }
+
 scalarMatrix::scalarMatrix(CLBuffer SM) : smatrix(SM) {
     // No assignment operator is used here
 }
