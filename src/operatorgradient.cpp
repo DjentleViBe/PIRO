@@ -32,13 +32,13 @@ int Piro::CSR::gradient(){
     gradient_collect_x.push_back(CD_GPU);
     gradient_collect_x.push_back(CD_GPU);
     if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
-        Piro::stencils::gradient_cd_x(cd, n, norm);
+        Piro::CSR::stencils::gradient_cd_x(cd, n, norm);
     }
     else if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 2){
-        Piro::stencils::gradient_dw_x(cd, n, norm);
+        Piro::CSR::stencils::gradient_dw_x(cd, n, norm);
     }
     else if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 1){
-        Piro::stencils::gradient_uw_x(cd, n, norm);
+        Piro::CSR::stencils::gradient_uw_x(cd, n, norm);
     }
     
     
@@ -60,13 +60,13 @@ int Piro::CSR::gradient(){
     gradient_collect_y.push_back(CD_GPU);
     gradient_collect_y.push_back(CD_GPU);
     if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
-        Piro::stencils::gradient_cd_y(cd, n, norm);
+        Piro::CSR::stencils::gradient_cd_y(cd, n, norm);
     }
     else if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 2){
-        Piro::stencils::gradient_dw_y(cd, n, norm);
+        Piro::CSR::stencils::gradient_dw_y(cd, n, norm);
     }
     else if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 1){
-        Piro::stencils::gradient_uw_y(cd, n, norm);
+        Piro::CSR::stencils::gradient_uw_y(cd, n, norm);
     }
     gradient_collect_y[0].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                                     sizeof(int) * cd.rowpointers.size(), 
@@ -87,13 +87,13 @@ int Piro::CSR::gradient(){
     gradient_collect_z.push_back(CD_GPU);
 
     if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
-        Piro::stencils::gradient_cd_z(cd, n, norm);
+        Piro::CSR::stencils::gradient_cd_z(cd, n, norm);
     }
     else if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 2){
-        Piro::stencils::gradient_dw_z(cd, n, norm);
+        Piro::CSR::stencils::gradient_dw_z(cd, n, norm);
     }
     else if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 1){
-        Piro::stencils::gradient_uw_z(cd, n, norm);
+        Piro::CSR::stencils::gradient_uw_z(cd, n, norm);
     }
     gradient_collect_z[0].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                                     sizeof(int) * cd.rowpointers.size(), 

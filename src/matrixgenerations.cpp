@@ -15,60 +15,26 @@
 #include <string>
 
 int Piro::matrix_generations::CSR::laplacian(){
-    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
-    if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
-        Piro::CSR::laplacian_cd();
-    }
-    else{
-
-    }
-    
+    Piro::CSR::laplacian();
     return 0;
 }
 
 int Piro::matrix_generations::DENSE::laplacian(){
-    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
-    if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
-        Piro::DENSE::laplacian_cd();
-    }
-    else{
-
-    }
-    
+    Piro::DENSE::laplacian();
     return 0;
 }
 
 int Piro::matrix_generations::COO::laplacian(){
-    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
-    if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
-         Piro::COO::laplacian_cd();
-    }
-    else{
-
-    }
-   
+    Piro::COO::laplacian();
     return 0;
 }
 
 int Piro::matrix_generations::HT::laplacian(){
-    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
-    if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
-        Piro::HT::laplacian_cd();
-    }
-    else{
-        
-    }
+    Piro::HT::laplacian();
     return 0;
 }
 
 int Piro::matrix_generations::CSR::gradient(){
-    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
-    if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
-        Piro::CSR::gradient_cd();
-    }
-    else{
-        Piro::CSR::gradient_uw();
-    }
-    
+    Piro::CSR::gradient();
     return 0;
 }

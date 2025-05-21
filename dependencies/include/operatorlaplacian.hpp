@@ -3,16 +3,16 @@
 
 namespace Piro{
     namespace CSR{
-        int laplacian_cd();
+        int laplacian();
     }
     namespace DENSE{
-        int laplacian_cd();
+        int laplacian();
     }
     namespace COO{
-        int laplacian_cd();
+        int laplacian();
     }
     namespace HT{
-        int laplacian_cd();
+        int laplacian();
     }
 }
 #endif
