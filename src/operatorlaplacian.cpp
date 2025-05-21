@@ -9,7 +9,7 @@
 #include <logger.hpp>
 #include <methods.hpp>
 
-int Piro::CSR::laplacian(){
+int Piro::CSR::laplacian_cd(){
     Piro::CLBuffer CD_GPU;
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
@@ -111,7 +111,7 @@ int Piro::CSR::laplacian(){
     return 0;
 }
 
-int Piro::DENSE::laplacian(){
+int Piro::DENSE::laplacian_cd(){
     Piro::CellData CD;
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
@@ -189,7 +189,7 @@ int Piro::DENSE::laplacian(){
     return 0;
 }
 
-int Piro::COO::laplacian(){
+int Piro::COO::laplacian_cd(){
     Piro::CLBuffer CD_GPU;
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
@@ -298,7 +298,7 @@ int Piro::COO::laplacian(){
     return 0;
 }
 
-int Piro::HT::laplacian(){
+int Piro::HT::laplacian_cd(){
     Piro::CLBuffer CD_GPU;
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();

@@ -15,22 +15,49 @@
 #include <string>
 
 int Piro::matrix_generations::CSR::laplacian(){
-    Piro::CSR::laplacian();
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
+        Piro::CSR::laplacian_cd();
+    }
+    else{
+
+    }
+    
     return 0;
 }
 
 int Piro::matrix_generations::DENSE::laplacian(){
-    Piro::DENSE::laplacian();
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
+        Piro::DENSE::laplacian_cd();
+    }
+    else{
+
+    }
+    
     return 0;
 }
 
 int Piro::matrix_generations::COO::laplacian(){
-    Piro::COO::laplacian();
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
+         Piro::COO::laplacian_cd();
+    }
+    else{
+
+    }
+   
     return 0;
 }
 
 int Piro::matrix_generations::HT::laplacian(){
-    Piro::HT::laplacian();
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    if(SP.getvalue<int>(Piro::SolveParams::SPACESCHEME) == 3){
+        Piro::HT::laplacian_cd();
+    }
+    else{
+        
+    }
     return 0;
 }
 
