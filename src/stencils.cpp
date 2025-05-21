@@ -991,6 +991,12 @@ void Piro::HT::stencils::laplacian_dw(Piro::CellData& cd, std::vector<uint> n, f
     }
 }   
 
-void Piro::CSR::stencils::div_cd(Piro::CellData& cd, std::vector<uint> n, float norm){
-
-}
+void Piro::CSR::stencils::div_uw_x(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_uw_x(cd, n, norm);}
+void Piro::CSR::stencils::div_uw_y(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_uw_y(cd, n, norm);}
+void Piro::CSR::stencils::div_uw_z(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_uw_z(cd, n, norm);}
+void Piro::CSR::stencils::div_cd_x(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_cd_x(cd, n, norm);}
+void Piro::CSR::stencils::div_cd_y(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_cd_y(cd, n, norm);}
+void Piro::CSR::stencils::div_cd_z(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_cd_z(cd, n, norm);}
+void Piro::CSR::stencils::div_dw_x(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_dw_x(cd, n, norm);}
+void Piro::CSR::stencils::div_dw_y(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_dw_y(cd, n, norm);}
+void Piro::CSR::stencils::div_dw_z(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_dw_z(cd, n, norm);}

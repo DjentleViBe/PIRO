@@ -50,8 +50,10 @@ int process::matchvectortovar(std::string var){
 
 CLBuffer process::ddt_r(std::string var){
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
-    int ind = process::matchscalartovar(var);            
-    return CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[ind];
+    int token = process::matchscalartovar(var);
+    auto& vec = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU);
+    vec[token].ind = token;
+    return vec[token];
 }
 
 std::vector<CLBuffer> process::laplacian(std::string var1, std::string var2){
@@ -116,19 +118,15 @@ std::vector<CLBuffer> process::laplacian(std::string var1, std::string var2){
 std::vector<CLBuffer> process::gradient(std::string var1){
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    int token = process::matchscalartovar(var1);
+
     if(INIT::getInstance().GRAD_INIT == false){
         // Piro::logger::info("Generating gradient");
         if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
             Piro::matrix_generations::CSR::gradient();
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[0], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[1], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[2],
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[3], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[4], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[5],
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[6], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[7], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[8]};
+            auto& mat = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR);
+            mat[0].ind = token;
+            return {mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8]};
         }
         else{
             Piro::logger::info("Invalid DataType");
@@ -137,15 +135,8 @@ std::vector<CLBuffer> process::gradient(std::string var1){
     }
     else{
         if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[0], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[1], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[2],
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[3], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[4], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[5],
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[6], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[7], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR)[8]};
+            auto& mat = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::GRADIENT_CSR);
+            return {mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8]};
         }
         else{
             Piro::logger::info("Invalid DataType");

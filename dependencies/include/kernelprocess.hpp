@@ -9,7 +9,7 @@ namespace Piro::kernelmethods{
       void TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int P, 
                      std::vector<uint> n,
                      float timestep, Piro::CLBuffer partC, 
-                     Piro::CLBuffer partD, cl_mem partB);
+                     Piro::CLBuffer partD, cl_mem RHS_vec, cl_mem LHS_vec);
    }
    namespace COO{
       void TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int nnz, 

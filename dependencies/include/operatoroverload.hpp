@@ -9,6 +9,7 @@ namespace Piro{
     class CLBuffer{
         public:
             cl_mem buffer;
+            int ind;
             CLBuffer operator=(const std::vector<CLBuffer>& other);
     
     };

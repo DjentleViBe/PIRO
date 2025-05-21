@@ -38,7 +38,9 @@ namespace Piro{
         if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 11){
             // Forward Euler
             if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
-                Piro::kernelmethods::CSR::TIMESCHEME_11(other, N, P, n, timestep, partC, partD, this->buffer);
+                if(other[0].ind == this->ind){
+                    Piro::kernelmethods::CSR::TIMESCHEME_11(other, N, P, n, timestep, partC, partD, this->buffer, this->buffer);
+                }
             }
             else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
                 Piro::kernelmethods::DENSE::TIMESCHEME_11(other, N, P, timestep, this->buffer, partC, partD);

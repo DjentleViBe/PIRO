@@ -19,12 +19,15 @@ namespace Piro::matrix_generations{
     }
     namespace DENSE{
         int laplacian();
+        int div();
     }
     namespace HT{
         int laplacian();
+        int div();
     }
     namespace COO{
         int laplacian();
+        int div();
     }
 }
 
