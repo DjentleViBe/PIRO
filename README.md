@@ -34,20 +34,21 @@
 - __Benchmarking__ tools and diagnostics. 
 
 ### Operators
-| Name | Description | Syntax | Status |
-| --- | --- | --- | --- |
-| $\frac{d}{dt}$ | First order time derivative | `solver.ddt_r("U")` | `Release` |
-| $\alpha$ . $\nabla^2$ | Laplacian | `solver.laplacian_CSR("U", "Alpha")` | `Release` |
-| $\frac{d}{dx}$ | First order spatial derivative | `solver.grad_r("U")` | `Plan` |
+| Name | Description | Syntax | Status | DataType
+| --- | --- | --- | --- | --- |
+| $\frac{d}{dt}$ | First order time derivative | `solver.ddt_r("U")` | `Release` | ```DENSE```
+| $\alpha$ . $\nabla^2$ | Laplacian | `solver.laplacian("U", "Alpha")` | `Release` | ```DENSE``` ```CSR``` ```COO``` ```HT```
+| $\frac{d}{dx}$ | First order spatial derivative | `solver.gradient("U")` | `Release` |```CSR```
+| $\vec{v}$ . $\nabla$ | Directional derivative along $\vec{v}$  | `solver.vector("v") & solver.gradient("U")` | `Release` | ```CSR```
 ***
 ### Schemes
-| Name | Description | Number | Status | DataType |
-| --- | --- | --- | --- | --- |
-| 1st order upwind | Space | 1 | `Plan` |
+| Name | Description | Number | Status |
+| --- | --- | --- | --- |
+| 1st order upwind | Space | 1 | `Release` |
 | 1st order downwind | Space | 2 | `Plan` |
-| 1st order central difference | Space | 3 | `Release` | ```DENSE``` ```CSR``` ```HT```
-| Forward Euler | Time | 11 | `Release` | ```DENSE``` ```CSR``` ```HT```
-| Backward Euler | Time | 12 | `Dev` |```HT```
+| 1st order central difference | Space | 3 | `Release` | 
+| Forward Euler | Time | 11 | `Release` | 
+| Backward Euler | Time | 12 | `Dev` |
 | Crank-Nicholson | Time | 13 | `Plan` |
 | Leapfrog | Time | 14 | `Plan` |
 | RK2 | Time | 15 | `Plan` |

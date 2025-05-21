@@ -12,6 +12,8 @@ namespace Piro{
             CLBuffer operator=(const std::vector<CLBuffer>& other);
     
     };
+
+    std::vector<CLBuffer> operator&(std::vector<CLBuffer> partA, std::vector<CLBuffer> partB);
     CLBuffer operator*(CLBuffer partA, CLBuffer partB);
     CLBuffer operator*(const float partA, CLBuffer partB);
     CLBuffer operator+(CLBuffer partA, Piro::CLBuffer partB);

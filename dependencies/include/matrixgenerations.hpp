@@ -1,6 +1,8 @@
 #ifndef mathgeneration_hpp
 #define mathgeneration_hpp
 
+#include <string>
+
 namespace Piro::matrix_generations{
     namespace CSR{  
         /**
@@ -12,6 +14,7 @@ namespace Piro::matrix_generations{
          * @return TRUE if successful.
          */
         int laplacian();
+        int gradient();
     }
     namespace DENSE{
         int laplacian();
@@ -23,4 +26,6 @@ namespace Piro::matrix_generations{
         int laplacian();
     }
 }
+
+
 #endif

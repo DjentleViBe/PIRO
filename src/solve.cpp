@@ -24,7 +24,8 @@ int Piro::solve(){
         // Piro::scalarMatrix UEqn(solver.ddc_r("Hbar") * solver.ddt_r("Psi") + \
         //                        solver.ddc_r("Hbar2m") * solver.laplacian_r("Psi") - \
         //                        solver.r("Psi"));    
-        Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.laplacian("U", "Alpha"));
+        // Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.laplacian("U", "Alpha"));
+        Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.vector("v") & solver.gradient("U"));
         UEqn.Solve(time);
         time += SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
         

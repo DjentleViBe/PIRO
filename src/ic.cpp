@@ -76,6 +76,7 @@ std::vector<float> Piro::initialcondition(int index){
         
     }
     else if (MP.getvalue<std::vector<std::string>>(Piro::MeshParams::ICFILES)[index] == "UniformVector"){
+        Piro::logger::info("Uniform vector initialisation");
         values.assign(n[0] * n[1] * n[2] * 3, 0.0);
         std::vector<float> vectordir = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Vector", "Direction", "default_value"), ' '));
         std::vector<float> vecval = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Vector", "Value", "default_value"), ' '));

@@ -11,6 +11,8 @@
 #include <printutilities.hpp>
 #include <methods.hpp>
 #include <operatorlaplacian.hpp>
+#include <operatorgradient.hpp>
+#include <string>
 
 int Piro::matrix_generations::CSR::laplacian(){
     Piro::CSR::laplacian();
@@ -29,5 +31,10 @@ int Piro::matrix_generations::COO::laplacian(){
 
 int Piro::matrix_generations::HT::laplacian(){
     Piro::HT::laplacian();
+    return 0;
+}
+
+int Piro::matrix_generations::CSR::gradient(){
+    Piro::CSR::gradient();
     return 0;
 }

@@ -35,6 +35,7 @@ namespace Piro{
              * @return index number
              */
             int matchconstanttovar(std::string var);
+            int matchvectortovar(std::string var);
             /**
              * @brief OpenCL function to calulate time derivate of a variable.
              *
@@ -45,23 +46,6 @@ namespace Piro{
              */
             CLBuffer ddt_r(std::string var);
             /**
-             * @brief Constant.
-             *
-             * retreives the value of the constant
-             * @param var Constant name
-             * @return number
-             */
-            const float ddc_r(std::string var);
-            CLBuffer r(std::string var);
-            /**
-             * @brief OpenCL function to calulate laplacian of a variable.
-             *
-             * Computes the laplacian of the input scalar / vector.
-             * @param var Scalar / vector name
-             * @return CLBuffer location
-             */
-            CLBuffer laplacian_full(std::string var);
-            /**
              * @brief OpenCL function to calulate laplacian matrix of a scalar / vector variable.
              *
              * Computes the laplacian of the input scalar / vector and multiples by a constant.
@@ -70,15 +54,10 @@ namespace Piro{
              * @return CLBuffer vector <rowpointers, coluns, values> of the CSR matrix.
              */
             std::vector<CLBuffer> laplacian(std::string var1, std::string var2);
-            /**
-             * @brief OpenCL function to calulate divergence matrix of a variable.
-             *
-             * Computes the laplacian of the input scalar / vector.
-             * @param var1 Scalar / vector name
-             * @param var2 Scalar / vector name
-             * @return CLBuffer location
-             */
-            CLBuffer div_r(std::string var1, std::string var2);
+
+            std::vector<CLBuffer> gradient(std::string var1);
+
+            std::vector<CLBuffer> vector(std::string var1);
     };
 
     class scalarMatrix{
