@@ -21,9 +21,9 @@ int Piro::solve(){
         // Heat Eq : 
         // Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.laplacian("U", "Alpha"));
         // Advection Eq :
-        Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.vector("v") & solver.gradient("U"));
+        // Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.vector("v") & solver.gradient("U"));
         // Continuity Eq : 
-        // Piro::scalarMatrix UEqn(solver.ddt_r("rho") = solver.div("rho", "u"));
+        Piro::scalarMatrix UEqn(solver.ddt_r("rho") = solver.div("rho", "u"));
         UEqn.Solve(time);
         time += SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
         

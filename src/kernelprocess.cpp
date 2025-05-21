@@ -4,7 +4,7 @@
 #include <datatypes.hpp>
 #include <logger.hpp>
 
-void Piro::kernelmethods::CSR::TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int P, 
+void Piro::kernelsolve::CSR::TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int P, 
                                         std::vector<uint> n, float timestep, 
                                         Piro::CLBuffer partC, Piro::CLBuffer partD, 
                                         cl_mem RHS_vec, cl_mem LHS_vec){
@@ -35,7 +35,7 @@ void Piro::kernelmethods::CSR::TIMESCHEME_11(const std::vector<CLBuffer>& other,
     clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
 }
 
-void Piro::kernelmethods::DENSE::TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int P, float timestep, 
+void Piro::kernelsolve::DENSE::TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int P, float timestep, 
                                                 cl_mem partB, Piro::CLBuffer partC,
                                                 Piro::CLBuffer partD){
     // A * x
@@ -61,7 +61,7 @@ void Piro::kernelmethods::DENSE::TIMESCHEME_11(const std::vector<CLBuffer>& othe
     clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
 }
 
-void Piro::kernelmethods::HT::TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int TABLE_SIZE, 
+void Piro::kernelsolve::HT::TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int TABLE_SIZE, 
                                             cl_mem partB, Piro::CLBuffer partC, 
                                             Piro::CLBuffer partD, float timestep){
     Piro::kernels& kernels = Piro::kernels::getInstance();
@@ -86,7 +86,7 @@ void Piro::kernelmethods::HT::TIMESCHEME_11(const std::vector<CLBuffer>& other, 
 
 }
 
-void Piro::kernelmethods::COO::TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int nnz, 
+void Piro::kernelsolve::COO::TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int nnz, 
                                         std::vector<uint> n, float timestep, 
                                         Piro::CLBuffer partC, Piro::CLBuffer partD, 
                                         cl_mem partB){

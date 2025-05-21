@@ -13,6 +13,7 @@
 #include <logger.hpp>
 #include <openclutilities.hpp>
 #include <matrixgenerations.hpp>
+#include <kernelmethods.hpp>
 
 using namespace Piro;
 
@@ -162,56 +163,34 @@ std::vector<CLBuffer> process::vector(std::string var1){
 std::vector<CLBuffer> process::div(std::string var1, std::string var2){
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    int token2 = process::matchscalartovar(var2);
     if(INIT::getInstance().DIV_INIT == false){
-        Piro::logger::info("Generating laplacian");
+        Piro::logger::info("Generating divergence");
         // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
         if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
             Piro::matrix_generations::CSR::div();
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR)[0], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR)[1], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR)[2]};
-        }
-        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
-            Piro::matrix_generations::DENSE::div();
-            return {CDGPU.getvalue<Piro::CLBuffer>(Piro::CellDataGPU::DIV_DENSE)};
-        }
-        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
-            Piro::matrix_generations::HT::div();
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_HT)[0], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_HT)[1]};
-        }
-        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){
-            Piro::matrix_generations::COO::div();
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_COO)[0], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_COO)[1], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_COO)[2]};
+            auto& partA = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[token2];
+            auto& partB = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR);
+            Piro::kernelmethods::csrgeam({partA}, partB);
+
+            partB[0].ind = token2;
+            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
         }
         else{
             Piro::logger::info("Invalid DataType");
             exit(1);
         }
-
     }
     else{
         if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR)[0], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR)[1], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR)[2]};
-        }
-        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
-            return {CDGPU.getvalue<Piro::CLBuffer>(Piro::CellDataGPU::DIV_DENSE)};
-        }
-        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_HT)[0], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_HT)[1]};
-        }
-        else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){
-            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_COO)[0], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_COO)[1], 
-                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_COO)[2]};
+            return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
+                    CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
         }
         else{
-            Piro::logger::info("Invlid DataType");
+            Piro::logger::info("Invalid DataType");
             exit(1);
         }
     }
