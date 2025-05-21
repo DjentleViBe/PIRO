@@ -12,6 +12,7 @@
 #include <methods.hpp>
 #include <operatorlaplacian.hpp>
 #include <operatorgradient.hpp>
+#include <operatordivergence.hpp>
 #include <string>
 
 int Piro::matrix_generations::CSR::laplacian(){
@@ -36,5 +37,10 @@ int Piro::matrix_generations::HT::laplacian(){
 
 int Piro::matrix_generations::CSR::gradient(){
     Piro::CSR::gradient();
+    return 0;
+}
+
+int Piro::matrix_generations::CSR::div(){
+    Piro::CSR::div();
     return 0;
 }

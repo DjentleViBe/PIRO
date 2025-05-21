@@ -19,7 +19,9 @@ namespace Piro{
             void laplacian_cd(Piro::CellData& cd, std::vector<uint> n, float norm);
             void laplacian_uw(Piro::CellData& cd, std::vector<uint> n, float norm);
             void laplacian_dw(Piro::CellData& cd, std::vector<uint> n, float norm);
-            
+
+            void div_cd(Piro::CellData& cd, std::vector<uint> n, float norm);
+
         }
     }
     namespace DENSE{

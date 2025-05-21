@@ -990,3 +990,7 @@ void Piro::HT::stencils::laplacian_dw(Piro::CellData& cd, std::vector<uint> n, f
         }
     }
 }   
+
+void Piro::CSR::stencils::div_cd(Piro::CellData& cd, std::vector<uint> n, float norm){
+
+}

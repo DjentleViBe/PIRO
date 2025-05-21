@@ -192,6 +192,7 @@ namespace Piro{
                 // int
                 VALUES_GPU, 
                 LAPLACIAN_CSR, LAPLACIAN_DENSE, LAPLACIAN_COO, LAPLACIAN_HT,
+                DIV_CSR, DIV_DENSE, DIV_COO, DIV_HT,
                 GRADIENT_CSR, GRADIEN_DENSE, GRADIENT_COO, RHS
             };
 

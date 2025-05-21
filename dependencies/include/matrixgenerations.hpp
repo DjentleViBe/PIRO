@@ -15,6 +15,7 @@ namespace Piro::matrix_generations{
          */
         int laplacian();
         int gradient();
+        int div();
     }
     namespace DENSE{
         int laplacian();

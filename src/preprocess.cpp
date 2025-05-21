@@ -17,8 +17,6 @@
 #include <fileutilities.hpp>
 #include <openclutilities.hpp>
 
-
-
 int Piro::preprocess(const std::string& name) {
     Piro::CLBuffer CD_GPU;
     Piro::logger::info("Preprocess step initiated");
