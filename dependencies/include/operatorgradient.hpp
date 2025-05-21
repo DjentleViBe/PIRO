@@ -3,8 +3,7 @@
 
 namespace Piro{
     namespace CSR{
-        int gradient_cd();
-        int gradient_uw();
+        int gradient();
     }
 }
 #endif
