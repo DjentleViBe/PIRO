@@ -29,7 +29,7 @@ void bc::opencl_initBC(){
     memE = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(uint) * Q, Piro::vector_operations::flattenvector(indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)).data(), &err);
     memD = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                          sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[0].values.data(), &err);
+                          sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[1].values.data(), &err);
     if (err != CL_SUCCESS){
         std::cout << "BC error" << std::endl;
     }
