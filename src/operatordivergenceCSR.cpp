@@ -16,7 +16,7 @@ int Piro::CSR::div(){
     Piro::CellData CD;
     // Piro::logger::info(N);
     float norm = 2 * (l[0] / float(n[0] - 2));
-    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) +  1];
+    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) +  2];
     cd.rowpointers.assign(N + 1, 0);
 
     Piro::CLBuffer CD_GPU;

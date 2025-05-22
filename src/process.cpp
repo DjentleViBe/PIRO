@@ -181,16 +181,16 @@ std::vector<CLBuffer> process::div(std::string var1, std::string var2){
         auto& partA = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[token2];
         auto& partB = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR);
         auto& partC = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[token1];
+        // Piro::print_utilities::printCL(partA.buffer, N , 1);
         // scale token 2 by token 1
         clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 0, sizeof(cl_mem), &partC);
         clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 1, sizeof(cl_mem), &partA);
         clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 2, sizeof(cl_uint), &N);
         clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
         clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
-        
+        // Piro::print_utilities::printCL(partC.buffer, N / 3 , 1);
+        // Piro::print_utilities::printCL(partA.buffer, N , 1);
         Piro::kernelmethods::csrgeam({partA}, partB);
-
-        partB[0].ind = token2;
         return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
@@ -218,15 +218,15 @@ void scalarMatrix::Solve(float currenttime){
     INIT::getInstance().ts = int(currenttime / timestep);
     Piro::logger::info("Timestep : ", INIT::getInstance().ts + 1, " / ", totaltimesteps);
     // apply Boundary Conditions
-    err = clEnqueueCopyBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), smatrix.buffer, CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[0].buffer, 0, 0, sizeof(float) * N, 0, NULL, NULL);
-    Piro::bc::opencl_setBC(0);
-    
+    err = clEnqueueCopyBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), smatrix.buffer, CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[1].buffer, 0, 0, sizeof(float) * N, 0, NULL, NULL);
+    Piro::bc::opencl_setBC(1);
+    // Piro::print_utilities::printCL(smatrix.buffer, N , 1);
     if((INIT::getInstance().ts + 1) % SP.getvalue<int>(Piro::SolveParams::SAVE) == 0){
         Piro::logger::info("Post processing started");
         // total number of vectors and scalars
         
-        err = clEnqueueReadBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[0].buffer, CL_TRUE, 0,
-                sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[0].values.data(), 0, NULL, NULL);
+        err = clEnqueueReadBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[1].buffer, CL_TRUE, 0,
+                sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[1].values.data(), 0, NULL, NULL);
         if (err != CL_SUCCESS){
             std::cout << "Solve error" << std::endl;
         }

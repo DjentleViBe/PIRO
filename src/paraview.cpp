@@ -45,7 +45,7 @@ std::string Piro::paraview::writevti(Piro::AMR AMR){
     
     for(int l = 0; l < AMR.CD.size() - 3; l++){
         
-        if(AMR.CD[l].type == 0){
+        if(AMR.CD[l].type == 1){
             
             for (int pos : indval.getvalue<std::vector<int>>(Piro::bc::indices::INDTOPRINT)) {
                 if (pos >= 0 && pos < AMR.CD[l].values.size()) {
@@ -58,7 +58,7 @@ std::string Piro::paraview::writevti(Piro::AMR AMR){
             level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatScalarToString(AMR.CD[l].values)));
             level.append("</DataArray>\n");
         }
-        else{
+        else if(AMR.CD[l].type == 2){
             for (int pos : indval.getvalue<std::vector<int>>(Piro::bc::indices::INDTOPRINTVEC)) {
                 if (pos >= 0 && pos < AMR.CD[l].values.size()) {
                     AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
@@ -66,34 +66,33 @@ std::string Piro::paraview::writevti(Piro::AMR AMR){
                 }
             
             if(MP.getvalue<int>(Piro::MeshParams::VECTORNUM) > 0){
-            for(int vec = 0; vec < 3; vec++){
-                switch(vec){
-                    case 0: 
-                        level.append("<DataArray type=\"Float64\" Name=\"");
-                        level.append(AMR.CD[l].Scalars + "_x");
-                        level.append("\" format=\"ascii\">\n");
-                        level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatVectorToString(AMR.CD[l].values, 0)));
-                        level.append("</DataArray>\n");
-                        break;
-                    case 1:
-                        level.append("<DataArray type=\"Float64\" Name=\"");
-                        level.append(AMR.CD[l].Scalars + "_y");
-                        level.append("\" format=\"ascii\">\n");
-                        level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatVectorToString(AMR.CD[l].values, 1)));
-                        level.append("</DataArray>\n");
-                        break;
-                    case 2:
-                        level.append("<DataArray type=\"Float64\" Name=\"");
-                        level.append(AMR.CD[l].Scalars + "_z");
-                        level.append("\" format=\"ascii\">\n");
-                        level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatVectorToString(AMR.CD[l].values, 2)));
-                        level.append("</DataArray>\n");
-                        break;
+                for(int vec = 0; vec < 3; vec++){
+                    switch(vec){
+                        case 0: 
+                            level.append("<DataArray type=\"Float64\" Name=\"");
+                            level.append(AMR.CD[l].Scalars + "_x");
+                            level.append("\" format=\"ascii\">\n");
+                            level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatVectorToString(AMR.CD[l].values, 0)));
+                            level.append("</DataArray>\n");
+                            break;
+                        case 1:
+                            level.append("<DataArray type=\"Float64\" Name=\"");
+                            level.append(AMR.CD[l].Scalars + "_y");
+                            level.append("\" format=\"ascii\">\n");
+                            level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatVectorToString(AMR.CD[l].values, 1)));
+                            level.append("</DataArray>\n");
+                            break;
+                        case 2:
+                            level.append("<DataArray type=\"Float64\" Name=\"");
+                            level.append(AMR.CD[l].Scalars + "_z");
+                            level.append("\" format=\"ascii\">\n");
+                            level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatVectorToString(AMR.CD[l].values, 2)));
+                            level.append("</DataArray>\n");
+                            break;
+                    }
+
                 }
-
             }
-        }
-
         }
         
         

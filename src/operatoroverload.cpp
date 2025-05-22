@@ -24,7 +24,7 @@ namespace Piro{
         std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     
         int N = n[0] * n[1] * n[2];
-        int nnz = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size();
+        int nnz = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM)].values.size();
         int P = 1;
         std::vector<float>A(N, 0.0);
         CLBuffer partC, partD;

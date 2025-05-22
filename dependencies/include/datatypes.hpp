@@ -60,7 +60,7 @@ namespace Piro{
             MeshParams& operator=(const MeshParams&) = delete;
             enum ParameterIndex{
                 // int
-                num_cells, MESHTYPE, LEVELS, SCALARNUM, VECTORNUM, INDEX, ICTYPE,
+                num_cells, MESHTYPE, LEVELS, CONSTANTNUM, SCALARNUM, VECTORNUM, INDEX, ICTYPE,
                 // float
                 O, S, L, CONSTANTSVALUES,
                 // string
@@ -192,8 +192,8 @@ namespace Piro{
                 // int
                 VALUES_GPU, 
                 LAPLACIAN_CSR, LAPLACIAN_DENSE, LAPLACIAN_COO, LAPLACIAN_HT,
-                DIV_CSR, DIV_DENSE, DIV_COO, DIV_HT,
-                GRADIENT_CSR, GRADIEN_DENSE, GRADIENT_COO, RHS
+                GRADIENT_CSR, GRADIENT_DENSE, GRADIENT_COO, GRADIENT_HT,
+                DIV_CSR, DIV_DENSE, DIV_COO, DIV_HT, RHS
             };
 
             CellDataGPU(const CellDataGPU&) = delete;

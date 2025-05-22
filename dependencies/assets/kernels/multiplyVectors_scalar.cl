@@ -3,6 +3,6 @@ __kernel void multiplyVectors_scalar(__global const float *B,
                                     uint size) {
         uint id = get_global_id(0);
         if (id < size) {
-            C[id] = B[id % (size * 3)] * C[id];
+            C[id] *= B[id % (size / 3)];
         }
     }
