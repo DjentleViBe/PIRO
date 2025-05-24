@@ -11,6 +11,7 @@
 #include <CL/opencl.h>
 #include <logger.hpp>
 #include <openclutilities.hpp>
+#include <printutilities.hpp>
 
 uint Q;
 cl_mem memD, memE;
@@ -28,7 +29,7 @@ void bc::opencl_initBC(){
     memE = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(uint) * Q, Piro::vector_operations::flattenvector(indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)).data(), &err);
     memD = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                          sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[0].values.data(), &err);
+                          sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[1].values.data(), &err);
     if (err != CL_SUCCESS){
         std::cout << "BC error" << std::endl;
     }
@@ -67,6 +68,7 @@ void bc::setbc(){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     Piro::bc::indices& indval = Piro::bc::indices::getInstance();
     Piro::process GS;
+    
     for (int ind = 0; ind < 6; ind++){
         for(uint faces = 0; faces < indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)[ind].size(); faces++){
             int msv = GS.matchscalartovar(indval.getvalue<std::vector<std::string>>(Piro::bc::indices::BC_PROPERTY)[ind]);
@@ -104,7 +106,6 @@ void bc::prepbc(){
 
 void bc::initbc(){
     Piro::logger::info("Initialising boundary conditions");
-    Piro::logger::info("Preparing cells to print");
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     Piro::bc::indices& indval = Piro::bc::indices::getInstance();
     

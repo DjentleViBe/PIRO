@@ -58,6 +58,8 @@ namespace Piro{
             std::vector<CLBuffer> gradient(std::string var1);
 
             std::vector<CLBuffer> vector(std::string var1);
+
+            std::vector<CLBuffer> div(std::string var1, std::string var2);
     };
 
     class scalarMatrix{

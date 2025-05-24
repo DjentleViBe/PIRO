@@ -436,37 +436,37 @@ void Piro::DENSE::stencils::laplacian_cd(Piro::CellData& cd, std::vector<uint> n
 
                 // Diagonal entry
                 cd.matrix[l * total_size + l] = -6 / norm;
-                //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + l] = 0;
+                //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + l] = 0;
 
                 // Off-diagonal entries
                 if (i > 0) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i-1, j, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i-1, j, k, n[0], n[1])] = -timestep / (2 * delta[0]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i-1, j, k, n[0], n[1])] = -timestep / (2 * delta[0]);
                     
                 }
                 if (i < n[0] - 1) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i+1, j, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i+1, j, k, n[0], n[1])] = timestep / (2 * delta[0]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i+1, j, k, n[0], n[1])] = timestep / (2 * delta[0]);
                     
                 }
                 if (j > 0) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i, j-1, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j-1, k, n[0], n[1])] = -timestep / (2 * delta[1]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j-1, k, n[0], n[1])] = -timestep / (2 * delta[1]);
                     
                 }
                 if (j < n[1] - 1) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i, j+1, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j+1, k, n[0], n[1])] = timestep / (2 * delta[1]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j+1, k, n[0], n[1])] = timestep / (2 * delta[1]);
                     
                 }
                 if (k > 0) {
                     cd.matrix[l* total_size + Piro::math_operations::idx(i, j, k-1, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k-1, n[0], n[1])] = -timestep / (2 * delta[2]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k-1, n[0], n[1])] = -timestep / (2 * delta[2]);
                     
                 }
                 if (k < n[2] - 1) {
                     cd.matrix[l* total_size + Piro::math_operations::idx(i, j, k+1, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k+1, n[0], n[1])] = timestep / (2 * delta[2]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k+1, n[0], n[1])] = timestep / (2 * delta[2]);
                     
                 }
             }
@@ -483,37 +483,37 @@ void Piro::DENSE::stencils::laplacian_uw(Piro::CellData& cd, std::vector<uint> n
 
                 // Diagonal entry
                 cd.matrix[l * total_size + l] = -6 / norm;
-                //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + l] = 0;
+                //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + l] = 0;
 
                 // Off-diagonal entries
                 if (i > 0) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i-1, j, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i-1, j, k, n[0], n[1])] = -timestep / (2 * delta[0]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i-1, j, k, n[0], n[1])] = -timestep / (2 * delta[0]);
                     
                 }
                 if (i < n[0] - 1) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i, j, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i+1, j, k, n[0], n[1])] = timestep / (2 * delta[0]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i+1, j, k, n[0], n[1])] = timestep / (2 * delta[0]);
                     
                 }
                 if (j > 0) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i, j-1, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j-1, k, n[0], n[1])] = -timestep / (2 * delta[1]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j-1, k, n[0], n[1])] = -timestep / (2 * delta[1]);
                     
                 }
                 if (j < n[1] - 1) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i, j, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j+1, k, n[0], n[1])] = timestep / (2 * delta[1]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j+1, k, n[0], n[1])] = timestep / (2 * delta[1]);
                     
                 }
                 if (k > 0) {
                     cd.matrix[l* total_size + Piro::math_operations::idx(i, j, k-1, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k-1, n[0], n[1])] = -timestep / (2 * delta[2]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k-1, n[0], n[1])] = -timestep / (2 * delta[2]);
                     
                 }
                 if (k < n[2] - 1) {
                     cd.matrix[l* total_size + Piro::math_operations::idx(i, j, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k+1, n[0], n[1])] = timestep / (2 * delta[2]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k+1, n[0], n[1])] = timestep / (2 * delta[2]);
                     
                 }
             }
@@ -530,37 +530,37 @@ void Piro::DENSE::stencils::laplacian_dw(Piro::CellData& cd, std::vector<uint> n
 
                 // Diagonal entry
                 cd.matrix[l * total_size + l] = -6 / norm;
-                //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + l] = 0;
+                //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + l] = 0;
 
                 // Off-diagonal entries
                 if (i > 0) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i, j, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i-1, j, k, n[0], n[1])] = -timestep / (2 * delta[0]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i-1, j, k, n[0], n[1])] = -timestep / (2 * delta[0]);
                     
                 }
                 if (i < n[0] - 1) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i + 1, j, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i+1, j, k, n[0], n[1])] = timestep / (2 * delta[0]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i+1, j, k, n[0], n[1])] = timestep / (2 * delta[0]);
                     
                 }
                 if (j > 0) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i, j, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j-1, k, n[0], n[1])] = -timestep / (2 * delta[1]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j-1, k, n[0], n[1])] = -timestep / (2 * delta[1]);
                     
                 }
                 if (j < n[1] - 1) {
                     cd.matrix[l * total_size + Piro::math_operations::idx(i, j + 1, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j+1, k, n[0], n[1])] = timestep / (2 * delta[1]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l * total_size + Piro::math_operations::idx(i, j+1, k, n[0], n[1])] = timestep / (2 * delta[1]);
                     
                 }
                 if (k > 0) {
                     cd.matrix[l* total_size + Piro::math_operations::idx(i, j, k, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k-1, n[0], n[1])] = -timestep / (2 * delta[2]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k-1, n[0], n[1])] = -timestep / (2 * delta[2]);
                     
                 }
                 if (k < n[2] - 1) {
                     cd.matrix[l* total_size + Piro::math_operations::idx(i, j, k + 1, n[0], n[1])] = 1 / norm;
-                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k+1, n[0], n[1])] = timestep / (2 * delta[2]);
+                    //MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1].matrix[l* total_size + Piro::math_operations::idx(i, j, k+1, n[0], n[1])] = timestep / (2 * delta[2]);
                     
                 }
             }
@@ -990,3 +990,13 @@ void Piro::HT::stencils::laplacian_dw(Piro::CellData& cd, std::vector<uint> n, f
         }
     }
 }   
+
+void Piro::CSR::stencils::div_uw_x(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_uw_x(cd, n, norm);}
+void Piro::CSR::stencils::div_uw_y(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_uw_y(cd, n, norm);}
+void Piro::CSR::stencils::div_uw_z(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_uw_z(cd, n, norm);}
+void Piro::CSR::stencils::div_cd_x(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_cd_x(cd, n, norm);}
+void Piro::CSR::stencils::div_cd_y(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_cd_y(cd, n, norm);}
+void Piro::CSR::stencils::div_cd_z(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_cd_z(cd, n, norm);}
+void Piro::CSR::stencils::div_dw_x(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_dw_x(cd, n, norm);}
+void Piro::CSR::stencils::div_dw_y(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_dw_y(cd, n, norm);}
+void Piro::CSR::stencils::div_dw_z(Piro::CellData& cd, std::vector<uint> n, float norm){Piro::CSR::stencils::gradient_dw_z(cd, n, norm);}

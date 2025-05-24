@@ -102,7 +102,7 @@ void Piro::print_utilities::printCL(cl_mem memC, int N, int type){
         clEnqueueReadBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), memC, CL_TRUE, 0,
                                     sizeof(float) * N, hostValues.data(), 0, NULL, NULL);
         for (size_t i = 0; i < hostValues.size(); ++i) {
-            Piro::logger::debug_print(round(hostValues[i] * 10) / 10.0, " ");
+            Piro::logger::debug_print(round(hostValues[i] * 100000) / 100000.0, " ");
             }
     }
     Piro::logger::debug_print("\n");

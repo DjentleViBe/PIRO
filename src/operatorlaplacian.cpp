@@ -23,9 +23,7 @@ int Piro::CSR::laplacian(){
     std::vector<CLBuffer> laplacian_collect;
     // MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
     laplacian_collect.push_back(CD_GPU);
-    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) 
-                        + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)];
-    
+    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM)];
     
     cd.type = 2; // CSR
     cd.rowpointers.assign(N + 1, 0.0);
@@ -73,7 +71,7 @@ int Piro::DENSE::laplacian(){
     size_t total_size = n[0] * n[1] * n[2];
     float norm = pow((l[0] / float(n[0] - 2)), 2);
     auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) 
-                        + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)];
+                        + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM)];
     
     // MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
     cd.type = 4; // DENSE
@@ -116,7 +114,7 @@ int Piro::COO::laplacian(){
     // MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
     laplacian_collect.push_back(CD_GPU);
     auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) 
-                        + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)];
+                        + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM)];
     
     cd.type = 3; // COO
     // cd.rowpointers.assign(N + 1, 0.0);
@@ -164,7 +162,7 @@ int Piro::HT::laplacian(){
     int N = n[0] * n[1] * n[2];
     Piro::CellData CD;
     auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) 
-                        + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)];
+                        + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM)];
     // MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
     cd.type = 2; // CSR
     cd.rowpointers.assign(N + 1, 0.0);

@@ -8,3 +8,4 @@ multiplyVectors_constant
 divideVectors_constant
 subtractVectors_self
 matrixMultiply
+multiplyVectors_scalar

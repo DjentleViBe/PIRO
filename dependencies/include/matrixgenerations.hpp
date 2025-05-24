@@ -15,15 +15,19 @@ namespace Piro::matrix_generations{
          */
         int laplacian();
         int gradient();
+        int div();
     }
     namespace DENSE{
         int laplacian();
+        int div();
     }
     namespace HT{
         int laplacian();
+        int div();
     }
     namespace COO{
         int laplacian();
+        int div();
     }
 }
 

@@ -14,6 +14,7 @@
 #include <operatoroverload.hpp>
 #include <matrixoperations.hpp>
 #include <kernelprocess.hpp>
+#include <kernelmethods.hpp>
 
 namespace Piro{
     CLBuffer CLBuffer::operator=(const std::vector<CLBuffer>& other){
@@ -23,7 +24,7 @@ namespace Piro{
         std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     
         int N = n[0] * n[1] * n[2];
-        int nnz = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)].values.size();
+        int nnz = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM)].values.size();
         int P = 1;
         std::vector<float>A(N, 0.0);
         CLBuffer partC, partD;
@@ -38,18 +39,20 @@ namespace Piro{
         if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 11){
             // Forward Euler
             if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
-                Piro::kernelmethods::CSR::TIMESCHEME_11(other, N, P, n, timestep, partC, partD, this->buffer);
+                Piro::kernelsolve::CSR::TIMESCHEME_11(other, N, P, n, timestep, partC, partD, 
+                                                    this->buffer, 
+                                                    this->buffer);
             }
             else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
-                Piro::kernelmethods::DENSE::TIMESCHEME_11(other, N, P, timestep, this->buffer, partC, partD);
+                Piro::kernelsolve::DENSE::TIMESCHEME_11(other, N, P, timestep, this->buffer, partC, partD);
 
             }
             else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
-                Piro::kernelmethods::HT::TIMESCHEME_11(other, N, SP.getvalue<int>(Piro::SolveParams::TABLE_SIZE), this->buffer, partC, partD, timestep);
+                Piro::kernelsolve::HT::TIMESCHEME_11(other, N, SP.getvalue<int>(Piro::SolveParams::TABLE_SIZE), this->buffer, partC, partD, timestep);
 
             }
             else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){
-                Piro::kernelmethods::COO::TIMESCHEME_11(other, N, nnz, n, timestep, partC, partD, this->buffer);
+                Piro::kernelsolve::COO::TIMESCHEME_11(other, N, nnz, n, timestep, partC, partD, this->buffer);
 
             }
             else{
@@ -85,84 +88,27 @@ namespace Piro{
     }
 
     std::vector<CLBuffer> operator&(std::vector<CLBuffer> partA, std::vector<CLBuffer> partB){
-        Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
-        // part A is vector field, part B is a matrix. Both size 3 * N
-        if(Piro::INIT::getInstance().DOT_INIT == false){
-            Piro::MeshParams& MP = Piro::MeshParams::getInstance();
-            Piro::kernels& kernels = Piro::kernels::getInstance();
-            auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) +  1];
-            int nnz = cd.values.size();
-            std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
-            int N = n[0] * n[1] * n[2];
-            
-            Piro::CLBuffer partF;
-            std::vector<Piro::CLBuffer> partE(3);
-            cl_int err;
-            partF.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_WRITE,
-                            sizeof(int) * (N), NULL, &err);
-            partE[2].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_WRITE,
-                            sizeof(float) * nnz * 3, NULL, &err);
-            partE[1].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_WRITE,
-                            sizeof(int) * nnz * 3, NULL, &err);
-            partE[0].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_WRITE,
-                            sizeof(int) * (N + 1), NULL, &err);
-            
-            // all 3 sparse matrices need to be added
-            float patternf = 0.0f;
-            int patterni = 0;
-            cl_event event[3];
-            clEnqueueFillBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), partE[2].buffer, &patternf, sizeof(float), 0, sizeof(float)*nnz*3, 0, NULL, &event[0]);
-            clEnqueueFillBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), partE[1].buffer, &patterni, sizeof(int), 0, sizeof(int)*nnz*3, 0, NULL, &event[1]);
-            clEnqueueFillBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), partE[0].buffer, &patterni, sizeof(int), 0, sizeof(int)*(N + 1), 0, NULL, &event[2]);
-            clWaitForEvents(3, event);
-            
-            size_t globalWork[1] = { (size_t) N};  
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[19], 0, sizeof(cl_mem), &partB[1].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[19], 1, sizeof(cl_mem), &partB[0].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[19], 2, sizeof(cl_mem), &partB[4].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[19], 3, sizeof(cl_mem), &partB[3].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[19], 4, sizeof(cl_mem), &partB[7].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[19], 5, sizeof(cl_mem), &partB[6].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[19], 6, sizeof(cl_mem), &partF.buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[19], 7, sizeof(cl_int), &N);
-
-            clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[19], 1, NULL, globalWork, NULL, 0, NULL, NULL);
-            clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
-            clEnqueueCopyBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), partF.buffer, partE[0].buffer, 0, sizeof(int), sizeof(int)*(N), 0, NULL, NULL);
-            for(int row = 0; row < N; row++){
-                clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[21], 0, sizeof(cl_mem), &partF.buffer);
-                clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[21], 1, sizeof(cl_mem), &partE[0].buffer);
-                clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[21], 2, sizeof(cl_int), &N);
-                clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[21], 3, sizeof(cl_int), &row);
-                clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[21], 1, NULL, globalWork, NULL, 0, NULL, NULL);
-                clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
-            }
-
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 0, sizeof(cl_mem), &partB[2].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 1, sizeof(cl_mem), &partB[1].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 2, sizeof(cl_mem), &partB[0].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 3, sizeof(cl_mem), &partB[5].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 4, sizeof(cl_mem), &partB[4].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 5, sizeof(cl_mem), &partB[3].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 6, sizeof(cl_mem), &partB[8].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 7, sizeof(cl_mem), &partB[7].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 8, sizeof(cl_mem), &partB[6].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 9, sizeof(cl_mem), &partE[2].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 10, sizeof(cl_mem), &partE[1].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 11, sizeof(cl_mem), &partE[0].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 12, sizeof(cl_mem), &partF.buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 13, sizeof(cl_mem), &partA[0].buffer);
-            clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 14, sizeof(cl_int), &N);
-
-            clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[22], 1, NULL, globalWork, NULL, 0, NULL, NULL);
-            clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
-            
-            CDGPU.setvalue(Piro::CellDataGPU::RHS, partE);
-            Piro::INIT::getInstance().DOT_INIT = true;
-        }
+         Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
+        // part A is a vector, part B is a matrix
+        Piro::kernelmethods::csrgeam(partA, partB, 1);
+        Piro::kernels& kernels = Piro::kernels::getInstance();
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+        int N = n[0] * n[1] * n[2];
+        auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1];
+        int nnz = cd.values.size();
+        /*
+        std::vector<int> rp = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
+                                        CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0].buffer, N , NULL);
+        std::vector<int> col = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
+                                        CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1].buffer, 3*nnz , NULL); 
+        std::vector<float> val = Piro::opencl_utilities::copyCL<float>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
+                                        CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2].buffer, 3*nnz , NULL);         
+        Piro::print_utilities::csr_to_dense_and_print(rp, col, val, N);*/
         return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
+
     }
 
     CLBuffer operator*(CLBuffer partA, CLBuffer partB){

@@ -17,10 +17,7 @@
 #include <fileutilities.hpp>
 #include <openclutilities.hpp>
 
-
-
 int Piro::preprocess(const std::string& name) {
-    Piro::CLBuffer CD_GPU;
     Piro::logger::info("Preprocess step initiated");
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     Piro::DeviceParams& DP = Piro::DeviceParams::getInstance();
@@ -98,7 +95,8 @@ int Piro::preprocess(const std::string& name) {
         AMR_collect.push_back(AMR_val);
     }
     MP.setvalue(Piro::MeshParams::AMR, AMR_collect);
-
+    // number of constant defined in the .ini file
+    MP.setvalue(Piro::MeshParams::CONSTANTNUM, Piro::string_utilities::countSpaces(reader.get("Simulation", "Constants", "default_value")) + 1);
     // number of scalars defined in the .ini file
     MP.setvalue(Piro::MeshParams::SCALARNUM, Piro::string_utilities::countSpaces(reader.get("Simulation", "Scalars", "default_value")) + 1);
     // number of vectors defined in the .ini file
@@ -111,38 +109,57 @@ int Piro::preprocess(const std::string& name) {
 
     Piro::logger::info("Initialising scalars and vectors");
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
-    int j = 0;
     Piro::CellData CD;
     cl_int err;
+    int gpu_idx = 0;
     //CLBuffer CD_GPU;
     // total number of cells
     int N = n[0] * n[1] * n[2];
     Piro::logger::info("Total number of cells : ", N);
     std::vector<Piro::CLBuffer> CDGPU_collect;
+    for (int i = 0; i < MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM); i++){
+        
+        CD.Scalars = MP.getvalue<std::vector<std::string>>(Piro::MeshParams::CONSTANTSLIST)[i];
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[gpu_idx].type = 0;
+        std::vector<float> tempconstants(N, MP.getvalue<std::vector<float>>(Piro::MeshParams::CONSTANTSVALUES)[i]);
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[gpu_idx].values = tempconstants;
+        // push scalar data to gpu
+        Piro::CLBuffer buffer;
+        buffer.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                        sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[gpu_idx].values.data(), &err);
+        CDGPU_collect.push_back(buffer);
+        gpu_idx++;
+    }
+    int scalar_idx = 0;
     for (int i = 0; i < MP.getvalue<int>(Piro::MeshParams::SCALARNUM); i++){
         
         CD.Scalars = MP.getvalue<std::vector<std::string>>(Piro::MeshParams::SCALARLIST)[i];
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
-        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type = 0;
-        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values = initialcondition(i);
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[gpu_idx].type = 1;
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[gpu_idx].values = initialcondition(i);
         // push scalar data to gpu
-        CDGPU_collect.push_back(CD_GPU);
-        CDGPU_collect[i].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                        sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values.data(), &err);
-        j += 1;
+        Piro::CLBuffer buffer;
+        buffer.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                        sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[gpu_idx].values.data(), &err);
+        CDGPU_collect.push_back(buffer);
+        gpu_idx++;
+        scalar_idx++;
     }
-    for (int i = j; i < j + MP.getvalue<int>(Piro::MeshParams::VECTORNUM); i++){
+    for (int i = 0; i < MP.getvalue<int>(Piro::MeshParams::VECTORNUM); i++){
         
-        CD.Scalars = MP.getvalue<std::vector<std::string>>(Piro::MeshParams::VECTORLIST)[i - j];
+        CD.Scalars = MP.getvalue<std::vector<std::string>>(Piro::MeshParams::VECTORLIST)[i];
         MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
-        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].type = 1;
-        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values = initialcondition(i);
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[gpu_idx].type = 2;
+        MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[gpu_idx].values = initialcondition(scalar_idx);
         // push vector data to gpu
-        CDGPU_collect.push_back(CD_GPU);
-        CDGPU_collect[i].buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                        sizeof(float) * N * 3, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[i].values.data(), &err);
-        
+        Piro::CLBuffer buffer;
+        buffer.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                        sizeof(float) * N * 3, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[gpu_idx].values.data(), &err);
+        CDGPU_collect.push_back(buffer);
+        gpu_idx++;
     }
+    // Piro::logger::info("size", CDGPU_collect.size());
     CDGPU.setvalue(Piro::CellDataGPU::VALUES_GPU, CDGPU_collect);
     Piro::logger::info("Initialising scalars and vectors completed!");
     std::vector<float> delta = {l[0] / float(n[0] - 2),
@@ -171,6 +188,7 @@ int Piro::preprocess(const std::string& name) {
     MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
     // divergence operator
     MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
+    // Piro::logger::info("total cd, ",MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.size());
     Piro::logger::info("Preprocess step completed");
     return 0;
 }

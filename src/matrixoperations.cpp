@@ -15,7 +15,7 @@ void Piro::matrix_operations::HT::lu_decomposition(const std::vector<CLBuffer>& 
     
     int N = n[0] * n[1] * n[2];
     int TS = SP.getvalue<int>(Piro::SolveParams::TABLE_SIZE);
-    // int index = MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM);
+    // int index = MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM);
     cl_event event0 = nullptr;
     cl_event event1 = nullptr; 
     cl_event event4, event5;
@@ -31,7 +31,7 @@ void Piro::matrix_operations::HT::lu_decomposition(const std::vector<CLBuffer>& 
     size_t globalWorkSize[1];
     size_t localWorkSize[1];
     Piro::logger::debug("Loop begin");
-    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM)];
+    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM)];
 
     int limit;
     for (int rowouter = 0; rowouter < N - 1; rowouter++){
