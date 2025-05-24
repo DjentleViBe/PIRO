@@ -163,12 +163,14 @@ std::vector<CLBuffer> process::vector(std::string var1){
 std::vector<CLBuffer> process::div(std::string var1, std::string var2){
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
-    Piro::kernels& kernels = Piro::kernels::getInstance();
+    // Piro::kernels& kernels = Piro::kernels::getInstance();
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
-    int N = 3 * (n[0] * n[1] * n[2]);
-    size_t globalWorkSize[1] = { (size_t)N };
-    int token1 = process::matchscalartovar(var1);
+    // var 1 requires linearisation if it is a function of var2, otherwise make a diagonal matrix of N with var1 and
+    // dot it with DIV_CSR.
+    // int N = n[0] * n[1] * n[2];
+    // size_t globalWorkSize[1] = { (size_t)N };
+    // int token1 = process::matchscalartovar(var1);
     int token2 = process::matchscalartovar(var2);
         
     // needs to be done just once until CDGPU.indices and CDGPU.values are filled in
@@ -177,22 +179,28 @@ std::vector<CLBuffer> process::div(std::string var1, std::string var2){
             Piro::logger::info("Generating divergence");
             Piro::matrix_generations::CSR::div();
             Piro::logger::info("Generating divergence : complete");
+            auto& partA = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[token2];
+            auto& partB = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR);
+            // auto& partC = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[token1];
+            // Piro::print_utilities::printCL(partA.buffer, N , 1);
+            // element-wise multiplication of DIV_CSR with the diagonal matrix of token2
+            Piro::kernelmethods::csrgeam_2({partA}, partB, 2);
+            /*
+            auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 2];
+            int nnz = cd.values.size();
+            std::vector<int> rp = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
+                                            CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0].buffer, N , NULL);
+            std::vector<int> col = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
+                                            CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1].buffer, 3*nnz , NULL); 
+            std::vector<float> val = Piro::opencl_utilities::copyCL<float>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
+                                            CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2].buffer, 3*nnz , NULL);         
+            Piro::print_utilities::csr_to_dense_and_print(rp, col, val, N);
+            */
+
         }
-        auto& partA = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[token2];
-        auto& partB = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::DIV_CSR);
-        auto& partC = CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[token1];
-        // Piro::print_utilities::printCL(partA.buffer, N , 1);
-        // scale token 2 by token 1
-        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 0, sizeof(cl_mem), &partC);
-        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 1, sizeof(cl_mem), &partA);
-        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 2, sizeof(cl_uint), &N);
-        clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL_MATH)[10], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-        clFinish(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE));
-        // Piro::print_utilities::printCL(partC.buffer, N / 3 , 1);
-        // Piro::print_utilities::printCL(partA.buffer, N , 1);
-        Piro::kernelmethods::csrgeam({partA}, partB);
+        
         return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
-                CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
+                CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1],
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
     }
     else{

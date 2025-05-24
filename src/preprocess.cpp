@@ -159,7 +159,7 @@ int Piro::preprocess(const std::string& name) {
         CDGPU_collect.push_back(buffer);
         gpu_idx++;
     }
-    Piro::logger::info("size", CDGPU_collect.size());
+    // Piro::logger::info("size", CDGPU_collect.size());
     CDGPU.setvalue(Piro::CellDataGPU::VALUES_GPU, CDGPU_collect);
     Piro::logger::info("Initialising scalars and vectors completed!");
     std::vector<float> delta = {l[0] / float(n[0] - 2),
@@ -188,7 +188,7 @@ int Piro::preprocess(const std::string& name) {
     MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
     // divergence operator
     MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.push_back(CD);
-    Piro::logger::info("total cd, ",MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.size());
+    // Piro::logger::info("total cd, ",MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.size());
     Piro::logger::info("Preprocess step completed");
     return 0;
 }

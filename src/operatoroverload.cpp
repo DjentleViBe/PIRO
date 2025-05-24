@@ -90,7 +90,21 @@ namespace Piro{
     std::vector<CLBuffer> operator&(std::vector<CLBuffer> partA, std::vector<CLBuffer> partB){
          Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
         // part A is a vector, part B is a matrix
-        Piro::kernelmethods::csrgeam(partA, partB);
+        Piro::kernelmethods::csrgeam(partA, partB, 1);
+        Piro::kernels& kernels = Piro::kernels::getInstance();
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+        int N = n[0] * n[1] * n[2];
+        auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1];
+        int nnz = cd.values.size();
+        /*
+        std::vector<int> rp = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
+                                        CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0].buffer, N , NULL);
+        std::vector<int> col = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
+                                        CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1].buffer, 3*nnz , NULL); 
+        std::vector<float> val = Piro::opencl_utilities::copyCL<float>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
+                                        CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2].buffer, 3*nnz , NULL);         
+        Piro::print_utilities::csr_to_dense_and_print(rp, col, val, N);*/
         return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
