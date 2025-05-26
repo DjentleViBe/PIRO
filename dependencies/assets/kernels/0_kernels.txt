@@ -22,3 +22,5 @@ csrgeam_2
 prefixsum
 csrgeam_3
 SpMDSM
+residuals
+SpMVCSR_I1

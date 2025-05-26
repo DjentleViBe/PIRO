@@ -14,12 +14,16 @@
 #endif
 
 float Piro::calculategaussian(std::vector<float> coord, std::vector<float> mean, std::vector<float> sigma){
-    float gaussian = exp(-0.5 * (pow((coord[0] - mean[0])/sigma[0], 2) + 
-                                pow((coord[1] - mean[1])/sigma[1], 2) + 
-                                pow((coord[2] - mean[2])/sigma[2], 2))) * 1 / 
-                                (pow(2 * M_PI, 1.5) * sigma[0] * sigma[1] * sigma[2]);
-    
-    return gaussian;
+    // Compute normalized differences
+    float x = (coord[0] - mean[0]) / sigma[0];
+    float y = (coord[1] - mean[1]) / sigma[1];
+    float z = (coord[2] - mean[2]) / sigma[2];
+
+    float exponent = -0.5f * (x*x + y*y + z*z);
+
+    float normalization = 1.0f / (std::pow(2.0f * M_PI, 1.5f) * sigma[0] * sigma[1] * sigma[2]);
+
+    return normalization * std::exp(exponent);
 }
 
 float Piro::calculatecoulomb(std::vector<float> coord, std::vector<float> center, float Z, double e, double epsilon_0){
@@ -47,9 +51,9 @@ std::vector<float> Piro::initialcondition(int index){
             for (int y = 0; y < n[1]; ++y) {
                 for (int z = 0; z < n[2]; ++z) {
                     int l = Piro::math_operations::idx(x, y, z, n[0], n[1]);
-                    coordinate[0] = x * MP_l[0] / n[0];
-                    coordinate[1] = y * MP_l[1] / n[1];
-                    coordinate[2] = z * MP_l[2] / n[2];
+                    coordinate[0] = x * MP_l[0] / (float)n[0];
+                    coordinate[1] = y * MP_l[1] / (float)n[1];
+                    coordinate[2] = z * MP_l[2] / (float)n[2];
                     values[l] = scalefactor * calculategaussian(coordinate, mean, sigma);
                 }
             }

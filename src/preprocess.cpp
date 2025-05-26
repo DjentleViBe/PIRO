@@ -52,6 +52,17 @@ int Piro::preprocess(const std::string& name) {
     MP.setvalue(Piro::MeshParams::LEVELS, std::stoi(reader.get("Mesh", "levels", "default_value")));
     logg.setvalue(std::stoi(reader.get("Debug", "Verbose", "default_value")));
 
+    int solverscheme = SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME);
+    Piro::file_utilities::IniReader readsolver(Piro::file_utilities::current_path.string() + "/assets/solver.ini");
+    switch(solverscheme){
+        case 40:
+            Piro::SolveParams::JLI jli;
+            jli.tolerance = std::stof(readsolver.get("JLI", "tolerance", "default_value"));
+            jli.URF = std::stof(readsolver.get("JLI", "URF", "default_value"));
+            jli.maxiter = std::stoi(readsolver.get("JLI", "max_iter", "default_value"));
+            SP.setvalue(Piro::SolveParams::JLI_PARAM, jli);
+            break;
+    }
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     std::vector<float> l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
     std::vector<float> o = MP.getvalue<std::vector<float>>(Piro::MeshParams::O);
@@ -161,6 +172,8 @@ int Piro::preprocess(const std::string& name) {
     }
     // Piro::logger::info("size", CDGPU_collect.size());
     CDGPU.setvalue(Piro::CellDataGPU::VALUES_GPU, CDGPU_collect);
+    CDGPU.setvalue(Piro::CellDataGPU::RESIDUALS, CDGPU_collect);
+
     Piro::logger::info("Initialising scalars and vectors completed!");
     std::vector<float> delta = {l[0] / float(n[0] - 2),
                                 l[1] / float(n[1] - 2),

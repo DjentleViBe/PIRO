@@ -48,6 +48,7 @@ namespace Piro{
             int Spacing[3];
             std::vector<PointData> PD;
             std::vector<CellData> CD;
+            std::vector<CellData> Residuals;
     };
 
     class MeshParams{
@@ -108,8 +109,13 @@ namespace Piro{
                 return instance;
             }
 
+            struct JLI{
+                float tolerance;
+                float URF;
+                int maxiter;
+            };
+
             SolveParams(const SolveParams&) = delete;
-            SolveParams& operator=(const SolveParams&) = delete;
             enum ParameterIndex{
                 // int 
                 SOLVERSCHEME, TIMESCHEME, SPACESCHEME, RESTART, TOTALTIMESTEPS,
@@ -117,7 +123,9 @@ namespace Piro{
                 // float
                 A, B, C, TIMESTEP, TOTALTIME, DELTA, DELTAT, LOADFACTOR,
                 // string
-                CASENAME
+                CASENAME,
+                // other
+                JLI_PARAM
             };
             template<typename T>
             void setvalue(const ParameterIndex paramindex, const T& val) {
@@ -144,7 +152,7 @@ namespace Piro{
 
         private:
             SolveParams() = default;
-            using ParamValue = std::variant<int, float, std::string, std::vector<int>, std::vector<float>, std::vector<std::string>>;
+            using ParamValue = std::variant<int, float, std::string, std::vector<int>, std::vector<float>, std::vector<std::string>, JLI>;
             std::unordered_map<ParameterIndex, ParamValue> parameters;
         
     };
@@ -190,7 +198,7 @@ namespace Piro{
             }
             enum ParameterIndex{
                 // int
-                VALUES_GPU, 
+                VALUES_GPU, RESIDUALS,
                 LAPLACIAN_CSR, LAPLACIAN_DENSE, LAPLACIAN_COO, LAPLACIAN_HT,
                 GRADIENT_CSR, GRADIENT_DENSE, GRADIENT_COO, GRADIENT_HT,
                 DIV_CSR, DIV_DENSE, DIV_COO, DIV_HT, RHS

@@ -10,6 +10,10 @@ namespace Piro::kernelsolve{
                      std::vector<uint> n,
                      float timestep, Piro::CLBuffer partC, 
                      Piro::CLBuffer partD, cl_mem RHS_vec, cl_mem LHS_vec);
+      void TIMESCHEME_12_40(const std::vector<CLBuffer>& other, int N, int P, 
+                     std::vector<uint> n,
+                     float timestep, Piro::CLBuffer partC, 
+                     Piro::CLBuffer partD, cl_mem RHS_vec, cl_mem residuals);
    }
    namespace COO{
       void TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int nnz, 
