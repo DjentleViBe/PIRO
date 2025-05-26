@@ -118,7 +118,7 @@ namespace Piro{
             SolveParams(const SolveParams&) = delete;
             enum ParameterIndex{
                 // int 
-                SOLVERSCHEME, TIMESCHEME, SPACESCHEME, RESTART, TOTALTIMESTEPS,
+                SIMINDEX, SOLVERSCHEME, TIMESCHEME, SPACESCHEME, RESTART, TOTALTIMESTEPS,
                 SAVE, DATATYPE, PROBING, TABLE_SIZE,
                 // float
                 A, B, C, TIMESTEP, TOTALTIME, DELTA, DELTAT, LOADFACTOR,

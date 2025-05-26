@@ -17,19 +17,32 @@ int Piro::solve(){
     float time = 0.0;
     while(time < totaltime){  
         // Piro::scalarMatrix UEqn(solver.ddt_r("U") + solver.div_r("U", "U") - solver.laplacian_r("U"));
-
-        // Heat Eq : 
-        Piro::scalarMatrix UEqn(solver.ddt_r("T") = solver.laplacian("T", "Alpha"));
-        // Advection Eq :
-        // Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.vector("v") & solver.gradient("U"));
-        // Continuity Eq : 
-        // Piro::scalarMatrix UEqn(solver.ddt_r("rho") = solver.div("rho", "u"));
-        UEqn.Solve(time);
+        int si = SP.getvalue<int>(Piro::SolveParams::SIMINDEX);
+        switch(si){
+            case 0: {
+                // Heat Eq : 
+                Piro::scalarMatrix UEqn(solver.ddt_r("T") = solver.laplacian("T", "Alpha"));
+                UEqn.Solve(time);
+                break;
+            }
+            case 1: {
+                // Advection Eq :
+                Piro::scalarMatrix UEqn(solver.ddt_r("U") = solver.vector("v") & solver.gradient("U"));
+                UEqn.Solve(time);
+                break;
+            }
+            case 2: {
+                // Continuity Eq : 
+                Piro::scalarMatrix UEqn(solver.ddt_r("rho") = solver.div("rho", "u"));
+                UEqn.Solve(time);
+                break;
+            }    
+            default: {
+                Piro::logger::info("Invalid sim index");
+                std::exit(1);
+            }
+        }
         time += SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
-        
-        //if(DP.type != 0){
-        //    break;
-        //}
     }
     return 0;
 }
