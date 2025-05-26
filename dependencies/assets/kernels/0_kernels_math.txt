@@ -9,3 +9,5 @@ divideVectors_constant
 subtractVectors_self
 matrixMultiply
 multiplyVectors_scalar
+subtractVectors_square
+addVectors_URF

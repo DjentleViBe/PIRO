@@ -1,4 +1,4 @@
-__kernel void SpMVCSR(const int M,
+__kernel void SpMVCSR_I1(const int M,
                                             const int K,
                                             const int R,
                                             __global const float* values_A,
@@ -11,7 +11,7 @@ __kernel void SpMVCSR(const int M,
                                             uint size) {
         int row = get_global_id(0); // 1D index for row
     
-        if (row >= M) return; // Ensure we don't go out of bounds
+        if (row > M) return; // Ensure we don't go out of bounds
     
         // Iterate over all columns of C
         for (int col = 0; col < R; ++col) {
@@ -21,7 +21,6 @@ __kernel void SpMVCSR(const int M,
             for (int i = rowPointers_A[row]; i < rowPointers_A[row + 1]; ++i) {
                 int col_A = columns_A[i];  // Column index of the non-zero value in A
                 float value_A = values_A[i];  // Value at position (row, col_A) in matrix A
-
                 result += deltat * value_A * B[col_A * R + col];
             }
             // Store the result in the output matrix C
@@ -30,9 +29,7 @@ __kernel void SpMVCSR(const int M,
             uint y = (id / nx) % ny;
             uint x = id % nx;
             if (x > 0 && x < nx - 1 && y > 0 && y < ny - 1 && z > 0 && z < (size / (nx * ny)) - 1) {
-                
-                C[row * R + col] = result + B[row];
-                
+                C[row * R + col] = B[row * R + col] - result;
                 // printf("C[%u] = %f\n", row * R + col, C[row * R + col]);
             }
             

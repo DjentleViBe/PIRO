@@ -20,4 +20,18 @@ namespace Piro::vector_operations{
         }
         return flatVector;
     }
+    
+    float sum_numbers(const std::vector<float>& numbers) {
+        float sum = 0.0f;
+        for (float num : numbers) {
+            sum += num * num;
+        }
+    return sum;
+    }
+    void subtractvectors(std::vector<float>& number1, const std::vector<float>& number2) {
+       for(int i = 0; i < number1.size(); i++){
+            number1[i] = number1[i] - number2[i];
+       }
+    }
 }
+

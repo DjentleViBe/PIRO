@@ -15,5 +15,7 @@ namespace Piro::vector_operations{
      */
     std::vector<int> flattenvector(std::vector<std::vector<int>> twoDVector);
     std::vector<float> flattenvector(std::vector<std::vector<float>> twoDVector);
+    float sum_numbers(const std::vector<float>& numbers);
+    void subtractvectors(std::vector<float>& number1, const std::vector<float>& number2);
 }
 #endif

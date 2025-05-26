@@ -28,20 +28,21 @@ namespace Piro{
         int P = 1;
         std::vector<float>A(N, 0.0);
         CLBuffer partC, partD;
-        partC.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        partC.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                         sizeof(float) * N, A.data(), &err);
-        partD.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        partD.buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
         sizeof(float) * N, A.data(), &err);
         
         Piro::SolveParams& SP = Piro::SolveParams::getInstance();
         float timestep = SP.getvalue<float>(Piro::SolveParams::TIMESTEP);
+        Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
 
         if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 11){
             // Forward Euler
             if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
                 Piro::kernelsolve::CSR::TIMESCHEME_11(other, N, P, n, timestep, partC, partD, 
-                                                    this->buffer, 
-                                                    this->buffer);
+                                                        this->buffer, 
+                                                        this->buffer);
             }
             else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
                 Piro::kernelsolve::DENSE::TIMESCHEME_11(other, N, P, timestep, this->buffer, partC, partD);
@@ -62,26 +63,37 @@ namespace Piro{
         }
 
         else if(SP.getvalue<int>(Piro::SolveParams::TIMESCHEME) == 12){
-            // Backward euler
-            if(SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME) == 27){
-                Piro::logger::info("LU Decomposition");
-                if(INIT::getInstance().RHS_INIT == false){
-                    if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 0){
+            int solverscheme = SP.getvalue<int>(Piro::SolveParams::SOLVERSCHEME);
+            int datatype = SP.getvalue<int>(Piro::SolveParams::DATATYPE);
+            switch(solverscheme){
+                case 27:
+                    if(INIT::getInstance().RHS_INIT == false){
+                        Piro::logger::info("LU Decomposition");
+                        switch(datatype){
+                            case 2:
+                                Piro::matrix_operations::HT::lu_decomposition(other);
+                                std::exit(1);
+                                break;
+                            default:
+                                Piro::logger::info("Wrong data type");
+                                std::exit(1);
+                        }
+                        INIT::getInstance().RHS_INIT = true;
                     }
-                    else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 1){
+                    break;
+                case 40:
+                        Piro::logger::info("Jacobi like iteration");
+                        switch(datatype){
+                            case 0:
+                                Piro::kernelsolve::CSR::TIMESCHEME_12_40(other, N, P, n, timestep,
+                                                                        partC, partD, this->buffer,
+                                                                        CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RESIDUALS)[this->ind].buffer);
+                                break;
+                            default:
+                                Piro::logger::info("Wrong data type");
+                                std::exit(1);
                     }
-                    else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 2){
-                        Piro::matrix_operations::HT::lu_decomposition(other);
-                    }
-                    else if(SP.getvalue<int>(Piro::SolveParams::DATATYPE) == 3){
-                    }
-                    else{
-                        Piro::logger::info("Wrong data type");
-                        std::exit(1);
-                    }
-                    INIT::getInstance().RHS_INIT = true;
-                }
-                Piro::logger::debug("RHS_INIT end" );
+                break;
             }
         }
         return partD;
@@ -91,12 +103,12 @@ namespace Piro{
          Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
         // part A is a vector, part B is a matrix
         Piro::kernelmethods::csrgeam(partA, partB, 1);
-        Piro::kernels& kernels = Piro::kernels::getInstance();
+        // Piro::kernels& kernels = Piro::kernels::getInstance();
         Piro::MeshParams& MP = Piro::MeshParams::getInstance();
         std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
-        int N = n[0] * n[1] * n[2];
-        auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1];
-        int nnz = cd.values.size();
+        // int N = n[0] * n[1] * n[2];
+        // auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 1];
+        // int nnz = cd.values.size();
         /*
         std::vector<int> rp = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
                                         CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0].buffer, N , NULL);
@@ -108,7 +120,6 @@ namespace Piro{
         return {CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0], 
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[1], 
                 CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[2]};
-
     }
 
     CLBuffer operator*(CLBuffer partA, CLBuffer partB){
