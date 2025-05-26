@@ -45,10 +45,10 @@
 | Name | Description | Number | Status |
 | --- | --- | --- | --- |
 | 1st order upwind | Space | 1 | `Release` |
-| 1st order downwind | Space | 2 | `Plan` |
+| 1st order downwind | Space | 2 | `Release` |
 | 1st order central difference | Space | 3 | `Release` | 
 | Forward Euler | Time | 11 | `Release` | 
-| Backward Euler | Time | 12 | `Dev` |
+| Backward Euler | Time | 12 | `Release` |
 | Crank-Nicholson | Time | 13 | `Plan` |
 | Leapfrog | Time | 14 | `Plan` |
 | RK2 | Time | 15 | `Plan` |
