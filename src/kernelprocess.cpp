@@ -131,11 +131,11 @@ void Piro::kernelsolve::CSR::TIMESCHEME_12_40(const std::vector<CLBuffer>& other
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     Piro::SolveParams::JLI omega = SP.getvalue<Piro::SolveParams::JLI>(Piro::SolveParams::JLI_PARAM);
     size_t globalWorkSize[1] = { (size_t)N };
-    float residual = 0.0f;
-    size_t local = (size_t)kernels.getvalue<cl_uint>(Piro::kernels::MAXWORKGROUPSIZE); // or whatever max workgroup size your device supports
+    // float residual = 0.0f;
+    // size_t local = (size_t)kernels.getvalue<cl_uint>(Piro::kernels::MAXWORKGROUPSIZE); // or whatever max workgroup size your device supports
     // size_t global = ((N + local - 1) / local) * local;
     // size_t max_groups = (global / local);
-    size_t current_size = N;
+    // size_t current_size = N;
     /*cl_mem residual_buffer = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT),
                                         CL_MEM_READ_WRITE,
                                         sizeof(float) * N,

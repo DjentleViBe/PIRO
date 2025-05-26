@@ -17,16 +17,15 @@ int findRow(const int index, __global const int* rowPointers_A, const int M) {
     return -1; // not found
 }
 
-__kernel void SpMDSM(__global float* values_A,
+__kernel void SpMDSM(const int nnz, const int M, 
+                        __global float* values_A,
                         __global const int* columns_A,
                         __global const int* rowPointers_A,
                         __global const float* diag,
-                        const int nnz, const int M, const int ind){
+                        const int ind){
 
     int index = get_global_id(0);
-    // if(index > nnz) return;
+    if(index > nnz) return;
     int row = findRow(index, rowPointers_A, M);
-    if(row == columns_A[index]){
-        values_A[index] *= diag[M * ind + row];
-    }
+    values_A[index] *= diag[M * ind + row];
 }

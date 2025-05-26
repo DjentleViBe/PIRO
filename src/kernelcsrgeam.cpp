@@ -204,3 +204,32 @@ void Piro::kernelmethods::csrgeam_2(std::vector<CLBuffer> partA, std::vector<CLB
         Piro::INIT::getInstance().DOT_INIT = true;
     }
 }
+
+void Piro::kernelmethods::csrscale(std::vector<CLBuffer> partA, std::vector<CLBuffer> partB, int module){
+
+    if(Piro::INIT::getInstance().DOT_INIT == false){
+        Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
+        Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+        Piro::kernels& kernels = Piro::kernels::getInstance();
+        // choose which sparse matrix
+        auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + module];
+        int nnz = cd.values.size();
+        std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+        int N = n[0] * n[1] * n[2];
+        
+        // scale partB by diag(Ux, Uy, Uz)
+        size_t globalWorkSize[1] = { (size_t) nnz}; 
+
+        int comp = 0;
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[23], 0, sizeof(cl_mem), &nnz);
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[23], 1, sizeof(cl_mem), &N);
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[23], 2, sizeof(cl_mem), &partB[2].buffer);
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[23], 3, sizeof(cl_mem), &partB[1].buffer);
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[23], 4, sizeof(cl_mem), &partB[0].buffer);
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[23], 5, sizeof(cl_mem), &partA[0].buffer);
+        clSetKernelArg(kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[23], 6, sizeof(cl_mem), &comp);
+        clEnqueueNDRangeKernel(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), kernels.getvalue<std::vector<cl_kernel>>(Piro::kernels::KERNEL)[17], 1, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+        Piro::INIT::getInstance().DOT_INIT = true;
+        CDGPU.setvalue(Piro::CellDataGPU::RHS, partB);
+    }
+}

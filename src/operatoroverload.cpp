@@ -85,7 +85,6 @@ namespace Piro{
                         Piro::logger::info("Jacobi like iteration");
                         switch(datatype){
                             case 0:
-                                Piro::logger::info("JLI");
                                 Piro::kernelsolve::CSR::TIMESCHEME_12_40(other, N, P, n, timestep,
                                                                         partC, partD, this->buffer,
                                                                         CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RESIDUALS)[this->ind].buffer);
