@@ -40,6 +40,7 @@
 | $\alpha$ . $\nabla^2$ | Laplacian | `solver.laplacian("U", "Alpha")` | `Release` | ```DENSE``` ```CSR``` ```COO``` ```HT```
 | $\frac{d}{dx}$ | First order spatial derivative | `solver.gradient("U")` | `Release` |```CSR```
 | $\vec{v}$ . $\nabla$ | Directional derivative along $\vec{v}$  | `solver.vector("v") & solver.gradient("U")` | `Release` | ```CSR```
+| $\nabla$ . $\rho$ $\vec{u}$ | Divergence of $\rho$  $\vec{U}$  | `solver.div("rho", "u")` | `Release` | ```CSR```
 ***
 Refer to [setup.md](./dependencies/assets/setup.md) for a list of available precompiled equations
 ### Schemes
