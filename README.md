@@ -41,6 +41,7 @@
 | $\frac{d}{dx}$ | First order spatial derivative | `solver.gradient("U")` | `Release` |```CSR```
 | $\vec{v}$ . $\nabla$ | Directional derivative along $\vec{v}$  | `solver.vector("v") & solver.gradient("U")` | `Release` | ```CSR```
 ***
+Refer to [setup.md](./dependencies/assets/setup.md) for a list of available precompiled equations
 ### Schemes
 | Name | Description | Number | Status |
 | --- | --- | --- | --- |
