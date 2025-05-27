@@ -19,8 +19,9 @@ using namespace Piro;
 
 int process::matchscalartovar(std::string var){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
-    for(int v = 0; v < MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.size(); v++){
-        if(var == MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[v].Scalars){
+    auto& cd = MP.getvalue<std::vector<AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0];
+    for(int v = 0; v < cd.CD.size(); v++){
+        if(var == cd.CD[v].Scalars){
             return v;
         }
     }
@@ -40,8 +41,9 @@ int process::matchconstanttovar(std::string var){
 
 int process::matchvectortovar(std::string var){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
-    for(int v = 0; v < MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD.size(); v++){
-        if(var == MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[v].Scalars){
+    auto& cd = MP.getvalue<std::vector<AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0];
+    for(int v = 0; v < cd.CD.size(); v++){
+        if(var == cd.CD[v].Scalars){
             return v;
         }
     }
@@ -191,7 +193,7 @@ std::vector<CLBuffer> process::div(std::string var1, std::string var2){
             // element-wise multiplication of DIV_CSR with the diagonal matrix of token2
             Piro::kernelmethods::csrgeam_2({partA}, partB, 2);
             /*
-            auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 2];
+            auto& cd = MP.getvalue<std::vector<AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0];.CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + 2];
             int nnz = cd.values.size();
             std::vector<int> rp = Piro::opencl_utilities::copyCL<int>(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE),
                                             CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::RHS)[0].buffer, N , NULL);
@@ -226,6 +228,7 @@ void scalarMatrix::Solve(float currenttime){
     Piro::kernels& kernels = Piro::kernels::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     Piro::CellDataGPU& CDGPU = Piro::CellDataGPU::getInstance();
+    auto& cd = MP.getvalue<std::vector<AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0];
     cl_int err;
     int N = n[0] * n[1] * n[2];
     INIT::getInstance().ts = int(currenttime / timestep);
@@ -239,7 +242,7 @@ void scalarMatrix::Solve(float currenttime){
         // total number of vectors and scalars
         
         err = clEnqueueReadBuffer(kernels.getvalue<cl_command_queue>(Piro::kernels::QUEUE), CDGPU.getvalue<std::vector<Piro::CLBuffer>>(Piro::CellDataGPU::VALUES_GPU)[1].buffer, CL_TRUE, 0,
-                sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[1].values.data(), 0, NULL, NULL);
+                sizeof(float) * N, cd.CD[1].values.data(), 0, NULL, NULL);
         if (err != CL_SUCCESS){
             std::cout << "Solve error" << std::endl;
         }

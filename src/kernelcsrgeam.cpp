@@ -13,7 +13,7 @@ void Piro::kernelmethods::csrgeam(std::vector<CLBuffer> partA, std::vector<CLBuf
         Piro::MeshParams& MP = Piro::MeshParams::getInstance();
         Piro::kernels& kernels = Piro::kernels::getInstance();
         // choose which sparse matrix
-        auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + module];
+        auto& cd = MP.getvalue<std::vector<AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + module];
         int nnz = cd.values.size();
         std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
         int N = n[0] * n[1] * n[2];
@@ -92,7 +92,7 @@ void Piro::kernelmethods::csrgeam_2(std::vector<CLBuffer> partA, std::vector<CLB
         Piro::MeshParams& MP = Piro::MeshParams::getInstance();
         Piro::kernels& kernels = Piro::kernels::getInstance();
         // choose which sparse matrix
-        auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + module];
+        auto& cd = MP.getvalue<std::vector<AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + module];
         int nnz = cd.values.size();
         std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
         int N = n[0] * n[1] * n[2];
@@ -212,7 +212,7 @@ void Piro::kernelmethods::csrscale(std::vector<CLBuffer> partA, std::vector<CLBu
         Piro::MeshParams& MP = Piro::MeshParams::getInstance();
         Piro::kernels& kernels = Piro::kernels::getInstance();
         // choose which sparse matrix
-        auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + module];
+        auto& cd = MP.getvalue<std::vector<AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM) + module];
         int nnz = cd.values.size();
         std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
         int N = n[0] * n[1] * n[2];

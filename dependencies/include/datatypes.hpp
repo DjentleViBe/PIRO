@@ -51,6 +51,11 @@ namespace Piro{
             std::vector<CellData> Residuals;
     };
 
+    class AMR_LEVELS{
+        public:
+            std::vector<Piro::AMR> amr;
+    };
+
     class MeshParams{
         public:
             static MeshParams& getInstance(){
@@ -67,7 +72,7 @@ namespace Piro{
                 // string
                 CONSTANTSLIST, SCALARLIST, VECTORLIST, ICFILES,
                 // custom
-                AMR
+                AMRLEVELS
             };
 
 
@@ -93,12 +98,10 @@ namespace Piro{
                 }
             return std::get<T>(parameters.at(paramindex));
             }
-            /*
-            std::vector<AMR> AMR;*/
         
         private:
             MeshParams() = default;
-            using ParamValue = std::variant<int, uint, float, std::string, std::vector<int>, std::vector<uint>, std::vector<float>, std::vector<std::string>, std::vector<Piro::AMR>>;
+            using ParamValue = std::variant<int, uint, float, std::string, std::vector<int>, std::vector<uint>, std::vector<float>, std::vector<std::string>, std::vector<Piro::AMR_LEVELS>>;
             std::unordered_map<ParameterIndex, ParamValue> parameters;
     };
 

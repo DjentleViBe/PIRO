@@ -31,7 +31,7 @@ void Piro::matrix_operations::HT::lu_decomposition(const std::vector<CLBuffer>& 
     size_t globalWorkSize[1];
     size_t localWorkSize[1];
     Piro::logger::debug("Loop begin");
-    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM)];
+    auto& cd = MP.getvalue<std::vector<AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0].CD[MP.getvalue<int>(Piro::MeshParams::VECTORNUM) + MP.getvalue<int>(Piro::MeshParams::SCALARNUM) + MP.getvalue<int>(Piro::MeshParams::CONSTANTNUM)];
 
     int limit;
     for (int rowouter = 0; rowouter < N - 1; rowouter++){

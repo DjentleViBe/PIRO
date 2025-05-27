@@ -24,12 +24,13 @@ void bc::opencl_initBC(){
     Piro::kernels& kernels = Piro::kernels::getInstance();
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     int N = n[0] * n[1] * n[2];
-
+    Piro::logger::info("OpenCL boundary initialisation");
+    auto& cd = MP.getvalue<std::vector<Piro::AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0];
     Q = Piro::vector_operations::flattenvector(indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)).size();
     memE = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(uint) * Q, Piro::vector_operations::flattenvector(indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)).data(), &err);
     memD = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                          sizeof(float) * N, MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[1].values.data(), &err);
+                          sizeof(float) * N, cd.CD[1].values.data(), &err);
     if (err != CL_SUCCESS){
         std::cout << "BC error" << std::endl;
     }
@@ -69,10 +70,11 @@ void bc::setbc(){
     Piro::bc::indices& indval = Piro::bc::indices::getInstance();
     Piro::process GS;
     
+    auto& cd = MP.getvalue<std::vector<Piro::AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0];
     for (int ind = 0; ind < 6; ind++){
         for(uint faces = 0; faces < indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)[ind].size(); faces++){
             int msv = GS.matchscalartovar(indval.getvalue<std::vector<std::string>>(Piro::bc::indices::BC_PROPERTY)[ind]);
-            MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0].CD[msv].values[indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)[ind][faces]] = indval.getvalue<std::vector<float>>(Piro::bc::indices::BC_VALUE)[ind];
+            cd.CD[msv].values[indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)[ind][faces]] = indval.getvalue<std::vector<float>>(Piro::bc::indices::BC_VALUE)[ind];
         }
     }
 }
@@ -149,6 +151,7 @@ void bc::initbc(){
     indval.setvalue(Piro::bc::indices::BC_TYPE, Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("BC", "type", "default_value"), ' ')));
     indval.setvalue(Piro::bc::indices::BC_PROPERTY, Piro::string_utilities::splitString(reader.get("BC", "property", "default_value"), ' '));
     indval.setvalue(Piro::bc::indices::BC_VALUE, Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("BC", "values", "default_value"), ' ')));
+    
     Piro::bc::setbc();
     Piro::bc::prepbc();
 
