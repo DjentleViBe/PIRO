@@ -41,6 +41,7 @@
 | $\frac{d}{dx}$ | First order spatial derivative | `solver.gradient("U")` | `Release` |```CSR```
 | $\vec{v}$ . $\nabla$ | Directional derivative along $\vec{v}$  | `solver.vector("v") & solver.gradient("U")` | `Release` | ```CSR```
 ***
+Refer to [setup.md](./dependencies/assets/setup.md) for a list of available precompiled equations
 ### Schemes
 | Name | Description | Number | Status |
 | --- | --- | --- | --- |
@@ -85,7 +86,7 @@ git clone https://github.com/DjentleViBe/PIRO.git
 
 Device details are printed to the console. 
 
-5. Make the required changes to the setup file as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format (they should be if Step 1. was successful).
+5. Make the required changes to the setup file as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format (they should be if Step 1. was successful). ```setup.ini``` files for precompiled equations are provided in the Examples folder inside the ```.zip``` file downloaded in Step 3.
 
 6. Execute the run command ```./runall.sh -f setup.ini 0``` to initiate the simulation. Log file is saved in the [logs](./logs) folder, using the same name as the setup file.
 7. The results are saved in the [bin](./bin) directory, within a folder named after the casename parameter specified in the setup file.

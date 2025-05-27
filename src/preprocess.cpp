@@ -38,6 +38,7 @@ int Piro::preprocess(const std::string& name) {
     SP.setvalue(Piro::SolveParams::TIMESCHEME, std::stoi(reader.get("Schemes", "Time", "default_value")));
     SP.setvalue(Piro::SolveParams::SPACESCHEME, std::stoi(reader.get("Schemes", "Space", "default_value")));
     SP.setvalue(Piro::SolveParams::SOLVERSCHEME, std::stoi(reader.get("Schemes", "Solver", "default_value")));
+    SP.setvalue(Piro::SolveParams::SIMINDEX, std::stoi(reader.get("File", "simindex", "default_value")));
 
     MP.setvalue(Piro::MeshParams::O, Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Mesh", "o", "default_value"), ' ')));
     MP.setvalue(Piro::MeshParams::S, Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Mesh", "s", "default_value"), ' ')));
