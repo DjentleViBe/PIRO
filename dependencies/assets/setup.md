@@ -12,6 +12,14 @@ The casename is used for naming the folder and consequent files which are export
 ### restart
 If restart = 1, the folder which is created with the ```filename``` is deleted and recreated.
 
+### simindex
+Various prebuilt equations.
+| sim index              | Equation name | Equation |
+| --- | --- | --- |
+|0|Heat equation|$\frac{dT}{dt}$ + $\alpha$ . $\nabla^2$|
+|1|Advection equation|$\frac{dU}{dt}$ + $\vec{v}$ . $\nabla$|
+|2|Continuity equation|$\frac{d\rho}{dt}$ + $\nabla$ . ($\rho$ $\vec{U}$)|
+
 ## [Device]
 This section sets the device used for the simulation. The following parameters can be fetched by running the following file:
 
