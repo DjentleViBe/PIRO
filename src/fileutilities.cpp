@@ -131,6 +131,27 @@ namespace Piro{
             return str.substr(first, (last - first + 1));
         }
 
+        std::vector<std::vector<int>> IniReader::parsemesh(const std::string& filename){
+            std::ifstream file(filename);
+            std::vector<std::vector<int>> data;
+            std::string line;
+
+            while (std::getline(file, line)) {
+                std::vector<int> row;
+                std::stringstream ss(line);
+                std::string value;
+
+                while (std::getline(ss, value, ',')) {
+                    // Remove leading/trailing spaces
+                    value.erase(0, value.find_first_not_of(" \t"));
+                    value.erase(value.find_last_not_of(" \t") + 1);
+                    row.push_back(std::stoi(value));
+                }
+                data.push_back(row);
+            }
+            return data;
+        }
+
         void IniReader::parseINI(const std::string& filename) {
             std::ifstream file(filename);
             std::string line, section;

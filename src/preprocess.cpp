@@ -16,6 +16,7 @@
 #include <mathoperations.hpp>
 #include <fileutilities.hpp>
 #include <openclutilities.hpp>
+#include <mesh.hpp>
 
 int Piro::preprocess(const std::string& name) {
     Piro::logger::info("Preprocess step initiated");
@@ -44,12 +45,11 @@ int Piro::preprocess(const std::string& name) {
     MP.setvalue(Piro::MeshParams::S, Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Mesh", "s", "default_value"), ' ')));
     MP.setvalue(Piro::MeshParams::num_cells, Piro::string_utilities::convertStringVectorToUInt(Piro::string_utilities::splitString(reader.get("Mesh", "n", "default_value"), ' ')));
     MP.setvalue(Piro::MeshParams::L, Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Mesh", "l", "default_value"), ' ')));
-    MP.setvalue(Piro::MeshParams::INDEX, Piro::string_utilities::convertStringVectorToInt(Piro::string_utilities::splitString(reader.get("Mesh", "index", "default_value"), ' ')));
     MP.setvalue(Piro::MeshParams::CONSTANTSLIST, Piro::string_utilities::splitString(reader.get("Simulation", "Constants", "default_value"), ' '));
     MP.setvalue(Piro::MeshParams::CONSTANTSVALUES, Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(reader.get("Simulation", "Values", "default_value"), ' ')));
     MP.setvalue(Piro::MeshParams::SCALARLIST, Piro::string_utilities::splitString(reader.get("Simulation", "Scalars", "default_value"), ' '));
     MP.setvalue(Piro::MeshParams::VECTORLIST, Piro::string_utilities::splitString(reader.get("Simulation", "Vectors", "default_value"), ' '));
-    MP.setvalue(Piro::MeshParams::MESHTYPE, std::stoi(reader.get("Mesh", "MeshType", "default_value")));
+    MP.setvalue(Piro::MeshParams::MESHTYPE, Piro::string_utilities::splitString(reader.get("Mesh", "meshfile", "default_value"), ' '));
     MP.setvalue(Piro::MeshParams::LEVELS, std::stoi(reader.get("Mesh", "levels", "default_value")));
     logg.setvalue(std::stoi(reader.get("Debug", "Verbose", "default_value")));
 
@@ -85,32 +85,55 @@ int Piro::preprocess(const std::string& name) {
     }
     int numLevels = MP.getvalue<int>(Piro::MeshParams::LEVELS);
     std::vector<Piro::AMR_LEVELS> AMR_level_collect;
+    std::vector<int> indexsizes;
     for(int i = 0; i < numLevels; i++){
         std::vector<Piro::AMR> AMR_val;
         Piro::AMR amr;
-        if(i != 0){
-            // read other levels and update the spacing(s[n]), AMR box (n[n]),  
-        }
-        amr.WholeExtent[0] = 0;
-        amr.WholeExtent[1] = n[0];
-        amr.WholeExtent[2] = 0;
-        amr.WholeExtent[3] = n[1];
-        amr.WholeExtent[4] = 0;
-        amr.WholeExtent[5] = n[2];
 
-        amr.Origin[0] = o[0];
-        amr.Origin[1] = o[1];
-        amr.Origin[2] = o[2];
-
-        amr.Spacing[0] = s[0];
-        amr.Spacing[1] = s[1];
-        amr.Spacing[2] = s[2];
+        std::vector<std::vector<int>> rm;
         
-        Piro::AMR_LEVELS level;
-        level.amr.push_back(amr);
-        AMR_level_collect.push_back(level);
+        if(i != 0){
+            // read other levels and update the spacing(s[n]), AMR box (n[n]), 
+            Piro::AMR_LEVELS level;
+            rm = Piro::mesh_operations::readmesh::readlevels(i);
+            indexsizes.push_back(rm.size());
+            for(int j = 0; j < rm[rm.size() - 1][0] + 1; j++){
+                amr.WholeExtent[0] = rm[j][1];
+                amr.WholeExtent[1] = rm[j][2];
+                amr.WholeExtent[2] = rm[j][3];
+                amr.WholeExtent[3] = rm[j][4];
+                amr.WholeExtent[4] = rm[j][5];
+                amr.WholeExtent[5] = rm[j][6];
+                amr.Spacing[0] = i / 2;
+                amr.Spacing[1] = i / 2;
+                amr.Spacing[2] = i / 2;
+                level.amr.push_back(amr);
+                
+            }
+            AMR_level_collect.push_back(level);
+        }
+        else{
+            indexsizes.push_back(1);
+            amr.WholeExtent[0] = 0;
+            amr.WholeExtent[1] = n[0];
+            amr.WholeExtent[2] = 0;
+            amr.WholeExtent[3] = n[1];
+            amr.WholeExtent[4] = 0;
+            amr.WholeExtent[5] = n[2];
 
+            amr.Origin[0] = o[0];
+            amr.Origin[1] = o[1];
+            amr.Origin[2] = o[2];
+
+            amr.Spacing[0] = s[0];
+            amr.Spacing[1] = s[1];
+            amr.Spacing[2] = s[2];
+            Piro::AMR_LEVELS level;
+            level.amr.push_back(amr);
+            AMR_level_collect.push_back(level);
+        }
     }
+    MP.setvalue(Piro::MeshParams::INDEX, indexsizes);
     MP.setvalue(Piro::MeshParams::AMRLEVELS, AMR_level_collect);
     // number of constant defined in the .ini file
     MP.setvalue(Piro::MeshParams::CONSTANTNUM, Piro::string_utilities::countSpaces(reader.get("Simulation", "Constants", "default_value")) + 1);

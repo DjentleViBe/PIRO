@@ -2,6 +2,8 @@
 #define fileutilities_hpp
 #include <string>
 #include <map>
+#include <filesystem>
+#include <vector>
 
 namespace Piro::file_utilities{
     /**
@@ -54,10 +56,11 @@ namespace Piro::file_utilities{
             std::string trim(const std::string& str);
             std::string get(const std::string& section, const std::string& key, const std::string& defaultValue = "") const;
             void print() const;
+            static std::vector<std::vector<int>> parsemesh(const std::string& filename);
         private:
             std::map<std::string, std::map<std::string, std::string>> iniData;
             void parseINI(const std::string& filename);
-
+            
     };
 }
 

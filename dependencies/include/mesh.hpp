@@ -1,9 +1,10 @@
 #ifndef mesh_hpp
 #define mesh_hpp
 
+#include <vector>
 namespace Piro::mesh_operations{
     namespace readmesh{
-        void readlevels();
+        std::vector<std::vector<int>> readlevels(int index);
     }
 }
 #endif
