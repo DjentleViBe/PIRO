@@ -4,7 +4,8 @@
 #include <vector>
 namespace Piro::mesh_operations{
     namespace readmesh{
-        std::vector<std::vector<int>> readlevels(int index);
+        std::vector<std::vector<int>> readlevels();
+        
     }
 }
 #endif
