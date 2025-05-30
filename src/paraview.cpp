@@ -106,7 +106,7 @@ std::string Piro::paraview::writevti(Piro::AMR AMR){
 
     return level;
 }
-
+/*
 void Piro::paraview::writevth(int timestep){
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
@@ -145,5 +145,54 @@ void Piro::paraview::writevth(int timestep){
     }
     vtkfile += "</vtkOverlappingAMR>\n</VTKFile>\n";
     Piro::file_utilities::writefile(Piro::file_utilities::current_path.string() + "/" + SP.getvalue<std::string>(Piro::SolveParams::CASENAME) + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
+
+}*/
+
+void Piro::paraview::writevth(int timestep){
+    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    int totalcells = MP.getvalue<int>(Piro::MeshParams::TOTALCELLS);
+    std::vector<std::vector<int>> pm = MP.getvalue<std::vector<std::vector<int>>>(Piro::MeshParams::MESH);
+    std::string ts_string = std::to_string(timestep);
+    std::string vtkfile = "<?xml version=\"1.0\"?>\n";
+    vtkfile += "<VTKFile type=\"vtkOverlappingAMR\" version=\"1.1\" byte_order=\"LittleEndian\" header_type=\"UInt32\">\n";
+    vtkfile += "\t<vtkOverlappingAMR origin=\"0 0 0\" grids=\"";
+    vtkfile += std::to_string(totalcells);
+    vtkfile += "\" refinementRatios=\"2 2 2\">\n\n";
+    int sub = 0;
+    for(int i = 0; i <= MP.getvalue<int>(Piro::MeshParams::LEVELS); i++){
+        float spacing = 1.0f / std::pow(2, i);
+        vtkfile += "\t\t<Block level=\"";
+        vtkfile += std::to_string(i);
+        vtkfile += "\" spacing=\"";
+        vtkfile += std::to_string(spacing) + " " + std::to_string(spacing) + " " + std::to_string(spacing);
+        vtkfile += "\">\n";
+        int locind = 0;
+        for(int lev = 0; lev < pm.size(); lev++){
+            if(lev == 0){
+                    sub = 2;
+                }
+                else{
+                    sub = 0;
+                }
+            if(pm[lev][0] == i){
+                vtkfile += "\t\t\t<DataSet index=\"" + std::to_string(locind) + "\" ";
+                vtkfile += "amr_box=\"" + 
+                            std::to_string(pm[lev][2]) + " " +
+                            std::to_string(pm[lev][3] - sub) + " " +
+                            std::to_string(pm[lev][4]) + " " +
+                            std::to_string(pm[lev][5] - sub) + " " +
+                            std::to_string(pm[lev][6]) + " " +
+                            std::to_string(pm[lev][7] - sub) + "\" ";
+                vtkfile += "file=\"level/" + ts_string + "_level_" + std::to_string(lev) + "_" + std::to_string(locind) + ".vti\">\n";
+                locind++;
+            }
+        }
+        vtkfile += "\t\t</Block>\n\n";
+    }
+    vtkfile += "\t</vtkOverlappingAMR>\n</VTKFile>\n";
+    Piro::file_utilities::writefile(Piro::file_utilities::current_path.string() + "/" + 
+                                    SP.getvalue<std::string>(Piro::SolveParams::CASENAME) + 
+                                    "/mesh/mesh_" + ts_string + ".vth", vtkfile);
 
 }
