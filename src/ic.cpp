@@ -8,6 +8,7 @@
 #include <logger.hpp>
 #include <mathoperations.hpp>
 #include <fileutilities.hpp>
+#include <octree.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -33,39 +34,40 @@ float Piro::calculatecoulomb(std::vector<float> coord, std::vector<float> center
 
 std::vector<float> Piro::initialcondition(int index){
     Piro::logger::info("Initialisation started");
-    std::vector<float> values;
-    std::srand(std::time(0));
-    std::vector<float> coordinate(3);
-    
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
-    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
-    std::vector<float> MP_l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
+    int total_cells = MP.getvalue<int>(Piro::MeshParams::TOTALCELLS);
+    std::vector<std::vector<int>> pm = MP.getvalue<std::vector<std::vector<int>>>(Piro::MeshParams::MESH);
+    std::vector<float> values(total_cells, 0.0f);
+    std::vector<float> coordinate(3);
     Piro::file_utilities::IniReader icreader(Piro::file_utilities::current_path.string() + "/assets/IC/" + "distribution.ini");
+    float scalefactor = std::stof(icreader.get("Gaussian", "Scalefactor", "default_value"));
+    std::vector<float> sigma = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Gaussian", "Sigma", "default_value"), ' '));
+    std::vector<float> mean = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Gaussian", "Median", "default_value"), ' '));
+    
+    std::vector<float> MP_l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
+    int l = 0;
     if(MP.getvalue<std::vector<std::string>>(Piro::MeshParams::ICFILES)[index] == "Gaussian"){
-        values.assign(n[0] * n[1] * n[2], 0.0);
         Piro::logger::info("Gaussian initialisation");
-        float scalefactor = std::stof(icreader.get("Gaussian", "Scalefactor", "default_value"));
-        std::vector<float> sigma = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Gaussian", "Sigma", "default_value"), ' '));
-        std::vector<float> mean = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Gaussian", "Median", "default_value"), ' '));
-        for (int x = 0; x < n[0]; ++x) {
-            for (int y = 0; y < n[1]; ++y) {
-                for (int z = 0; z < n[2]; ++z) {
-                    int l = Piro::math_operations::idx(x, y, z, n[0], n[1]);
-                    coordinate[0] = x * MP_l[0] / (float)n[0];
-                    coordinate[1] = y * MP_l[1] / (float)n[1];
-                    coordinate[2] = z * MP_l[2] / (float)n[2];
-                    values[l] = scalefactor * calculategaussian(coordinate, mean, sigma);
+        for(int lev = 0; lev < MP.getvalue<int>(Piro::MeshParams::LEVELS); lev++){
+            for(int pmlev = 0; pmlev < pm.size(); pmlev++){
+                if(pm[pmlev][0] == lev){
+                    std::vector<std::vector<float>> tempcoord = Piro::mesh_operations::octree::get_origin(pm[pmlev]);
+                    for(int tc = 0; tc < tempcoord.size(); tc++){
+                        values[l] = scalefactor * calculategaussian(tempcoord[tc], mean, sigma);
+                        l++;
+                    }
                 }
             }
         }
     }
     else if (MP.getvalue<std::vector<std::string>>(Piro::MeshParams::ICFILES)[index] == "Coulomb"){
-        values.assign(n[0] * n[1] * n[2], 0.0);
-        Piro::logger::info("Coulomb initialisation");
-        std::vector<float> center = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Coulomb", "center", "default_value"), ' '));
-        float Z = std::stof(icreader.get("Coulomb", "Z", "default_value"));
-        double e = std::stof(icreader.get("Coulomb", "e", "default_value"));
-        double epsilon_0 = std::stof(icreader.get("Coulomb", "epsilon_0", "default_value"));
+        // values.assign(cells, 0.0);
+        // Piro::logger::info("Coulomb initialisation");
+        //std::vector<float> center = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Coulomb", "center", "default_value"), ' '));
+        //float Z = std::stof(icreader.get("Coulomb", "Z", "default_value"));
+        //double e = std::stof(icreader.get("Coulomb", "e", "default_value"));
+        //double epsilon_0 = std::stof(icreader.get("Coulomb", "epsilon_0", "default_value"));
+        /*
         for (int x = 0; x < n[0]; ++x) {
             for (int y = 0; y < n[1]; ++y) {
                 for (int z = 0; z < n[2]; ++z) {
@@ -76,12 +78,12 @@ std::vector<float> Piro::initialcondition(int index){
                     values[l] = calculatecoulomb(coordinate, center, Z, e, epsilon_0);
                 }
             }
-        }
-        
+        }*/   
     }
     else if (MP.getvalue<std::vector<std::string>>(Piro::MeshParams::ICFILES)[index] == "UniformVector"){
         Piro::logger::info("Uniform vector initialisation");
-        values.assign(n[0] * n[1] * n[2] * 3, 0.0);
+        int total_cells = MP.getvalue<int>(Piro::MeshParams::TOTALCELLS);
+        std::vector<float> values(total_cells * 3, 0.0f);
         std::vector<float> vectordir = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Vector", "Direction", "default_value"), ' '));
         std::vector<float> vecval = Piro::string_utilities::convertStringVectorToFloat(Piro::string_utilities::splitString(icreader.get("Vector", "Value", "default_value"), ' '));
         for(int vec = 0; vec < values.size() / 3; vec++){

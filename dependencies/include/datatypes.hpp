@@ -46,6 +46,7 @@ namespace Piro{
             int PieceExtent[6];
             int Origin[3];
             int Spacing[3];
+            int delta[3];
             std::vector<PointData> PD;
             std::vector<CellData> CD;
             std::vector<CellData> Residuals;
@@ -72,7 +73,7 @@ namespace Piro{
                 // string
                 CONSTANTSLIST, SCALARLIST, VECTORLIST, ICFILES,
                 // custom
-                AMRLEVELS
+                AMR, LEVELCOUNT, TOTALCELLS, MESH
             };
 
 
@@ -101,7 +102,7 @@ namespace Piro{
         
         private:
             MeshParams() = default;
-            using ParamValue = std::variant<int, uint, float, std::string, std::vector<int>, std::vector<uint>, std::vector<float>, std::vector<std::string>, std::vector<Piro::AMR_LEVELS>>;
+            using ParamValue = std::variant<int, uint, float, std::string, std::vector<int>, std::vector<uint>, std::vector<float>, std::vector<std::string>, std::vector<std::vector<int>>, std::vector<Piro::AMR>>;
             std::unordered_map<ParameterIndex, ParamValue> parameters;
     };
 

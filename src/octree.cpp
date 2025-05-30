@@ -53,8 +53,8 @@ std::vector<std::vector<float>> Piro::mesh_operations::octree::get_origin(std::v
     delta[0] = (l[0] / (float)(n[0] - 2)) / std::pow(2, ind[0]);
     delta[1] = (l[1] / (float)(n[1] - 2)) / std::pow(2, ind[0]);
     delta[2] = (l[2] / (float)(n[2] - 2)) / std::pow(2, ind[0]);
-    Piro::print_utilities::printVector(delta);
-    Piro::logger::info("Printing coordinates");
+    // Piro::print_utilities::printVector(delta);
+    // Piro::logger::info("Printing coordinates");
     int b = 0;
     for(int w = ind[2]; w < ind[3]; w++){
         for(int t = ind[4]; t < ind[5]; t++){

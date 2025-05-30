@@ -37,10 +37,10 @@ std::vector<std::vector<int>> Piro::mesh_operations::readmesh::readlevels(){
     MP.setvalue(Piro::MeshParams::LEVELCOUNT, levelcount);
     MP.setvalue(Piro::MeshParams::TOTALCELLS, total_cells);
     MP.setvalue(Piro::MeshParams::MESH, pm);
-    Piro::print_utilities::printVector(pm[0]);
+    // Piro::print_utilities::printVector(pm[0]);
     std::vector<std::vector<float>> tempcoord = Piro::mesh_operations::octree::get_origin(pm[0]);
-    Piro::print_utilities::printMatrix(tempcoord);
-    std::exit(1);
+    // Piro::print_utilities::printMatrix(tempcoord);
+    // std::exit(1);
     return pm;
     
 }

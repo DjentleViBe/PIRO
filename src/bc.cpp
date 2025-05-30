@@ -25,7 +25,7 @@ void bc::opencl_initBC(){
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     int N = n[0] * n[1] * n[2];
     Piro::logger::info("OpenCL boundary initialisation");
-    auto& cd = MP.getvalue<std::vector<Piro::AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0];
+    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0];
     Q = Piro::vector_operations::flattenvector(indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)).size();
     memE = clCreateBuffer(kernels.getvalue<cl_context>(Piro::kernels::CONTEXT), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           sizeof(uint) * Q, Piro::vector_operations::flattenvector(indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)).data(), &err);
@@ -70,7 +70,7 @@ void bc::setbc(){
     Piro::bc::indices& indval = Piro::bc::indices::getInstance();
     Piro::process GS;
     
-    auto& cd = MP.getvalue<std::vector<Piro::AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[0].amr[0];
+    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0];
     for (int ind = 0; ind < 6; ind++){
         for(uint faces = 0; faces < indval.getvalue<std::vector<std::vector<int>>>(Piro::bc::indices::IND)[ind].size(); faces++){
             int msv = GS.matchscalartovar(indval.getvalue<std::vector<std::string>>(Piro::bc::indices::BC_PROPERTY)[ind]);
