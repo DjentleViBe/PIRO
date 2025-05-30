@@ -61,6 +61,9 @@ namespace Piro::string_utilities{
      * @param strVector vector of string.
      * @return combined string 
      */
+    std::vector<std::string> floatScalarToStringRange(const std::vector<float>& floatScalar, 
+                                                  size_t start, size_t end, 
+                                                  int precision = 2);
     std::string concatenateStrings(const std::vector<std::string>& strVector);
     /**
      * @brief concatenate strings.

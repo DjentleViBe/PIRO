@@ -16,7 +16,9 @@ namespace Piro::paraview{
          * @param AMR Cell data. 
          * @return string in .vti format.
          */
-        std::string writevti(Piro::AMR AMR);
+        std::string writevti(Piro::AMR AMR, int start, int end, std::vector<int> WholeExtent,
+                                    std::string Spacing,
+                                    std::vector<float> Origin, int lev);
         /**
          * @brief .vth export.
          *

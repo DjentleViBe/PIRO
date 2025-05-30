@@ -4,6 +4,7 @@
 #include <iterator>
 #include <extras.hpp>
 #include <logger.hpp>
+#include <iomanip>
 
 namespace Piro::string_utilities{
     std::vector<std::string> splitString(const std::string& str, char delimiter) {
@@ -81,6 +82,27 @@ namespace Piro::string_utilities{
             // Convert float to string
             std::ostringstream oss;
             oss << value;
+            stringScalar.push_back(oss.str());
+        }
+
+        return stringScalar;
+    }
+
+    std::vector<std::string> floatScalarToStringRange(const std::vector<float>& floatScalar, 
+                                                  size_t start, size_t end, 
+                                                  int precision = 2) {
+        std::vector<std::string> stringScalar;
+
+        // Guard against invalid range
+        if (start >= floatScalar.size() || start > end) {
+            return stringScalar;  // return empty vector
+        }
+
+        end = std::min(end, floatScalar.size());  // clamp to valid range
+
+        for (size_t i = start; i < end; ++i) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(precision) << floatScalar[i];
             stringScalar.push_back(oss.str());
         }
 

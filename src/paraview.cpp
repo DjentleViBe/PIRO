@@ -9,36 +9,40 @@
 #include <iostream>
 #include <algorithm>
 #include <logger.hpp>
+#include <octree.hpp>
+#include <sstream> 
+#include <iomanip>
 
-std::string Piro::paraview::writevti(Piro::AMR AMR){
+std::string Piro::paraview::writevti(Piro::AMR AMR, int start, int end, 
+                                    std::vector<int> WholeExtent,
+                                    std::string Spacing,
+                                    std::vector<float> Origin, int lev){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     Piro::bc::indices& indval = Piro::bc::indices::getInstance();
     std::string level = "";
     level = "<VTKFile type=\"ImageData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
     level += "<ImageData WholeExtent=\""+
-                std::to_string(AMR.WholeExtent[0]) + " " +
-                std::to_string(AMR.WholeExtent[1] - 2) + " " +
-                std::to_string(AMR.WholeExtent[2]) + " " +
-                std::to_string(AMR.WholeExtent[3] - 2) + " " +
-                std::to_string(AMR.WholeExtent[4]) + " " +
-                std::to_string(AMR.WholeExtent[5] - 2) +
+                std::to_string(WholeExtent[0]) + " " +
+                std::to_string(WholeExtent[1]) + " " +
+                std::to_string(WholeExtent[2]) + " " +
+                std::to_string(WholeExtent[3]) + " " +
+                std::to_string(WholeExtent[4]) + " " +
+                std::to_string(WholeExtent[5]) +
                 "\" Origin=\"" +
-                std::to_string(AMR.Origin[0])+ " " +
-                std::to_string(AMR.Origin[1])+ " " +
-                std::to_string(AMR.Origin[2]) +
+                std::to_string(Origin[0])+ " " +
+                std::to_string(Origin[1])+ " " +
+                std::to_string(Origin[2]) +
                 "\" Spacing=\"" + 
-                std::to_string(AMR.Spacing[0])+ " " +
-                std::to_string(AMR.Spacing[1])+ " " +
-                std::to_string(AMR.Spacing[2]) +
+                Spacing +
                 "\">\n";
     
     level += "<Piece Extent=\"" + 
-                std::to_string(AMR.WholeExtent[0]) + " " +
-                std::to_string(AMR.WholeExtent[1] - 2) + " " +
-                std::to_string(AMR.WholeExtent[2]) + " " +
-                std::to_string(AMR.WholeExtent[3] - 2) + " " +
-                std::to_string(AMR.WholeExtent[4]) + " " +
-                std::to_string(AMR.WholeExtent[5] - 2) +
+                std::to_string(WholeExtent[0]) + " " +
+                std::to_string(WholeExtent[1]) + " " +
+                std::to_string(WholeExtent[2]) + " " +
+                std::to_string(WholeExtent[3]) + " " +
+                std::to_string(WholeExtent[4]) + " " +
+                std::to_string(WholeExtent[5]) +
                 "\">\n";
     level += "<PointData Scalars=\"ScalarValues\">\n";
     level += "</PointData>\n";
@@ -47,16 +51,18 @@ std::string Piro::paraview::writevti(Piro::AMR AMR){
     for(int l = 0; l < AMR.CD.size() - 3; l++){
         
         if(AMR.CD[l].type == 1){
-            
-            for (int pos : indval.getvalue<std::vector<int>>(Piro::bc::indices::INDTOPRINT)) {
-                if (pos >= 0 && pos < AMR.CD[l].values.size()) {
-                    AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
+            Piro::logger::info(AMR.CD[l].values.size(), start, end);
+            if(lev == 0){
+                for (int pos : indval.getvalue<std::vector<int>>(Piro::bc::indices::INDTOPRINT)) {
+                    if (pos >= 0 && pos < end) {
+                        AMR.CD[l].values.erase(AMR.CD[l].values.begin() + pos);
                     }
                 }
+            }
             level.append("<DataArray type=\"Float64\" Name=\"");
             level.append(AMR.CD[l].Scalars);
             level.append("\" format=\"ascii\">\n");
-            level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatScalarToString(AMR.CD[l].values)));
+            level.append(Piro::string_utilities::concatenateStrings2(Piro::string_utilities::floatScalarToStringRange(AMR.CD[l].values, start, end, 2)));
             level.append("</DataArray>\n");
         }
         else if(AMR.CD[l].type == 2){
@@ -91,12 +97,9 @@ std::string Piro::paraview::writevti(Piro::AMR AMR){
                             level.append("</DataArray>\n");
                             break;
                     }
-
                 }
             }
         }
-        
-        
     }
     
     level += "</CellData>\n";
@@ -106,77 +109,52 @@ std::string Piro::paraview::writevti(Piro::AMR AMR){
 
     return level;
 }
-/*
-void Piro::paraview::writevth(int timestep){
-    Piro::SolveParams& SP = Piro::SolveParams::getInstance();
-    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
-    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
-    std::string ts_string = std::to_string(timestep);
-    ts_string = std::string(5 - ts_string.length(), '0') + ts_string;
-    int offset = 0; 
-    std::string vtkfile = "<?xml version=\"1.0\"?>\n";
-    vtkfile += "<VTKFile type=\"vtkOverlappingAMR\" version=\"1.1\" byte_order=\"LittleEndian\" header_type=\"UInt32\">\n";
-    vtkfile += "<vtkOverlappingAMR origin=\"0 0 0\" grid_description=\"XYZ\">\n";
-    for(int i = 0; i < MP.getvalue<int>(Piro::MeshParams::LEVELS); i++){
-        int num_blocks = MP.getvalue<std::vector<int>>(Piro::MeshParams::INDEX)[i];
-        std::vector<Piro::AMR> amr = MP.getvalue<std::vector<AMR_LEVELS>>(Piro::MeshParams::AMRLEVELS)[i].amr;
-        Piro::logger::info(amr.size());
-        vtkfile += "<Block level=\"" + std::to_string(i) + "\" spacing=\"1 1 1\">\n";
-        for(int j = 0; j < num_blocks; j++){
-            vtkfile += "<DataSet index=\"" + std::to_string(j) + "\" ";
-            vtkfile += "amr_box=\"" +   std::to_string(amr[j].WholeExtent[0]) + " " +
-                                        std::to_string(amr[j].WholeExtent[1] - 2) + " " +
-                                        std::to_string(amr[j].WholeExtent[2]) + " " +
-                                        std::to_string(amr[j].WholeExtent[3] - 2) + " " +
-                                        std::to_string(amr[j].WholeExtent[4]) + " " +
-                                        std::to_string(amr[j].WholeExtent[5] - 2) + "\" ";
-            vtkfile += "file=\"level/" + ts_string + "_level_" + std::to_string(offset + j) + ".vti\">\n";
-            vtkfile += "</DataSet>\n";
-            // Write .vti file for the corresponding AMR block
-            const auto& amr_block = amr[j];
-            std::string filename = Piro::file_utilities::current_path.string() + "/" +
-                               SP.getvalue<std::string>(Piro::SolveParams::CASENAME) +
-                               "/mesh/level/" + ts_string + "_level_" + std::to_string(offset + j) + ".vti";
-            Piro::logger::info("Writing block");
-            Piro::file_utilities::writefile(filename, writevti(amr_block));
-        }
-        vtkfile += "</Block>\n";
-        offset += num_blocks;
-    }
-    vtkfile += "</vtkOverlappingAMR>\n</VTKFile>\n";
-    Piro::file_utilities::writefile(Piro::file_utilities::current_path.string() + "/" + SP.getvalue<std::string>(Piro::SolveParams::CASENAME) + "/mesh/mesh_" + ts_string + ".vth", vtkfile);
-
-}*/
 
 void Piro::paraview::writevth(int timestep){
     Piro::SolveParams& SP = Piro::SolveParams::getInstance();
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     int totalcells = MP.getvalue<int>(Piro::MeshParams::TOTALCELLS);
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     std::vector<std::vector<int>> pm = MP.getvalue<std::vector<std::vector<int>>>(Piro::MeshParams::MESH);
     std::string ts_string = std::to_string(timestep);
-    std::string vtkfile = "<?xml version=\"1.0\"?>\n";
-    vtkfile += "<VTKFile type=\"vtkOverlappingAMR\" version=\"1.1\" byte_order=\"LittleEndian\" header_type=\"UInt32\">\n";
-    vtkfile += "\t<vtkOverlappingAMR origin=\"0 0 0\" grids=\"";
+    std::string vtkfile = "<VTKFile type=\"vtkOverlappingAMR\" version=\"1.1\" byte_order=\"LittleEndian\">\n";
+    vtkfile += "<vtkOverlappingAMR origin=\"0 0 0\" grids=\"";
     vtkfile += std::to_string(totalcells);
     vtkfile += "\" refinementRatios=\"2 2 2\">\n\n";
     int sub = 0;
-    for(int i = 0; i <= MP.getvalue<int>(Piro::MeshParams::LEVELS); i++){
+    auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0];
+    std::vector<int> levelcount = MP.getvalue<std::vector<int>>(Piro::MeshParams::LEVELCOUNT);
+    int start = 0;
+    int end = 0;
+    std::vector<int> WE(6);
+    std::vector<float> OR(3);
+    std::vector<float> Spacing(3);
+
+    for(int i = 0; i < MP.getvalue<int>(Piro::MeshParams::LEVELS); i++){
         float spacing = 1.0f / std::pow(2, i);
-        vtkfile += "\t\t<Block level=\"";
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(i) << spacing << " " << spacing << " "<< spacing;
+        std::string spacingStr = oss.str();
+
+        vtkfile += "<Block level=\"";
         vtkfile += std::to_string(i);
         vtkfile += "\" spacing=\"";
-        vtkfile += std::to_string(spacing) + " " + std::to_string(spacing) + " " + std::to_string(spacing);
+        vtkfile += spacingStr;
         vtkfile += "\">\n";
         int locind = 0;
         for(int lev = 0; lev < pm.size(); lev++){
-            if(lev == 0){
-                    sub = 2;
-                }
-                else{
-                    sub = 0;
-                }
+            if(i == 0){
+                sub = 2;
+                WE = {pm[lev][2], pm[lev][3] - sub, pm[lev][4], pm[lev][5] - sub, pm[lev][6], pm[lev][7] - sub};
+                end = start + (n[0]) * (n[1]) * (n[2]);
+            }
+            else{
+                sub = 0;
+                WE = {0, 2, 0, 2, 0, 2};
+                end = start + (8 * (pm[lev][3] - pm[lev][2]) * (pm[lev][5] - pm[lev][4]) * (pm[lev][7] - pm[lev][6]));
+            }
             if(pm[lev][0] == i){
-                vtkfile += "\t\t\t<DataSet index=\"" + std::to_string(locind) + "\" ";
+                vtkfile += "<DataSet index=\"" + std::to_string(locind) + "\" ";
                 vtkfile += "amr_box=\"" + 
                             std::to_string(pm[lev][2]) + " " +
                             std::to_string(pm[lev][3] - sub) + " " +
@@ -184,13 +162,25 @@ void Piro::paraview::writevth(int timestep){
                             std::to_string(pm[lev][5] - sub) + " " +
                             std::to_string(pm[lev][6]) + " " +
                             std::to_string(pm[lev][7] - sub) + "\" ";
-                vtkfile += "file=\"level/" + ts_string + "_level_" + std::to_string(lev) + "_" + std::to_string(locind) + ".vti\">\n";
+                vtkfile += "file=\"level/" + ts_string + "_level_" + std::to_string(i) + "_" + std::to_string(locind) + ".vti\" />\n";
+                
+
+                // write vti file here ---->
+                std::string filename = Piro::file_utilities::current_path.string() + "/" +
+                                        SP.getvalue<std::string>(Piro::SolveParams::CASENAME) +
+                                        "/mesh/level/" + ts_string + "_level_" + std::to_string(i) 
+                                        + "_" + std::to_string(locind) + ".vti";
+                // calculate the origin
+                OR = Piro::mesh_operations::octree::get_origin(pm[lev]);
+                Piro::file_utilities::writefile(filename, writevti(cd, start, end, WE, spacingStr, OR, i));
                 locind++;
+                start = end;
             }
         }
-        vtkfile += "\t\t</Block>\n\n";
+        vtkfile += "</Block>\n\n";
+        
     }
-    vtkfile += "\t</vtkOverlappingAMR>\n</VTKFile>\n";
+    vtkfile += "</vtkOverlappingAMR>\n</VTKFile>";
     Piro::file_utilities::writefile(Piro::file_utilities::current_path.string() + "/" + 
                                     SP.getvalue<std::string>(Piro::SolveParams::CASENAME) + 
                                     "/mesh/mesh_" + ts_string + ".vth", vtkfile);

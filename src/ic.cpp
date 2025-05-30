@@ -51,7 +51,7 @@ std::vector<float> Piro::initialcondition(int index){
         for(int lev = 0; lev < MP.getvalue<int>(Piro::MeshParams::LEVELS); lev++){
             for(int pmlev = 0; pmlev < pm.size(); pmlev++){
                 if(pm[pmlev][0] == lev){
-                    std::vector<std::vector<float>> tempcoord = Piro::mesh_operations::octree::get_origin(pm[pmlev]);
+                    std::vector<std::vector<float>> tempcoord = Piro::mesh_operations::octree::get_coord(pm[pmlev]);
                     for(int tc = 0; tc < tempcoord.size(); tc++){
                         values[l] = scalefactor * calculategaussian(tempcoord[tc], mean, sigma);
                         l++;

@@ -43,7 +43,7 @@ std::vector<float> Piro::mesh_operations::octree::get_ijk(std::vector<int> index
     return i_val;
 }
 
-std::vector<std::vector<float>> Piro::mesh_operations::octree::get_origin(std::vector<int> ind){
+std::vector<std::vector<float>> Piro::mesh_operations::octree::get_coord(std::vector<int> ind){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     std::vector<float> l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
@@ -79,7 +79,6 @@ std::vector<std::vector<float>> Piro::mesh_operations::octree::get_origin(std::v
                     origin_collect[b++] = {coord[0] + delta[0] + (0.5f * delta[0]), coord[1] + (0.5f * delta[1]), coord[2] + delta[2] + (0.5f * delta[2])};
                     origin_collect[b++] = {coord[0] + (0.5f * delta[0]), coord[1] + delta[1] + (0.5f * delta[1]), coord[2] + delta[2] + (0.5f * delta[2])};
                     origin_collect[b++] = {coord[0] + delta[0] + (0.5f * delta[0]), coord[1] + delta[1] + (0.5f * delta[1]), coord[2] + delta[2]+ (0.5f * delta[2])};
-
                 }
                 b++;
             }
@@ -87,5 +86,31 @@ std::vector<std::vector<float>> Piro::mesh_operations::octree::get_origin(std::v
     }
     // Piro::print_utilities::printVector(coord);
     return origin_collect;
+
+}
+
+std::vector<float> Piro::mesh_operations::octree::get_origin(std::vector<int> ind){
+    Piro::MeshParams& MP = Piro::MeshParams::getInstance();
+    std::vector<float> coord = {0.0f, 0.0f, 0.0f};
+    for(int w = ind[2]; w < ind[3]; w++){
+        for(int t = ind[4]; t < ind[5]; t++){
+            for(int f = ind[6]; f < ind[7]; f++){
+                if(ind[0] == 0){
+                    std::vector<int> indtemp = {ind[0], ind[1], w, w + 1, t, t + 1, f, f + 1};
+                    coord = {0.0f, 0.0f, 0.0f};
+                    get_ijk(indtemp, coord, MP.getvalue<std::vector<std::vector<int>>>(Piro::MeshParams::MESH));
+                    return coord;
+                }
+                else{
+                    std::vector<int> indtemp = {ind[0], ind[1], w, w + 1, t, t + 1, f, f + 1};
+                    coord = {0.0f, 0.0f, 0.0f};
+                    get_ijk(indtemp, coord, MP.getvalue<std::vector<std::vector<int>>>(Piro::MeshParams::MESH));
+                    return coord;
+                }
+            }
+        }
+    }
+    // Piro::print_utilities::printVector(coord);
+    return coord;
 
 }
