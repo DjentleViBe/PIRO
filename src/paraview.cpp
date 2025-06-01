@@ -51,7 +51,6 @@ std::string Piro::paraview::writevti(Piro::AMR AMR, int start, int end,
     for(int l = 0; l < AMR.CD.size() - 3; l++){
         
         if(AMR.CD[l].type == 1){
-            Piro::logger::info(AMR.CD[l].values.size(), start, end);
             if(lev == 0){
                 for (int pos : indval.getvalue<std::vector<int>>(Piro::bc::indices::INDTOPRINT)) {
                     if (pos >= 0 && pos < end) {
@@ -144,7 +143,7 @@ void Piro::paraview::writevth(int timestep){
         int locind = 0;
         for(int lev = 0; lev < pm.size(); lev++){
             if(i == 0){
-                sub = 2;
+                sub = 0;
                 WE = {pm[lev][2], pm[lev][3] - sub, pm[lev][4], pm[lev][5] - sub, pm[lev][6], pm[lev][7] - sub};
                 end = start + (n[0]) * (n[1]) * (n[2]);
             }
