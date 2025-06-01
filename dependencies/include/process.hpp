@@ -54,11 +54,30 @@ namespace Piro{
              * @return CLBuffer vector <rowpointers, coluns, values> of the CSR matrix.
              */
             std::vector<CLBuffer> laplacian(std::string var1, std::string var2);
-
+            /**
+             * @brief OpenCL function to calulate gradient matrix of a scalar / vector variable.
+             *
+             * Computes the gradient of the input scalar / vector and multiples by a constant.
+             * @param var1 Scalar / vector name
+             * @return CLBuffer vector <rowpointers, coluns, values> of the CSR matrix.
+             */
             std::vector<CLBuffer> gradient(std::string var1);
-
+            /**
+             * @brief OpenCL function to return the vector of a scalar / vector variable.
+             *
+             * 
+             * @param var1 Scalar / vector name
+             * @return CLBuffer of the scalar.
+             */
             std::vector<CLBuffer> vector(std::string var1);
-
+            /**
+             * @brief OpenCL function to calulate divergence matrix of a scalar / vector variable.
+             *
+             * Computes the divergence of the input scalar / vector and scales by a constant.
+             * @param var1 Scalar / vector name
+             * @param var2  Constant name
+             * @return CLBuffer vector <rowpointers, coluns, values> of the CSR matrix.
+             */
             std::vector<CLBuffer> div(std::string var1, std::string var2);
     };
 
