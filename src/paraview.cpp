@@ -120,7 +120,7 @@ void Piro::paraview::writevth(int timestep){
     vtkfile += "<vtkOverlappingAMR origin=\"0 0 0\" grids=\"";
     vtkfile += std::to_string(totalcells);
     vtkfile += "\" refinementRatios=\"2 2 2\">\n\n";
-    int sub = 0;
+    // int sub = 0;
     auto& cd = MP.getvalue<std::vector<AMR>>(Piro::MeshParams::AMR)[0];
     std::vector<int> levelcount = MP.getvalue<std::vector<int>>(Piro::MeshParams::LEVELCOUNT);
     int start = 0;
@@ -143,24 +143,37 @@ void Piro::paraview::writevth(int timestep){
         int locind = 0;
         for(int lev = 0; lev < pm.size(); lev++){
             if(i == 0){
-                sub = 0;
-                WE = {pm[lev][2], pm[lev][3] - sub, pm[lev][4], pm[lev][5] - sub, pm[lev][6], pm[lev][7] - sub};
-                end = start + (n[0]) * (n[1]) * (n[2]);
+                // sub = 0;
+                WE = {0, 1, 0, 1, 0, 1};
+                end = start + 1;
             }
             else{
-                sub = 0;
+                // sub = 0;
                 WE = {0, 2, 0, 2, 0, 2};
                 end = start + (8 * (pm[lev][3] - pm[lev][2]) * (pm[lev][5] - pm[lev][4]) * (pm[lev][7] - pm[lev][6]));
             }
             if(pm[lev][0] == i){
-                vtkfile += "<DataSet index=\"" + std::to_string(locind) + "\" ";
-                vtkfile += "amr_box=\"" + 
-                            std::to_string(pm[lev][2]) + " " +
-                            std::to_string(pm[lev][3] - sub) + " " +
-                            std::to_string(pm[lev][4]) + " " +
-                            std::to_string(pm[lev][5] - sub) + " " +
-                            std::to_string(pm[lev][6]) + " " +
-                            std::to_string(pm[lev][7] - sub) + "\" ";
+                
+                if(i == 0){
+                    vtkfile += "<DataSet index=\"" + std::to_string(locind) + "\" ";
+                    vtkfile += "amr_box=\"" + 
+                            std::to_string(pm[lev][8] % n[0]) + " " +
+                            std::to_string(pm[lev][8] % n[0]) + " " +
+                            std::to_string((pm[lev][8] / n[0]) % n[1]) + " " +
+                            std::to_string((pm[lev][8] / n[0]) % n[1]) + " " +
+                            std::to_string(pm[lev][8] / (n[0] * n[1])) + " " +
+                            std::to_string(pm[lev][8] / (n[0] * n[1])) + "\" ";
+                }
+                else{
+                    vtkfile += "<DataSet index=\"" + std::to_string(pm[lev][1]) + "\" ";
+                    vtkfile += "amr_box=\"" + 
+                                std::to_string(pm[lev][2]) + " " +
+                                std::to_string(pm[lev][3]) + " " +
+                                std::to_string(pm[lev][4]) + " " +
+                                std::to_string(pm[lev][5]) + " " +
+                                std::to_string(pm[lev][6]) + " " +
+                                std::to_string(pm[lev][7]) + "\" ";
+                }
                 vtkfile += "file=\"level/" + ts_string + "_level_" + std::to_string(i) + "_" + std::to_string(locind) + ".vti\" />\n";
                 
 

@@ -44,10 +44,6 @@ std::vector<float> Piro::mesh_operations::octree::get_ijk(std::vector<int> index
         for(int i = 0; i < std::min(coord.size(), i_val.size()); i++){
             coord[i] += static_cast<float>(i_val[i]);
         }
-        /*if(level == 2){
-            Piro::print_utilities::printVector(parent_val); 
-            Piro::print_utilities::printVector(i_val);
-        }*/
     }
     
     //Piro::logger::info(level);
@@ -104,26 +100,14 @@ std::vector<std::vector<float>> Piro::mesh_operations::octree::get_coord(std::ve
 
 std::vector<float> Piro::mesh_operations::octree::get_origin(std::vector<int> ind){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
-    std::vector<float> coord = {0.0f, 0.0f, 0.0f};
-    for(int w = ind[2]; w < ind[3]; w++){
-        for(int t = ind[4]; t < ind[5]; t++){
-            for(int f = ind[6]; f < ind[7]; f++){
-                if(ind[0] == 0){
-                    std::vector<int> indtemp = {ind[0], ind[1], w, w + 1, t, t + 1, f, f + 1, ind[8]};
-                    coord = {0.0f, 0.0f, 0.0f};
-                    get_ijk(indtemp, coord, MP.getvalue<std::vector<std::vector<int>>>(Piro::MeshParams::MESH));
-                    return coord;
-                }
-                else{
-                    std::vector<int> indtemp = {ind[0], ind[1], w, w + 1, t, t + 1, f, f + 1,  ind[8]};
-                    coord = {0.0f, 0.0f, 0.0f};
-                    get_ijk(indtemp, coord, MP.getvalue<std::vector<std::vector<int>>>(Piro::MeshParams::MESH));
-                    return coord;
-                }
-            }
-        }
-    }
-    // Piro::print_utilities::printVector(coord);
+    
+    std::vector<std::vector<int>> pm = MP.getvalue<std::vector<std::vector<int>>>(Piro::MeshParams::MESH);
+    int level = ind[0];
+    float scale = 1.0f / std::pow(2, level);
+    float x = (ind[2]) * scale;
+    float y = (ind[4]) * scale;
+    float z = (ind[6]) * scale;
+    std::vector<float> coord = {x, y, z};
+    // coord = get_ijk_2(ind, coord, pm);
     return coord;
-
 }
