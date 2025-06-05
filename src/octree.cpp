@@ -100,13 +100,17 @@ std::vector<std::vector<float>> Piro::mesh_operations::octree::get_coord(std::ve
 
 std::vector<float> Piro::mesh_operations::octree::get_origin(std::vector<int> ind){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
-    
+    std::vector<float> l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
+    std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
     std::vector<std::vector<int>> pm = MP.getvalue<std::vector<std::vector<int>>>(Piro::MeshParams::MESH);
     int level = ind[0];
     float scale = 1.0f / std::pow(2, level);
-    float x = (ind[2]) * scale;
-    float y = (ind[4]) * scale;
-    float z = (ind[6]) * scale;
+    float dx = l[0] / (float)(n[0]) * scale;
+    float dy = l[1] / (float)(n[1]) * scale;
+    float dz = l[2] / (float)(n[2]) * scale;
+    float x = (ind[2]) * dx;
+    float y = (ind[4]) * dy;
+    float z = (ind[6]) * dz;
     std::vector<float> coord = {x, y, z};
     // coord = get_ijk_2(ind, coord, pm);
     return coord;

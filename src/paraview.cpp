@@ -114,6 +114,7 @@ void Piro::paraview::writevth(int timestep){
     Piro::MeshParams& MP = Piro::MeshParams::getInstance();
     int totalcells = MP.getvalue<int>(Piro::MeshParams::TOTALCELLS);
     std::vector<uint> n = MP.getvalue<std::vector<uint>>(Piro::MeshParams::num_cells);
+    std::vector<float> l = MP.getvalue<std::vector<float>>(Piro::MeshParams::L);
     std::vector<std::vector<int>> pm = MP.getvalue<std::vector<std::vector<int>>>(Piro::MeshParams::MESH);
     std::string ts_string = std::to_string(timestep);
     std::string vtkfile = "<VTKFile type=\"vtkOverlappingAMR\" version=\"1.1\" byte_order=\"LittleEndian\">\n";
@@ -130,11 +131,13 @@ void Piro::paraview::writevth(int timestep){
     std::vector<float> Spacing(3);
 
     for(int i = 0; i < MP.getvalue<int>(Piro::MeshParams::LEVELS); i++){
-        float spacing = 1.0f / std::pow(2, i);
+        float spacing_x = l[0] / (float)(n[0]) / std::pow(2, i);
+        float spacing_y = l[1] / (float)(n[1]) / std::pow(2, i);
+        float spacing_z = l[2] / (float)(n[2]) / std::pow(2, i);
         std::ostringstream oss;
-        oss << std::fixed << std::setprecision(i) << spacing << " " << spacing << " "<< spacing;
+        oss << std::fixed << std::setprecision(6) << spacing_x << " " << spacing_y << " "<< spacing_z;
         std::string spacingStr = oss.str();
-
+        Piro::logger::info(spacingStr);
         vtkfile += "<Block level=\"";
         vtkfile += std::to_string(i);
         vtkfile += "\" spacing=\"";
