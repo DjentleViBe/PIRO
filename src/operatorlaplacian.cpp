@@ -227,7 +227,8 @@ int Piro::HT::laplacian(){
                                 0, nullptr, &event1);
 
     // Wait for all transfers to complete
-    clWaitForEvents(2, (cl_event[]){event0, event1});
+    cl_event events[2] = {event0, event1};
+    clWaitForEvents(2, events);
     Piro::INIT::getInstance().LAP_INIT = true;
     return 0;
 }
