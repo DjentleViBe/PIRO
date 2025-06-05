@@ -5,6 +5,7 @@
 #include <logger.hpp>
 #include <extras.hpp>
 #include <mathoperations.hpp>
+#include <cmath>
 
 void Piro::kernelsolve::CSR::TIMESCHEME_11(const std::vector<CLBuffer>& other, int N, int P, 
                                         std::vector<uint> n, float timestep, 

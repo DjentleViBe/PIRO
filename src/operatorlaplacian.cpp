@@ -9,6 +9,7 @@
 #include <logger.hpp>
 #include <methods.hpp>
 #include <stencils.hpp>
+#include <cmath>
 
 int Piro::CSR::laplacian(){
     Piro::CLBuffer CD_GPU;

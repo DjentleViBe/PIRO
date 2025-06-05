@@ -33,7 +33,7 @@ else
     $(info Current Directory: $(MAKEFILE_DIR))
 	INCDIR += -I/usr/include/CL
 	LIBDIR =
-	CFLAGS = -std=c++23 -Wno-deprecated
+	CFLAGS = -std=c++23 -Wno-deprecated -DCL_TARGET_OPENCL_VERSION=120
 	LIBS = -lOpenCL
 	EXENAME = PIRO
 endif
