@@ -27,6 +27,10 @@
 
 ## About 
 **PIRO** is an open-source C++/OpenCL software for performing high-performance numerical simulations. It provides modular solvers, supports various sparse formats (CSR, COO), and offers kernel-level customization for advanced users. PIRO is designed for research and production workflows requiring scalable parallel matrix computations.
+<p align="center">
+    <img width="250px" src="images/output.gif" align="center" alt="PIRO Advection" />
+</p>
+
 ## Features
 - __Cross-platform CPU / GPU operation__ via OpenCL.
 - __Modular equation__ solver.
