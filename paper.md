@@ -13,7 +13,7 @@ authors:
 affiliations:
   - name: Independent Researcher, Germany
     index: 1
-date: 2024-05-01
+date: 6 June 2025
 bibliography: paper.bib
 ---
 
