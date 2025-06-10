@@ -18,10 +18,9 @@
 
 ## Table of Contents
 - [About](#about)
+- [Installation Instructions](#installation-instructions)
+- [Documentation](#full-documentation)
 - [Features](#features)
-- [Running](#running)
-- [How to Build](#how-to-build)
-- [Documentation](#documentation)
 - [Feedback and Contributions](#feedback-and-contributions)
 - [License](#license)
 
