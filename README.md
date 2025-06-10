@@ -26,10 +26,16 @@
 - [License](#license)
 
 ## About 
-**PIRO** is an open-source C++/OpenCL software for performing high-performance numerical simulations. It provides modular solvers, supports various sparse formats (CSR, COO), and offers kernel-level customization for advanced users. PIRO is designed for research and production workflows requiring scalable parallel matrix computations.
+**PIRO** is an open-source C++/OpenCL software for performing high-performance numerical simulations. It provides modular solvers, supports various sparse formats (CSR, COO, HT), and offers kernel-level customization for advanced users. PIRO is designed for research and production workflows requiring scalable parallel matrix computations.
 <p align="center">
     <img width="250px" src="images/output.gif" align="center" alt="PIRO Advection" />
 </p>
+
+## Installation instructions
+See the [Quick installation](https://github.com/DjentleViBe/PIRO/wiki/end-to-end-example) section for step-by-step guidance.
+
+## Full Documentation
+See the [Wiki](https://github.com/DjentleViBe/PIRO/wiki) for full documentation, examples, operational details and other information.
 
 ## Features
 - __Cross-platform CPU / GPU operation__ via OpenCL.
@@ -45,7 +51,7 @@
 | $\frac{d}{dx}$ | First order spatial derivative | `solver.gradient("U")` | `Release` |```CSR```
 | $\vec{v}$ . $\nabla$ | Directional derivative along $\vec{v}$  | `solver.vector("v") & solver.gradient("U")` | `Release` | ```CSR```
 ***
-Refer to [setup.md](./dependencies/assets/setup.md) for a list of available precompiled equations
+
 ### Schemes
 | Name | Description | Number | Status |
 | --- | --- | --- | --- |
@@ -61,95 +67,6 @@ Refer to [setup.md](./dependencies/assets/setup.md) for a list of available prec
 | LU Decomposition | Solver | 27 | `Dev` |
 ***
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-## Running
-### Requirements
-- git
-
-If you're using Windows, run the commands in [Git Bash](https://git-scm.com/downloads).
-### Instructions
-1. To avoid Git changing line endings when you clone or commit, run:
-```bash
-git config --global core.autocrlf false
-```
-2. Clone the repo:
-```bash
-git clone https://github.com/DjentleViBe/PIRO.git
-```
-3. Download the ```.zip``` file for your Operating System from the latest [release](https://github.com/DjentleViBe/PIRO/releases/new). Extract and copy the ```bin``` folder to the project directory.
-4. From the project root directory, execute the command (Refer [Building](#how-to-build) instructions for compiling the program on your own):
-```bash
-./bin/<program name>
-``` 
-
-| program name              | Operating Sytem |
-| --- | --- |
-|```Piro_devices_MACOS```   | MacOS (x64) |
-|```Piro_devices_WIN.exe``` | Windows(x64)|
-|```Piro_devices_LIN```     | Linux (x64) |
-
-Device details are printed to the console. 
-
-5. Make the required changes to the setup file as outlined in [setup.md](./dependencies/assets/setup.md). Make sure all the ```.ini``` files are in the LF format (they should be if Step 1. was successful). ```setup.ini``` files for precompiled equations are provided in the Examples folder inside the ```.zip``` file downloaded in Step 3.
-
-6. Execute the run command ```./runall.sh -f setup.ini 0``` to initiate the simulation. Log file is saved in the [logs](./logs) folder, using the same name as the setup file.
-7. The results are saved in the [bin](./bin) directory, within a folder named after the casename parameter specified in the setup file.
-
-*If the setup file is renamed, the filename argument(```setup.ini```) in the run command needs to be updated accordingly. The log file output and the results folder name will then match the renamed setup file.*
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-## How to Build
-### Requirements
-Refer to [Build](./BUILD.md)
-### Instructions
-1. To avoid Git changing line endings when you clone or commit, run:
-```bash
-git config --global core.autocrlf false
-```
-
-2. Clone the repo:
-```bash
-git clone https://github.com/DjentleViBe/PIRO.git
-```
-
-## Devices program
-1. Switch to the ```device_list``` branch. 
-```bash
-git checkout device_list
-``` 
-2. Check if the build [requirements](./BUILD.md) are met.
-3. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
-4. Run the command ```./runall.sh```. The device list is printed to [logs](./logs/devices.txt)
-5. Modify the [setup](./dependencies/assets/setup.ini) file for id and platform_id based on the [logs](./logs/devices.txt). Refer to [setup](./dependencies/assets/setup.md) for detailed instructions.
-
-## Simulation program
-1. Switch to the branch of interest using 
-```bash
-git checkout <branch-name>
-``` 
-2. Make sure Step 5. under [Devices program](#devices-program) is set properly after changing the branch.
-3. Run the command ```./makeall.sh```. The executable file is created in the [bin](./bin) folder.
-
-## Kernel programs
-
-To compile just the kernels run:
-```bash
-./runall.sh -f setup.ini 1
-```
-The binaries are saved to the [./bin/assets/kernels](./bin/assets/kernels) folder.
-The logs are saved to the [logs](./logs/setup.ini.txt) folder.
-
-Go to [step 6](#running) for running the program.
-
-*[Kernel source files](./dependencies/assets/kernels/) can be updated inside ```0_kernels_math.txt``` and ```0_kernels.txt```. Kernel source filenames should have a ```.cl``` extension and the entries in the list should match the kernel function name. Make sure there are no trailing whitespaces or empty lines in the ```.txt``` file*
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-## Documentation
-List of manuals:
-- [setup.ini](./dependencies/assets/setup.md)
-- [IC.ini](./dependencies/assets/IC.md)
-- [BC.ini](./dependencies/assets/BC.md)
 
 List of papers:
 - [JOSS - A Sparse Matrix parallel solver for OpenCL](./paper.md)
