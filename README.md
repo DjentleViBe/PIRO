@@ -36,6 +36,15 @@ See the [Quick installation](https://github.com/DjentleViBe/PIRO/wiki/end-to-end
 ## Full Documentation
 See the [Wiki](https://github.com/DjentleViBe/PIRO/wiki) for full documentation, examples, operational details and other information.
 
+## Examples
+Some cases for pre-built equations are provided in the ```Examples``` folder. Refer [How-to-run](https://github.com/DjentleViBe/PIRO/wiki/How-to-run) for submitting a simulation.
+
+## Testing
+A test suite is provided that automatically runs and validates all compiled OpenCL examples in the `Test` directory. 
+
+Read the full test suite documentation in the [Wiki »](https://github.com/DjentleViBe/PIRO/wiki/testing)
+
+
 ## Features
 - __Cross-platform CPU / GPU operation__ via OpenCL.
 - __Modular equation__ solver.
