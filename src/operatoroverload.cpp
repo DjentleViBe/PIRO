@@ -72,7 +72,7 @@ namespace Piro{
                         switch(datatype){
                             case 2:
                                 Piro::matrix_operations::HT::lu_decomposition(other);
-                                std::exit(1);
+                                //std::exit(1);
                                 break;
                             default:
                                 Piro::logger::info("Wrong data type");
