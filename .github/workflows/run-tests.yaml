@@ -1,0 +1,33 @@
+name: Build and Test (C++ OpenCL)
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          ocl-icd-opencl-dev \
+          clinfo
+
+    - name: Check OpenCL availability
+      run: clinfo | grep "Device"
+
+    - name: Build with makeall.sh
+      run: |
+        chmod +x ./makeall.sh
+        ./makeall.sh
+
+    - name: Run tests with runall.sh
+      run: |
+        chmod +x ./runall.sh
+        ./runall.sh -f setup.ini 0
+        ./runall.sh -f setup.ini 1
