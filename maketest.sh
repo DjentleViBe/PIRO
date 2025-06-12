@@ -20,7 +20,7 @@ detect_os() {
         echo "Operating System: macOS"
     elif [[ "$OSTYPE" == "cygwin" ]]; then
         echo "Operating System: Cygwin (POSIX compatibility layer on Windows)"
-    elif [[ "$OSTYPE" == "msys" ]]; then
+    elif [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win32"* || "$OSTYPE" == "mingw"* ]]; then
         extension=".exe"
         echo "Operating System: MinGW (Minimal GNU for Windows)"
     elif [[ "$OSTYPE" == "win32" ]]; then
@@ -91,12 +91,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
     sed -i '' -e "s/^id = .*/id = $DEVICEID/" \
               -e "s/^platformid = .*/platformid = $PLATFORMID/" \
-              ./dependencies/assets/setup.ini
+              ./bin/assets/setup.ini
 else
     # Linux or Git Bash / WSL
     sed -i -e "s/^id = .*/id = $DEVICEID/" \
            -e "s/^platformid = .*/platformid = $PLATFORMID/" \
-           ./dependencies/assets/setup.ini
+           ./bin/assets/setup.ini
 fi
 
 ./bin/PIRO$extension $FILE 1 &> ./logs/test_buildkernel.txt
