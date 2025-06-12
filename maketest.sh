@@ -86,6 +86,19 @@ echo "Build : SUCCESSFUL"
 cp -r ./dependencies/assets ./bin/.
 mkdir -p logs
 FILE="setup.ini"
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    sed -i '' -e "s/^id = .*/id = $DEVICEID/" \
+              -e "s/^platformid = .*/platformid = $PLATFORMID/" \
+              ./dependencies/assets/setup.ini
+else
+    # Linux or Git Bash / WSL
+    sed -i -e "s/^id = .*/id = $DEVICEID/" \
+           -e "s/^platformid = .*/platformid = $PLATFORMID/" \
+           ./dependencies/assets/setup.ini
+fi
+
 ./bin/PIRO$extension $FILE 1 &> ./logs/test_buildkernel.txt
 echo "Run : KERNEL SUCCESSFUL"
 # run test cases
@@ -94,7 +107,17 @@ for file in ./Test/*; do
         echo "Running example : $(basename "$file")"
         fname=$(basename "$file")
         cp "$file" ./bin/assets/$fname
-        sed -i '' -e "7s/^id = .*/id = $DEVICEID/" -e "8s/^platformid = .*/platformid = $PLATFORMID/" ./bin/assets/$fname
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS
+            sed -i '' -e "s/^id = .*/id = $DEVICEID/" \
+                    -e "s/^platformid = .*/platformid = $PLATFORMID/" \
+                    ./bin/assets/$fname
+        else
+            # Linux or Git Bash / WSL
+            sed -i -e "s/^id = .*/id = $DEVICEID/" \
+                -e "s/^platformid = .*/platformid = $PLATFORMID/" \
+                ./bin/assets/$fname
+        fi 
         ./bin/PIRO$extension $fname 0 &> ./logs/test_$(basename "$file").txt
     fi
 done
