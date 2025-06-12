@@ -2,4 +2,4 @@
 make clean
 make
 make setup
-./runall.sh -f "setup.ini" 1
+# ./runall.sh -f "setup.ini" 1
