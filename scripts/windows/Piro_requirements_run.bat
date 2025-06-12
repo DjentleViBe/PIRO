@@ -1,6 +1,16 @@
 @echo off
-SETLOCAL
+SETLOCAL EnableDelayedExpansion
 
+:: Ensure script is run as Administrator
+:: If not, re-launch it as admin
+>nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
+if '%errorlevel%' NEQ '0' (
+    echo [!] Requesting administrative privileges...
+    powershell -Command "Start-Process '%~f0' -Verb runAs"
+    exit /b
+)
+
+echo [✓] Admin privileges confirmed.
 :: Path to your program (update this to match your actual file)
 SET "PROGRAM_PATH=%~dp0PIRO_devices_WIN.exe"
 
@@ -9,7 +19,7 @@ where git >nul 2>&1
 IF %ERRORLEVEL% EQU 0 (
     echo ✅ Git is already installed.
     git --version
-    GOTO RUN_PROGRAM
+    GOTO GPU
 )
 
 echo 🔍 Git not found. Proceeding to install Git Bash...
@@ -29,14 +39,52 @@ echo 🛠️  Installing Git silently...
 :: Wait a bit for the system to update PATH
 timeout /t 5 >nul
 
-:: Verify installation
-where git >nul 2>&1
-IF %ERRORLEVEL% EQU 0 (
-    echo ✅ Git installed successfully.
-    git --version
-) ELSE (
-    echo ❌ Git installation failed.
-    GOTO END
+:GPU
+clinfo | findstr /I "Platform" > nul
+if %errorlevel%==0 (
+    echo ✅ OpenCL is available.
+    goto RUN_PROGRAM
+) else (
+    echo ❌ OpenCL not detected. Please ensure GPU drivers are installed.
+)
+
+echo Detecting GPU vendor...
+
+:: Query GPU names
+for /f "tokens=2 delims==" %%A in ('wmic path win32_VideoController get Name /format:list ^| findstr "Name="') do (
+    set "GPUName=%%A"
+)
+
+echo GPU Detected: %GPUName%
+
+:: Check for NVIDIA
+echo %GPUName% | find /I "NVIDIA" >nul
+if %errorlevel%==0 (
+    echo NVIDIA GPU detected.
+    echo You should install the latest NVIDIA driver with OpenCL support.
+    start https://www.nvidia.com/Download/index.aspx
+    echo "Please run this file again after installation"
+    goto END
+)
+
+:: Check for AMD
+echo %GPUName% | find /I "AMD" >nul
+if %errorlevel%==0 (
+    echo AMD GPU detected.
+    echo You should install the latest AMD driver.
+    start https://www.amd.com/en/support
+    echo "Please run this file again after installation"
+    goto END
+)
+
+:: Check for Intel
+echo %GPUName% | find /I "Intel" >nul
+if %errorlevel%==0 (
+    echo Intel GPU detected.
+    echo You should install Intel Graphics drivers with OpenCL support.
+    start https://www.intel.com/content/www/us/en/developer/articles/tool/opencl-drivers.html
+    echo "Please run this file again after installation"
+    goto END
 )
 
 :RUN_PROGRAM
