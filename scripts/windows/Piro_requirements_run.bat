@@ -61,7 +61,7 @@ if not exist "%INSTALLER%" (
 
 :: Run Cygwin installer silently with some common packages
 echo Installing Cygwin silently...
-"%INSTALLER%" -q -P wget,tar,bash,make,gcc-core,gcc-g++,vim -R "%INSTALL_DIR%"
+"%INSTALLER%" -q -s https://cygwin.mirror.constant.com/ -P wget,tar,bash,make,gcc-core,gcc-g++,vim -R "%INSTALL_DIR%"
 
 echo Cygwin installation finished.
 
