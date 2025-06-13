@@ -24,7 +24,7 @@ where git >nul 2>&1
 IF %ERRORLEVEL% EQU 0 (
     echo Git is already installed.
     git --version
-    GOTO GPU
+    GOTO CYGWIN
 )
 
 echo Git not found. Proceeding to install Git Bash...
@@ -44,6 +44,27 @@ echo Installing Git silently...
 :: Wait a bit for the system to update PATH
 timeout /t 5 >nul
 echo Git installed
+
+:CYGWIN
+:: Set variables
+set "CYGWIN_URL=https://cygwin.com/setup-x86_64.exe"
+set "INSTALLER=%TEMP%\setup-x86_64.exe"
+set "INSTALL_DIR=C:\cygwin64"
+
+:: Download Cygwin installer if not already downloaded
+if not exist "%INSTALLER%" (
+    echo Downloading Cygwin installer...
+    powershell -Command "Invoke-WebRequest -Uri '%CYGWIN_URL%' -OutFile '%INSTALLER%'"
+) else (
+    echo Cygwin installer already downloaded.
+    goto GPU
+)
+
+:: Run Cygwin installer silently with some common packages
+echo Installing Cygwin silently...
+"%INSTALLER%" -q -P wget,tar,bash,make,gcc-core,gcc-g++,vim -R "%INSTALL_DIR%"
+
+echo Cygwin installation finished.
 
 :GPU
 :: Check 64-bit DLL
