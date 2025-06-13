@@ -2,14 +2,14 @@
 
 # Run as root check
 if [ "$EUID" -ne 0 ]; then
-    echo "⚠️  Please run as root: sudo $0"
+    echo "Please run as root: sudo $0"
     exit 1
 fi
 
 if [ -f /etc/debian_version ]; then
     echo "Debian/Ubuntu detected."
     apt update
-    apt install -y git clinfo ocl-icd-opencl-dev mesa-opencl-icd
+    apt install -y git clinfo ocl-icd-opencl-dev
 
     # Optional: NVIDIA OpenCL runtime if NVIDIA GPU detected
     if lspci | grep -i nvidia > /dev/null; then
@@ -19,7 +19,7 @@ if [ -f /etc/debian_version ]; then
 
 elif [ -f /etc/redhat-release ]; then
     echo "Red Hat/CentOS/Fedora detected."
-    yum install -y git clinfo ocl-icd-devel mesa-opencl
+    yum install -y git clinfo ocl-icd-devel
 
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
@@ -28,7 +28,7 @@ elif [ -f /etc/redhat-release ]; then
 
 elif [ -f /etc/arch-release ]; then
     echo "Arch Linux detected."
-    pacman -Sy --noconfirm git clinfo ocl-icd mesa-opencl
+    pacman -Sy --noconfirm git clinfo ocl-icd
 
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
@@ -36,9 +36,9 @@ elif [ -f /etc/arch-release ]; then
     fi
 
 elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
-    echo "📦 openSUSE detected."
+    echo "openSUSE detected."
     zypper refresh
-    zypper install -y git clinfo ocl-icd-devel Mesa-opencl
+    zypper install -y git clinfo ocl-icd-devel
 
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
