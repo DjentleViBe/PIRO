@@ -62,7 +62,9 @@ if not exist "%INSTALLER%" (
 :: Run Cygwin installer silently with some common packages
 echo Installing Cygwin silently...
 "%INSTALLER%" -q -s https://cygwin.mirror.constant.com/ -P wget,tar,bash,make,gcc-core,gcc-g++,vim -R "%INSTALL_DIR%"
+set PATH=C:\cygwin64\bin;%PATH%
 
+setx PATH "C:\cygwin64\bin;%PATH%"
 echo Cygwin installation finished.
 
 :GPU
