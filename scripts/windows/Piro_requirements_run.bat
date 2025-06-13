@@ -35,7 +35,7 @@ SET "INSTALLER=%TEMP%\git-installer.exe"
 
 :: Download Git for Windows
 echo Downloading Git installer...
-powershell -Command "Invoke-WebRequest -Uri '%GIT_URL%' -OutFile '%INSTALLER%'"
+curl -L -o "%INSTALLER%" "%GIT_URL%"
 
 :: Install Git silently
 echo Installing Git silently...
@@ -54,7 +54,7 @@ set "INSTALL_DIR=C:\cygwin64"
 :: Download Cygwin installer if not already downloaded
 if not exist "%INSTALLER%" (
     echo Downloading Cygwin installer...
-    powershell -Command "Invoke-WebRequest -Uri '%CYGWIN_URL%' -OutFile '%INSTALLER%'"
+    curl -L -o "%INSTALLER%" "%CYGWIN_URL%"
 ) else (
     echo Cygwin installer already downloaded.
 )
