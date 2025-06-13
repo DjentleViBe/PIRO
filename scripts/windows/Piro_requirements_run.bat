@@ -57,7 +57,6 @@ if not exist "%INSTALLER%" (
     powershell -Command "Invoke-WebRequest -Uri '%CYGWIN_URL%' -OutFile '%INSTALLER%'"
 ) else (
     echo Cygwin installer already downloaded.
-    goto GPU
 )
 
 :: Run Cygwin installer silently with some common packages
