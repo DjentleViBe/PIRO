@@ -32,7 +32,16 @@ elif [ -f /etc/arch-release ]; then
 
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
-        pacman -Sy --noconfirm opencl-nvidia
+        pacman -S --noconfirm opencl-nvidia
+    elif lspci | grep -i amd > /dev/null; then
+        echo "AMD GPU detected, installing AMD OpenCL..."
+        pacman -S --noconfirm opencl-amd
+    elif lspci | grep -i intel > /dev/null; then
+        echo "INTEL GPU detected, installing INTEL OpenCL..."
+        pacman -S --noconfirm opencl-intel
+        echo "Intel OpenCL support can be a bit tricky — opencl-intel is usually good but sometimes the newer 
+        intel-compute-runtime + related packages are needed for newer hardware. Confirm hardware detection 
+        by running clinfo"
     fi
 
 elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
