@@ -30,7 +30,7 @@ IF %ERRORLEVEL% EQU 0 (
 echo Git not found. Proceeding to install Git Bash...
 
 :: Define download URL and installer path
-SET "GIT_URL=https://github.com/git-for-windows/git/releases/latest/download/Git-2.45.1-64-bit.exe"
+SET "GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/Git-2.49.0-64-bit.exe"
 SET "INSTALLER=%TEMP%\git-installer.exe"
 
 :: Download Git for Windows
@@ -43,6 +43,7 @@ echo Installing Git silently...
 
 :: Wait a bit for the system to update PATH
 timeout /t 5 >nul
+echo Git installed
 
 :GPU
 :: Check 64-bit DLL
