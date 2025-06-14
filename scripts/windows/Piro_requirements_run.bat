@@ -71,6 +71,7 @@ ECHO %CurrPath% > user_path_bak.txt
 ECHO %CurrPath% | findstr /i "cygwin64\bin" >nul
 IF ERRORLEVEL 1 (
     SETX PATH "%CurrPath%;%NewPath%"
+    SET PATH=%CurrPath%;%NewPath%
     ECHO Cygwin added to user PATH
 ) ELSE (
     ECHO Cygwin already in PATH
