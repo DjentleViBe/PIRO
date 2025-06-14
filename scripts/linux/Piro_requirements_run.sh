@@ -56,6 +56,7 @@ elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
 fi
 
 # Run the program
+git config --global core.autocrlf false
 chmod +x ./PIRO_devices_LIN
 echo "Please note down the Device and Platform number of the hardware where the simulation is intended to be run."
 ./PIRO_devices_LIN
