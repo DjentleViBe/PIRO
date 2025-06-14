@@ -61,8 +61,8 @@ if not exist "%INSTALLER%" (
 
 :: Run Cygwin installer silently with some common packages
 echo Installing Cygwin silently...
-::"%INSTALLER%" -s http://mirrors.kernel.org/sourceware/cygwin/ -P wget,tar,bash,make,gcc-core,gcc-g++,vim -f -R "%INSTALL_DIR%"
-"%INSTALLER%" -s http://mirrors.kernel.org/sourceware/cygwin/ -P make -f -R "%INSTALL_DIR%"
+"%INSTALLER%" -q -s http://mirrors.kernel.org/sourceware/cygwin/ -P wget,tar,bash,make,gcc-core,gcc-g++,vim -f -R "%INSTALL_DIR%"
+::"%INSTALLER%" -s http://mirrors.kernel.org/sourceware/cygwin/ -P make -f -R "%INSTALL_DIR%"
 SET "NewPath=C:\cygwin64\bin"
 SET "Key=HKCU\Environment"
 FOR /F "usebackq tokens=2*" %%A IN (`REG QUERY %Key% /v PATH 2^>nul`) DO Set CurrPath=%%B
