@@ -98,7 +98,8 @@ else
            -e "s/^platformid = .*/platformid = $PLATFORMID/" \
            ./bin/assets/setup.ini
 fi
-
+NEWPATH="/c/cygwin64/bin"
+export PATH="$NEWPATH:$PATH"
 ./bin/PIRO$extension $FILE 1 &> ./logs/test_buildkernel.txt
 echo "Run : KERNEL SUCCESSFUL"
 # run test cases
