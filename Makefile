@@ -19,7 +19,7 @@ LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library/
 LIBS = 
 EXENAME = PIRO
 FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
-else ifeq ($(findstring MINGW64,$(shell uname -s)),MINGW64)
+else ifeq ($(findstring NT,$(OS)),NT)
 CC = g++
 MAKEFILE_DIR=.
 $(info Current Directory: $(MAKEFILE_DIR))
