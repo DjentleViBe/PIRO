@@ -24,11 +24,13 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   --include='assets/' \
   --include='assets/***' \
   --include='*.bin' \
-  --include='*.exe' \
+  --include='PIRO' \
   --exclude='*' \
   bin/ Tempzip/bin
     rm Tempzip/bin/assets/kernels/*.cl
-    zip -r Executables/Linux.zip Tempzip/bin
+    cd Tempzip
+    zip -r ../Executables/Linux.zip bin
+    cd ../
     rm -r Tempzip
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "Creating MacOS.zip"
@@ -38,12 +40,13 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   --include='assets/' \
   --include='assets/***' \
   --include='*.bin' \
-  --include='*.exe' \
+  --include='PIRO' \
   --exclude='*' \
   bin/ Tempzip/bin
     rm Tempzip/bin/assets/kernels/*.cl
-    rm Tempzip/assets/kernels/*.cl
-    zip -r Executables/MacOS.zip Tempzip/bin
+    cd Tempzip
+    zip -r ../Executables/MacOS.zip bin
+    cd ../
     rm -r Tempzip
 elif [[ "$OSTYPE" == "cygwin" ]]; then
     echo "Operating System: Cygwin (POSIX compatibility layer on Windows)"
