@@ -28,7 +28,7 @@ elif [ -f /etc/redhat-release ]; then
 
 elif [ -f /etc/arch-release ]; then
     echo "Arch Linux detected."
-    pacman -Sy --noconfirm git clinfo ocl-icd
+    pacman -Sy --noconfirm git clinfo ocl-icd rsync
 
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
