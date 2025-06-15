@@ -17,8 +17,8 @@ echo "Run : KERNEL SUCCESSFUL"
 
 mkdir -p Executables
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    echo "Creating Linux.zip"
-    rm -f Executables/Linux.zip
+    echo "Creating Linux.tar.gz"
+    rm -f Executables/Linux.tar.gz
     mkdir -p Tempzip/bin
     rsync -av \
   --include='assets/' \
@@ -29,7 +29,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   bin/ Tempzip/bin
     rm Tempzip/bin/assets/kernels/*.cl
     cd Tempzip
-    zip -r ../Executables/Linux.zip bin
+    tar -czf ../Executables/Linux.tar.gz bin
     cd ../
     rm -r Tempzip
 elif [[ "$OSTYPE" == "darwin"* ]]; then
