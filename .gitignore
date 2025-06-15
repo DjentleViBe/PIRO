@@ -46,3 +46,4 @@ bin
 !pics/*.png
 !/svg/*pdf
 Executables
+Tempzip
