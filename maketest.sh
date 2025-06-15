@@ -100,8 +100,7 @@ else
 fi
 NEWPATH="/c/cygwin64/bin"
 export PATH="$NEWPATH:$PATH"
-./bin/PIRO$extension $FILE 1 &> ./logs/test_buildkernel.txt
-echo "Run : KERNEL SUCCESSFUL"
+
 # run test cases
 for file in ./Test/*; do
     if [ -f "$file" ]; then
