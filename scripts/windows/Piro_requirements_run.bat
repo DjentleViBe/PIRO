@@ -61,7 +61,7 @@ if not exist "%INSTALLER%" (
 
 :: Run Cygwin installer silently with some common packages
 echo Installing Cygwin silently...
-"%INSTALLER%" -q -s http://mirrors.kernel.org/sourceware/cygwin/ -P wget,tar,bash,make,gcc-core,gcc-g++,vim -f -R "%INSTALL_DIR%"
+"%INSTALLER%" -q -s http://mirrors.kernel.org/sourceware/cygwin/ -P wget,tar,bash,make,gcc-core,gcc-g++,vim,rsync -f -R "%INSTALL_DIR%"
 ::"%INSTALLER%" -s http://mirrors.kernel.org/sourceware/cygwin/ -P make -f -R "%INSTALL_DIR%"
 SET "NewPath=C:\cygwin64\bin"
 SET "Key=HKCU\Environment"
@@ -71,12 +71,12 @@ ECHO %CurrPath% > user_path_bak.txt
 ECHO %CurrPath% | findstr /i "cygwin64\bin" >nul
 IF ERRORLEVEL 1 (
     SETX PATH "%CurrPath%;%NewPath%"
-    SET PATH=%CurrPath%;%NewPath%
+    
     ECHO Cygwin added to user PATH
 ) ELSE (
     ECHO Cygwin already in PATH
 )
-
+SET PATH=%CurrPath%;%NewPath%
 echo Cygwin installation finished.
 
 :GPU
