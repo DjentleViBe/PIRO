@@ -11,31 +11,31 @@ BINDIR = $(MAKEFILE_DIR)/bin/
 #LIBS = -lglfw.3.3 -lportaudio
 
 ifeq ($(OS), Darwin)
-    CC = /usr/bin/clang++
-    MAKEFILE_DIR := $(CURDIR)
-    $(info Current Directory: $(MAKEFILE_DIR))
-	CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64
-	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library/
-	LIBS = 
-	EXENAME = PIRO
-	FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
-else ifeq ($(findstring MINGW64,$(shell uname -s)),MINGW64)
-    CC = g++
-    MAKEFILE_DIR=.
-    $(info Current Directory: $(MAKEFILE_DIR))
-	LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library
-	CFLAGS = -std=c++23 -Wno-deprecated -static
-	LIBS = -lOpenCL
-	EXENAME = PIRO.exe
+CC = /usr/bin/clang++
+MAKEFILE_DIR := $(CURDIR)
+$(info Current Directory: $(MAKEFILE_DIR))
+CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64
+LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library/
+LIBS = 
+EXENAME = PIRO
+FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
+else ifeq ($(findstring NT,$(OS)),NT)
+CC = g++
+MAKEFILE_DIR=.
+$(info Current Directory: $(MAKEFILE_DIR))
+LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library
+CFLAGS = -std=c++23 -Wno-deprecated -static
+LIBS = -lOpenCL
+EXENAME = PIRO.exe
 else
-	CC = g++
-    MAKEFILE_DIR=$(CURDIR)
-    $(info Current Directory: $(MAKEFILE_DIR))
-	INCDIR += -I/usr/include/CL
-	LIBDIR =
-	CFLAGS = -std=c++23 -Wno-deprecated -DCL_TARGET_OPENCL_VERSION=120
-	LIBS = -lOpenCL
-	EXENAME = PIRO
+CC = g++
+MAKEFILE_DIR=$(CURDIR)
+$(info Current Directory: $(MAKEFILE_DIR))
+INCDIR += -I/usr/include/CL
+LIBDIR =
+CFLAGS = -std=c++23 -Wno-deprecated -DCL_TARGET_OPENCL_VERSION=120
+LIBS = -lOpenCL
+EXENAME = PIRO
 endif
 
 SHAREDLIB = $(MAKEFILE_DIR)/sharedlib
@@ -71,7 +71,6 @@ $(OBJDIR):
 
 setup:
 	@echo "Running setup commands..."
-#	cp prefs.json bin/.
 	mkdir -p $(MAKEFILE_DIR)/bin/assets
 	cp -r $(MAKEFILE_DIR)/dependencies/assets/* $(MAKEFILE_DIR)/bin/assets/.
 

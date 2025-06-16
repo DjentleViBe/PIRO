@@ -8,6 +8,7 @@
 #include <CL/opencl.h>
 #include <fileutilities.hpp>
 #include <map>
+#include <algorithm>
 
 #ifdef __APPLE__
     #include <mach-o/dyld.h>

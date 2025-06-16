@@ -2,6 +2,7 @@
 #include <mathoperations.hpp>
 #include <datatypes.hpp>
 #include <bc.hpp>
+#include <algorithm>
 
 void Piro::CSR::stencils::gradient_cd_x(Piro::CellData& cd, std::vector<uint> n, float norm){
     for (int z = 0; z < n[2]; ++z) {
