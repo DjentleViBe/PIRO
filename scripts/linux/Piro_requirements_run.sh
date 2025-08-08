@@ -9,7 +9,7 @@ fi
 if [ -f /etc/debian_version ]; then
     echo "Debian/Ubuntu detected."
     apt update
-    apt install -y git clinfo ocl-icd-opencl-dev
+    apt install -y git clinfo ocl-icd-opencl-dev pciutils
 
     # Optional: NVIDIA OpenCL runtime if NVIDIA GPU detected
     if lspci | grep -i nvidia > /dev/null; then
@@ -19,7 +19,7 @@ if [ -f /etc/debian_version ]; then
 
 elif [ -f /etc/redhat-release ]; then
     echo "Red Hat/CentOS/Fedora detected."
-    yum install -y git clinfo ocl-icd-devel
+    yum install -y git clinfo ocl-icd-devel pciutils
 
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
@@ -28,7 +28,7 @@ elif [ -f /etc/redhat-release ]; then
 
 elif [ -f /etc/arch-release ]; then
     echo "Arch Linux detected."
-    pacman -Sy --noconfirm git clinfo ocl-icd rsync
+    pacman -Sy --noconfirm git clinfo ocl-icd rsync pciutils
 
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
@@ -47,7 +47,7 @@ elif [ -f /etc/arch-release ]; then
 elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
     echo "openSUSE detected."
     zypper refresh
-    zypper install -y git clinfo ocl-icd-devel
+    zypper install -y git clinfo ocl-icd-devel pciutils
 
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
