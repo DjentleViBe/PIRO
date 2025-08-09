@@ -1,18 +1,19 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-tools_ubuntu=("clinfo" "rsync" "pciutils" "git" "ocl-icd-opencl-dev")
-tools_suse=("clinfo" "rsync" "pciutils" "git" "ocl-icd-devel")
-tools_fedora=("which" "clinfo" "rsync" "pciutils" "git" "opencl-headers")
-tools_arch=("clinfo" "rsync" "pciutils" "git" "ocl-icd-opencl-dev")
+tools_ubuntu=("make" "gcc" "g++" "clinfo" "rsync" "pciutils" "git" "ocl-icd-opencl-dev")
+tools_suse=("make" "gcc14" "gcc14-c++" "clinfo" "rsync" "pciutils" "git" "ocl-icd-devel")
+tools_fedora=("which" "make" "gcc14" "gcc14-c++" "clinfo" "rsync" "pciutils" "git" "opencl-headers")
+tools_arch=("make" "gcc" "g++" "clinfo" "rsync" "pciutils" "git" "ocl-icd-opencl-dev")
 
-# Run as root check
-if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root: sudo $0"
-    exit 1
+if command -v sudo &>/dev/null; then
+    SUDO="sudo"
+else
+    SUDO=""
 fi
 
 missing_tools=()
 echo "Checking commands..."
+
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
@@ -38,6 +39,12 @@ check_tools() {
     fi
 }
 
+# Run as root check
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run as root: sudo $0"
+    exit 1
+fi
+
 if [ -f /etc/debian_version ]; then
     echo "Debian/Ubuntu detected."
     apt update
@@ -49,16 +56,18 @@ if [ -f /etc/debian_version ]; then
     # Optional: NVIDIA OpenCL runtime if NVIDIA GPU detected
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL ICD..."
-        # apt install -y libcompute-nvidia-570
+        # apt install -y libnvidia-compute-570
     fi
 
 elif [ -f /etc/redhat-release ]; then
-    echo "Red Hat/CentOS/Fedora detected."
+    echo "Fedora detected."
     yum update -y
     check_tools tools_fedora missing_tools
     for t in "${missing_tools[@]}"; do
-        yum install -y "$t"
+        yum install --assumeyes "$t"
     done
+    $SUDO ln -s $(which g++-14) /usr/bin/g++
+    $SUDO ln -sf /lib64/libOpenCL.so.1 /lib64/libOpenCL.so
 
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
@@ -67,7 +76,7 @@ elif [ -f /etc/redhat-release ]; then
 
 elif [ -f /etc/arch-release ]; then
     echo "Arch Linux detected."
-    check_tools tools_arch missing_tools
+     check_tools tools_arch missing_tools
     for t in "${missing_tools[@]}"; do
         pacman -Sy --noconfirm "$t"
     done
@@ -93,7 +102,7 @@ elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
     for t in "${missing_tools[@]}"; do
         zypper install -y "$t"
     done
-
+    $SUDO ln -s $(which g++-14) /usr/bin/g++
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
         # zypper install -y opencl-nvidia
@@ -102,4 +111,4 @@ fi
 
 # Run the program
 git config --global core.autocrlf false
-chmod +x $SCRIPT_DIR/PIRO_devices_LIN
+chmod +x ./makedevice.sh

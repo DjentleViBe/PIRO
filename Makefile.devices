@@ -1,0 +1,66 @@
+MAKEFILE_DIR := $(CURDIR)
+OS := $(shell uname)
+$(info Detected OS: $(OS))
+$(info Current Directory: $(MAKEFILE_DIR))
+
+# Directories
+SRCDIR = src
+OSDIR = 
+INCDIR = $(MAKEFILE_DIR)/dependencies/include
+INCLUDES = -I$(INCDIR)
+
+ifeq ($(OS), Darwin)
+    OSDIR = macos
+    CC = /usr/bin/clang++
+    CFLAGS = -std=c++23 -Wall -g -Wno-deprecated -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64
+    LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library/
+    LIBS =
+    EXENAME = PIRO_devices_MACOS
+    FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
+else ifeq ($(findstring MINGW64,$(shell uname -s)),MINGW64)
+    OSDIR = windows
+    CC = g++
+    CFLAGS = -std=c++23 -Wno-deprecated -static
+    LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library
+    LIBS = -lOpenCL
+    EXENAME = PIRO_devices_WIN.exe
+else
+    OSDIR = linux
+    CC = g++
+    CFLAGS = -std=c++23 -Wno-deprecated
+    INCLUDES += -I/usr/include/CL
+    LIBDIR =
+    LIBS = -lOpenCL
+    EXENAME = PIRO_devices_LIN
+endif
+
+OBJDIR = $(MAKEFILE_DIR)/scripts/$(OSDIR)
+BINDIR = $(MAKEFILE_DIR)/scripts/$(OSDIR)
+
+SOURCES_CPP := $(SRCDIR)/opencldevices.cpp
+OBJS_CPP := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SOURCES_CPP))
+HEADERS_C := $(wildcard $(INCDIR)/*.h)
+HEADERS_CPP := $(wildcard $(INCDIR)/*.hpp)
+
+EXEC = $(BINDIR)/$(EXENAME)
+OBJS := $(OBJS_CPP)
+
+all: $(EXEC)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERS_C) $(HEADERS_CPP) | $(OBJDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(EXEC): $(OBJS) | $(BINDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $(LIBDIR) $(FRAMEWORKS) -o $@ $(OBJS) $(LIBS)
+
+$(OBJDIR):
+	mkdir -p $@
+
+setup:
+	@echo "Running setup commands..."
+
+.PHONY: clean
+clean:
+	rm -rf $(OBJDIR)/*.tar.gz
+	rm $(OBJDIR)/*.o
+	rm $(OBJDIR)/PIRO_devices_LIN
