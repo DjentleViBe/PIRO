@@ -17,9 +17,10 @@ ifeq ($(OS), Darwin)
     LIBS =
     EXENAME = PIRO_devices_MACOS
     FRAMEWORKS = -framework CoreFoundation -framework Accelerate -framework OpenCL
-else ifeq ($(findstring MINGW64,$(shell uname -s)),MINGW64)
+else ifeq ($(findstring NT,$(OS)),NT)
     OSDIR = windows
     CC = g++
+    MAKEFILE_DIR=.
     CFLAGS = -std=c++23 -Wno-deprecated -static
     LIBDIR = -L$(MAKEFILE_DIR)/dependencies/library
     LIBS = -lOpenCL
@@ -61,6 +62,5 @@ setup:
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJDIR)/*.tar.gz
 	rm $(OBJDIR)/*.o
-	rm $(OBJDIR)/PIRO_devices_LIN
+	rm $(OBJDIR)/PIRO_devices*
