@@ -1,9 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-tools_ubuntu=("make" "gcc" "g++" "clinfo" "rsync" "pciutils" "git" "ocl-icd-opencl-dev")
-tools_suse=("make" "gcc14" "gcc14-c++" "clinfo" "rsync" "pciutils" "git" "ocl-icd-devel")
-tools_fedora=("which" "make" "gcc14" "gcc14-c++" "clinfo" "rsync" "pciutils" "git" "opencl-headers")
-tools_arch=("make" "gcc" "g++" "clinfo" "rsync" "pciutils" "git" "ocl-icd-opencl-dev")
+tools_ubuntu=("git" "make" "gcc" "g++" "clinfo" "rsync" "pciutils" "git" "ocl-icd-opencl-dev")
+tools_suse=("git" "make" "gcc14" "gcc14-c++" "clinfo" "rsync" "pciutils" "git" "ocl-icd-devel")
+tools_fedora=("git" "which" "make" "gcc14" "gcc14-c++" "clinfo" "rsync" "pciutils" "git" "opencl-headers")
+tools_arch=("git" "make" "gcc" "g++" "clinfo" "rsync" "pciutils" "git" "ocl-icd-opencl-dev")
 
 if command -v sudo &>/dev/null; then
     SUDO="sudo"
