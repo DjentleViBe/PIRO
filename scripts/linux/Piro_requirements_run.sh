@@ -1,9 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-tools_ubuntu=("git" "clinfo" "rsync" "pciutils" "ocl-icd-opencl-dev" "pocl-opencl-icd")
-tools_suse=("git" "clinfo" "rsync" "pciutils" "ocl-icd-devel" "pocl" "pocl-devel")
-tools_fedora=("git" "which" "clinfo" "rsync" "pciutils" "opencl-headers" "pocl")
-tools_arch=("git" "clinfo" "rsync" "pciutils" "ocl-icd-opencl-dev")
+tools_ubuntu=("git=1:2.34.1-1ubuntu1.15" "clinfo=clinfo=3.0.21.02.21-1" "rsync" "pciutils" "ocl-icd-opencl-dev=2.2.14-3" "pocl-opencl-icd=1.8-3")
+tools_suse=("git-2.50.1-2.1" "which" "clinfo-3.0.25.02.14-1.1" "rsync" "pciutils" "ocl-icd-devel-2.3.3-1.1" "pocl-7.0-1.1" "pocl-devel-7.0-1.1")
+tools_fedora=("git-2.50.1-1.fc42" "which" "clinfo-3.0.23.01.25-7.fc42" "rsync" "pciutils" "opencl-headers-3.0-32.20241023git4ea6df1.fc42" "pocl-6.0-6.fc42")
+tools_arch=("git" "clinfo" "rsync" "pciutils" "ocl-icd" "pocl")
 
 # Run as root check
 if [ "$EUID" -ne 0 ]; then
@@ -23,6 +23,13 @@ check_tools() {
     missing_ref=()                 # clear output array
 
     for tool in "${tools_ref[@]}"; do
+        if [[ "$tool" == *"="* ]]; then
+            cmd="${tool%%=*}"       # Debian/Ubuntu
+        elif [[ "$tool" =~ -[0-9] ]]; then
+            cmd="${tool%%-[0-9]*}"  # Fedora/RHEL style
+        else
+            cmd="$tool"             # No version specified
+        fi
         if command_exists "$tool"; then
             echo "$tool is installed."
         else

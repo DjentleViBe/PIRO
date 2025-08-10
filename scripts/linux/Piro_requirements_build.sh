@@ -1,9 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-tools_ubuntu=("git" "make" "gcc" "g++" "clinfo" "rsync" "pciutils" "ocl-icd-opencl-dev" "pocl-opencl-icd")
-tools_suse=("git" "make" "gcc14" "gcc14-c++" "clinfo" "rsync" "pciutils" "ocl-icd-devel" "pocl" "pocl-devel")
-tools_fedora=("git" "which" "make" "gcc14" "gcc14-c++" "clinfo" "rsync" "pciutils" "opencl-headers" "pocl")
-tools_arch=("git" "make" "gcc" "g++" "clinfo" "rsync" "pciutils" "ocl-icd-opencl-dev")
+tools_ubuntu=("git=1:2.34.1-1ubuntu1.15" "make=4.3-4.1build1" "gcc=4:11.2.0-1ubuntu1" "g++=4:11.2.0-1ubuntu1" "clinfo=clinfo=3.0.21.02.21-1" "rsync" "pciutils" "ocl-icd-opencl-dev=2.2.14-3" "pocl-opencl-icd=1.8-3")
+tools_suse=("git-2.50.1-2.1" "make-4.4.1-3.3" "which" "gcc14" "gcc14-c++" "clinfo-3.0.25.02.14-1.1" "rsync" "pciutils" "ocl-icd-devel-2.3.3-1.1" "pocl-7.0-1.1" "pocl-devel-7.0-1.1")
+tools_fedora=("git-2.50.1-1.fc42" "which" "make-1:4.4.1-10.fc42" "gcc14" "gcc14-c++" "clinfo-3.0.23.01.25-7.fc42" "rsync" "pciutils" "opencl-headers-3.0-32.20241023git4ea6df1.fc42" "pocl-6.0-6.fc42")
+tools_arch=("git" "make" "gcc" "g++" "clinfo" "rsync" "pciutils" "ocl-icd")
 
 if command -v sudo &>/dev/null; then
     SUDO="sudo"
@@ -17,18 +17,25 @@ echo "Checking commands..."
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
-
 check_tools() {
-    local -n tools_ref=$1          # input array of tools to check
-    local -n missing_ref=$2        # output array name to store missing tools
-    missing_ref=()                 # clear output array
+    local -n tools_ref=$1
+    local -n missing_ref=$2
+    missing_ref=()
 
     for tool in "${tools_ref[@]}"; do
-        if command_exists "$tool"; then
-            echo "$tool is installed."
+        # Strip everything after the first '=' to get the command name
+        if [[ "$tool" == *"="* ]]; then
+            cmd="${tool%%=*}"       # Debian/Ubuntu
+        elif [[ "$tool" =~ -[0-9] ]]; then
+            cmd="${tool%%-[0-9]*}"  # Fedora/RHEL style
         else
-            echo "$tool is NOT installed."
-            missing_ref+=("$tool")
+            cmd="$tool"             # No version specified
+        fi
+        if command_exists "$cmd"; then
+            echo "$cmd is installed."
+        else
+            echo "$cmd is NOT installed."
+            missing_ref+=("$tool") # Keep original string with version
         fi
     done
 
