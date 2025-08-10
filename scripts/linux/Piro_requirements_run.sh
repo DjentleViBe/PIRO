@@ -1,9 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-tools_ubuntu=("git" "g++" "clinfo" "rsync" "pciutils" "git" "ocl-icd-opencl-dev")
-tools_suse=("git" "clinfo" "rsync" "pciutils" "git" "ocl-icd-devel")
-tools_fedora=("git" "which" "clinfo" "rsync" "pciutils" "git" "opencl-headers")
-tools_arch=("git" "clinfo" "rsync" "pciutils" "git" "ocl-icd-opencl-dev")
+tools_ubuntu=("git" "clinfo" "rsync" "pciutils" "ocl-icd-opencl-dev" "pocl-opencl-icd")
+tools_suse=("git" "clinfo" "rsync" "pciutils" "ocl-icd-devel" "pocl" "pocl-devel")
+tools_fedora=("git" "which" "clinfo" "rsync" "pciutils" "opencl-headers" "pocl")
+tools_arch=("git" "clinfo" "rsync" "pciutils" "ocl-icd-opencl-dev")
 
 # Run as root check
 if [ "$EUID" -ne 0 ]; then
