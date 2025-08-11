@@ -14,6 +14,15 @@ else
     SUDO=""
 fi
 
+architecture=$(uname -m)
+
+if [[ "$architecture" == "x86_64" ]]; then
+    echo "System is 64-bit."
+else
+    echo "System is NOT x86_64. (detected architecture: $architecture)."
+    exit 1
+fi
+
 # Run as root check
 if [ "$EUID" -ne 0 ]; then
     echo "Please run as root: sudo $0"

@@ -8,6 +8,17 @@ tools_fedora_42=("wget" "git-2.50.1-1.fc42" "which" "clinfo-3.0.23.01.25-7.fc42"
 tools_fedora_generic=("wget" "git" "which" "clinfo" "rsync" "pciutils" "opencl-headers" "pocl")
 tools_arch=("wget" "git" "clinfo" "rsync" "pciutils" "ocl-icd" "pocl")
 
+architecture=$(uname -m)
+
+architecture=$(uname -m)
+
+if [[ "$architecture" == "x86_64" ]]; then
+    echo "System is 64-bit."
+else
+    echo "System is NOT x86_64. (detected architecture: $architecture)."
+    exit 1
+fi
+
 if command -v sudo &>/dev/null; then
     SUDO="sudo"
 else
