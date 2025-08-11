@@ -184,6 +184,9 @@ elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
         echo No NVIDIA GPU detected. Support for additional GPUs for OpenSUSE will be added in future releases.
         exit 1
     fi
+else
+    echo "Unsupported Linux distribution. Please run this script on Debian/Ubuntu, Fedora, Arch Linux, or openSUSE."
+    exit 1
 fi
 
 # Run the program
