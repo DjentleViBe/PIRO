@@ -16,6 +16,25 @@ IF NOT '%errorlevel%'=='0' (
 
 echo Admin privileges confirmed.
 
+@echo off
+setlocal
+
+REM Check if 64-bit (only AMD64)
+if /I "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
+    echo System is 64-bit.
+) else (
+    echo System is NOT 64-bit. Detected architecture: %PROCESSOR_ARCHITECTURE%
+    set /p choice=Do you want to proceed anyway? (y/N): 
+    if /I "%choice%"=="y" (
+        echo Proceeding...
+    ) else (
+        echo Aborting.
+        exit /b 1
+    )
+)
+
+endlocal
+
 :: Path to your program (update this to match your actual file)
 SET "PROGRAM_PATH=%~dp0PIRO_devices_WIN.exe"
 
@@ -127,3 +146,4 @@ if %errorlevel%==0 (
     goto END
 )
 
+echo Dependencies installed. Please run ./makedevice.sh using Git Bash.

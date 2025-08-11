@@ -19,8 +19,17 @@ architecture=$(uname -m)
 if [[ "$architecture" == "x86_64" ]]; then
     echo "System is 64-bit."
 else
-    echo "System is NOT x86_64. (detected architecture: $architecture)."
-    exit 1
+    echo "System is NOT x86_64. (detected architecture: $architecture)"
+    read -p "Do you want to proceed anyway? (y/N): " choice
+    case "$choice" in
+        [yY]|[yY][eE][sS])
+            echo "Proceeding..."
+            ;;
+        *)
+            echo "Aborting."
+            exit 1
+            ;;
+    esac
 fi
 
 # Run as root check

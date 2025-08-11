@@ -16,6 +16,16 @@ IF NOT '%errorlevel%'=='0' (
 
 echo Admin privileges confirmed.
 
+@echo off
+REM Check if the processor architecture is AMD64 (64-bit)
+IF /I "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
+    echo System is 64-bit.
+) ELSE (
+    echo System is NOT 64-bit. Detected architecture: %PROCESSOR_ARCHITECTURE%
+    pause
+    exit /b 1
+)
+
 :: Path to your program (update this to match your actual file)
 SET "PROGRAM_PATH=%~dp0PIRO_devices_WIN.exe"
 
