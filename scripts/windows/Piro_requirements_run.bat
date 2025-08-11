@@ -19,9 +19,9 @@ echo Admin privileges confirmed.
 @echo off
 REM Check if the processor architecture is AMD64 (64-bit)
 IF /I "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
-    echo System is 64-bit.
+    echo System is x86_64.
 ) ELSE (
-    echo System is NOT 64-bit. Detected architecture: %PROCESSOR_ARCHITECTURE%
+    echo System is NOT x86_64. Detected architecture: %PROCESSOR_ARCHITECTURE%
     pause
     exit /b 1
 )

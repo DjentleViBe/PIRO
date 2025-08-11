@@ -21,9 +21,9 @@ setlocal
 
 REM Check if 64-bit (only AMD64)
 if /I "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
-    echo System is 64-bit.
+    echo System is x86_64.
 ) else (
-    echo System is NOT 64-bit. Detected architecture: %PROCESSOR_ARCHITECTURE%
+    echo System is NOT x86_84. Detected architecture: %PROCESSOR_ARCHITECTURE%
     set /p choice=Do you want to proceed anyway? (y/N): 
     if /I "%choice%"=="y" (
         echo Proceeding...
