@@ -1,9 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-tools_ubuntu=("git=1:2.34.1-1ubuntu1.15" "clinfo=clinfo=3.0.21.02.21-1" "rsync" "pciutils" "ocl-icd-opencl-dev=2.2.14-3" "pocl-opencl-icd=1.8-3")
-tools_suse=("git-2.50.1-2.1" "which" "clinfo-3.0.25.02.14-1.1" "rsync" "pciutils" "ocl-icd-devel-2.3.3-1.1" "pocl-7.0-1.1" "pocl-devel-7.0-1.1")
-tools_fedora=("git-2.50.1-1.fc42" "which" "clinfo-3.0.23.01.25-7.fc42" "rsync" "pciutils" "opencl-headers-3.0-32.20241023git4ea6df1.fc42" "pocl-6.0-6.fc42")
-tools_arch=("git" "clinfo" "rsync" "pciutils" "ocl-icd" "pocl")
+tools_ubuntu=("wget" "git=1:2.34.1-1ubuntu1.15" "clinfo=clinfo=3.0.21.02.21-1" "rsync" "pciutils" "ocl-icd-opencl-dev=2.2.14-3" "pocl-opencl-icd=1.8-3")
+tools_suse=("wget" "git-2.50.1-2.1" "which" "clinfo-3.0.25.02.14-1.1" "rsync" "pciutils" "ocl-icd-devel-2.3.3-1.1" "pocl-7.0-1.1" "pocl-devel-7.0-1.1")
+tools_fedora=("wget" "git-2.50.1-1.fc42" "which" "clinfo-3.0.23.01.25-7.fc42" "rsync" "pciutils" "opencl-headers-3.0-32.20241023git4ea6df1.fc42" "pocl-6.0-6.fc42")
+tools_arch=("wget" "git" "clinfo" "rsync" "pciutils" "ocl-icd" "pocl")
 
 # Run as root check
 if [ "$EUID" -ne 0 ]; then
@@ -81,7 +81,33 @@ elif [ -f /etc/arch-release ]; then
 
     if lspci | grep -i nvidia > /dev/null; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
-        pacman -S --noconfirm opencl-nvidia
+        # Extract driver version, e.g. "570.153.02"
+        DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
+
+        if [ -z "$DRIVER_VERSION" ]; then
+            echo "Could not detect NVIDIA driver version."
+            exit 1
+        fi
+
+        echo "Detected NVIDIA driver version: $DRIVER_VERSION"
+
+        # Compose package filename and URL
+        PACKAGE_NAME="opencl-nvidia-${DRIVER_VERSION}-1-x86_64.pkg.tar.zst"
+        PACKAGE_URL="https://archive.archlinux.org/packages/o/opencl-nvidia/${PACKAGE_NAME}"
+
+        # Download the package
+        echo "Downloading $PACKAGE_NAME..."
+        wget -q "$PACKAGE_URL" || { echo "Download failed"; exit 1; }
+
+        # Install the package
+        echo "Installing $PACKAGE_NAME..."
+        sudo pacman -U --noconfirm "$PACKAGE_NAME" || { echo "Installation failed"; rm -f "$PACKAGE_NAME"; exit 1; }
+
+        # Delete the package file after install
+        echo "Deleting package file $PACKAGE_NAME..."
+        rm -f "$PACKAGE_NAME"
+
+        echo "Done."
     elif lspci | grep -i amd > /dev/null; then
         echo "AMD GPU detected, installing AMD OpenCL..."
         pacman -S --noconfirm opencl-amd
