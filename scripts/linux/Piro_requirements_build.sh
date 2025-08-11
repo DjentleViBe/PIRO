@@ -15,11 +15,11 @@ else
 fi
 
 architecture=$(uname -m)
-
-if [[ "$architecture" == "x86_64" ]]; then
+bits=$(getconf LONG_BIT)
+if [[ "$architecture" == "x86_64" && "$bits" == "64" ]]; then
     echo "System is 64-bit."
 else
-    echo "System is NOT x86_64. (detected architecture: $architecture)"
+    echo "System is NOT x86_64. (detected architecture: $architecture, bits: $bits)"
     read -p "Do you want to proceed anyway? (y/N): " choice
     case "$choice" in
         [yY]|[yY][eE][sS])

@@ -9,13 +9,12 @@ tools_fedora_generic=("wget" "git" "which" "clinfo" "rsync" "pciutils" "opencl-h
 tools_arch=("wget" "git" "clinfo" "rsync" "pciutils" "ocl-icd" "pocl")
 
 architecture=$(uname -m)
+bits=$(getconf LONG_BIT)
 
-architecture=$(uname -m)
-
-if [[ "$architecture" == "x86_64" ]]; then
+if [[ "$architecture" == "x86_64" && "$bits" == "64" ]]; then
     echo "System is 64-bit."
 else
-    echo "System is NOT x86_64. (detected architecture: $architecture)."
+    echo "System is NOT x86_64. (detected architecture: $architecture, bits: $bits)"
     exit 1
 fi
 
