@@ -110,7 +110,7 @@ elif [ -f /etc/arch-release ]; then
 
         # Install the package
         echo "Installing $PACKAGE_NAME..."
-        sudo pacman -U --noconfirm "$PACKAGE_NAME" || { echo "Installation failed"; rm -f "$PACKAGE_NAME"; exit 1; }
+        sudo pacman -U --noconfirm "$PACKAGE_NAME" --overwrite usr/lib/libnvidia-opencl.so\* || { echo "Installation failed"; rm -f "$PACKAGE_NAME"; exit 1; }
 
         # Delete the package file after install
         echo "Deleting package file $PACKAGE_NAME..."
