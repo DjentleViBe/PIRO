@@ -25,27 +25,30 @@ bibliography: paper.bib
 Compressed Sparse Row (CSR) is a space efficient way for storing sparse-matrices. It is particularly useful in situations where the matrix has many zero elements. Parallellising CSR matrix operations requires special treatment as not all elements in the matrix are readily available for independent processing. 
 One solution is to process each row separately, making it straightforward to assign different rows to different threads. This approach requires the availability of atomic operations to extract good performance [@ieeepaper2012]. 
 For dynamic graphs stored in CSR, parallel algorithms can insert or delete edges concurrently. Lock-free or fine-grained locking mechanisms are employed to allow multiple threads to update the structure without significant contention[@dyngraphs]. However, this introduces complexity in managing numerous locks, increasing the risk of deadlock or priority inversion if not designed meticulously [@ieeepaper2024].
-Existing libraries often lack GPU support or are tied to proprietary platforms (e.g., CUDA [@cusparse]). PIRO fills this gap by offering a novel solution (HTLF) by representing Sparse Matrices as Hash Tables (HT). It uses a hash function to compute an index (hash key) into an array of slots, where the corresponding value is stored. Insertion, deletion and lookup can be performed in amortized constant time (on average) independent of the number of non zero elements in the table, assuming a good hash function and  well-sized table. It is well known that HT are generally more efficient than search trees or other lookup structures for these operations, especially when fast access is required.
+The landscape of high-performance linear algebra and sparse solvers is diverse. 
+Existing libraries often lack GPU support or are tied to proprietary platforms (e.g., CUDA [@cusparse]). 
+Libraries such as PETSc [@petsc] supports OpenCL through the ViennaCL[@viennacl] backend, however, since ViennaCL primarily targets older OpenCL versions, this approach may lack full compatibility with modern OpenCL features. HYPRE[@hypre] is a library of high performance preconditioners and solvers designed for structured and semi-structured grids but GPU acceleration and dynamic matrix updates are limited. Eigen [@eigen] is a highly mature C++ template library for linear algebra which is CPU-focused. Magma [@magma] is highly optimized for dense linear algebra on CUDA, MAGMA-sparse [@magmasparse] is now in Legacy Support Mode (as of December 2024), with no active development.
 
+While hash-based sparse matrix assembly has been established on CPUs [@aspn], adapting it for GPU execution is still a recent challenge [@du2022opsparsehighlyoptimizedframework]. PIRO addresses this gap with HTLF (Hash table with Load Factor), a complementary approach that scales the hash table using a fitting function. It uses a hash function to compute an index (hash key) into an array of slots, where the corresponding value is stored. Insertion, deletion and lookup can be performed in amortized constant time (on average) independent of the number of non zero elements in the table, assuming a good hash function and well-sized table. It is well known that HT are generally more efficient than search trees or other lookup structures for these operations, especially when fast access is required.
 
 Additionally the software offers:
 
-- __Cross-platform CPU / GPU operation__ via OpenCL.
-- __Modular equation__ solver.
+- __Cross-platform CPU / GPU operation__ for dense and CSR based matrix matrices via OpenCL.
+- __Modular equation__ solver for Partial Differential Equations.
 - __Post processing__ export function for viewing results (e.g Paraview).
 - __Benchmarking__ tools and diagnostics. 
 
 # Algorithm - HTLF
 When solving a linear system numerically, especially for large systems, directly computing the inverse is not recommended for numerical stability and efficiency. Iterative solvers are algorithms that find approximate solutions to linear systems, such as $Ax = b$, by starting with an initial guess and progressively improving it through repeated iterations. If approximate solutions are not desired, Direct methods, such as Gaussian elimination, LU decomposition, and Cramer's rule, compute the exact solution to a linear system in a finite number of steps, assuming no rounding errors occur during computation. 
-LU decomposition requires modification of the original matrix, which can be sparse by nature, into an Upper Triangular Matrix $(UTM)$, which can also be sparse, before solving. This step adds, modifies and removes elements from the origianal matrix through repeated gaussian elimination steps (${\kappa}$). If sparseness of the matrix is measured by the number of non zero elements $(nnz)$, then 
-$${\mu} = nnz / N^2 $$
+LU decomposition requires modification of the original matrix, which can be sparse by nature, into an Upper Triangular Matrix $(UTM)$, which can also be sparse, before solving. This step adds, modifies and removes elements from the origianal matrix through repeated gaussian elimination steps (${\kappa}$). If sparseness of the matrix is measured by the number of non zero elements $(e)$, then 
+$${\mu} = e / N^2 $$
 $$ \bar{n} = {\kappa} / N^2$$
-$${\lambda} = nnz @ {\kappa} : 0 / nnz @{\kappa} : N - 1 $$
+$${\lambda} = e_{\kappa_0} / e_{\kappa_{N-1}}$$
 
-where, $N = n_x * n_y * n_z$ if $n_x, n_y, n_z$ are the number of grid cells in X, Y and Z direction respectively.
-$nnz$ for an $UTM$ obtained after gaussian elimination of a Laplacian operator for various cell grid sizes $(N)$ is shown in the figure below.
+where, $N = n_x * n_y * n_z$ if $n_x, n_y, n_z$ are the number of grid cells in X, Y and Z direction respectively, the load factor $\lambda$ is the ratio of nonzero elements in the first row ($\kappa= 0$) to those in the consecitive rows ($\kappa = N-1$).
+$e$ for an $UTM$ obtained after gaussian elimination of a Laplacian operator for various cell grid sizes $(N)$ is shown in the figure below.
 
-![**(a)** Row filling for different N during gaussian elimination. 'x' marker denoting maximum nnz. **(b)** Curve fitting for nnz. **(c)** Curve fitting for the load factor.\label{fig:UTM}](svg/trends.pdf)
+![**(a)** Row filling for different N during gaussian elimination. 'x' marker denoting maximum e. **(b)** Curve fitting for e. **(c)** Curve fitting for the load factor.\label{fig:UTM}](svg/trends.pdf)
 
 The sparseness decreases initially, reaching a maximum, before finally increasing according to \autoref{fig:UTM}.
 
@@ -55,7 +58,7 @@ $${\lambda} = a * N^b + c$$
 The coefficients are $a = 3.3608$, $b = 0.5552$, $c = -0.014$.
 
 Then, 
-$$TABLE\_SIZE = nnz / ({\lambda} * {\sigma})$$
+$$TABLE\_SIZE = e / ({\lambda} * {\sigma})$$
 where, ${\sigma}$ is the scaling factor, providing more flexibility.
 
 ## Hash function
@@ -71,7 +74,7 @@ where, $$index = row \ number * N + column \ number$$
 For a large enough $TABLE\_SIZE$, steps 1. and 2. are O(1) at best. Sometimes traversal performed in step 1 might need extra probing (upon encountering -2 before -1) during insertion due to open addressing.
 
 ## Performance
-![Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times. HTLF uses {\sigma} = 0.7.\label{fig:CRT}](svg/execcumulativetime.pdf)
+![Cumulative run times across gaussian elimination steps for different N. **(a)** N = 125. **(b)** N = 343. **(c)** N = 729. **(d)** N = 1331. **(e)** Total run times. HTLF uses {$\sigma = 0.7$}.\label{fig:CRT}](svg/execcumulativetimeportrait.pdf)
 
 Table: Run times and space complexities of various algorithms generating a UTM for a ```7 x 7 x 7``` grid Laplacian on an AMD Radeon Pro 5300M; $factor$ = percentage of $N^2$.
 
@@ -80,21 +83,21 @@ Table: Run times and space complexities of various algorithms generating a UTM f
 +--------------+---------------+--------------------------------------+--------------------------------------+
 |              |               |[int, float]                          |[int, float]                          |
 +==============+===============+======================================+======================================+
-| DENSE        | 0.0062        | N + nnz + 1,                         | 1,                                   |
+| DENSE        | 0.0062        | N + e + 1,                         | 1,                                   |
 +--------------+---------------+--------------------------------------+--------------------------------------+
-|              |               | $N^2$ + nnz                          | 3 * $N^2$                            |
+|              |               | $N^2$ + e                          | 3 * $N^2$                            |
 +--------------+---------------+--------------------------------------+--------------------------------------+
-| ROWSEP       | 89.6593       | N + nnz + 1,                         | N + factor + 1,                      |
+| ROWSEP       | 89.6593       | N + e + 1,                         | N + factor + 1,                      |
 +--------------+---------------+--------------------------------------+--------------------------------------+
-|              |               | 2 * N + nnz                          | 3 * N + factor + 1                   |
+|              |               | 2 * N + e                          | 3 * N + factor + 1                   |
 +--------------+---------------+--------------------------------------+--------------------------------------+
-| ROW          | 35.3817       | N + 2 * n + nnz + 1,                 | 3 * N + factor + 1,                  |
+| ROW          | 35.3817       | N + 2 * n + e + 1,                 | 3 * N + factor + 1,                  |
 +--------------+---------------+--------------------------------------+--------------------------------------+
-|              |               | N + 2 * n + nnz                      | 3 * N + factor                       |
+|              |               | N + 2 * n + e                      | 3 * N + factor                       |
 +--------------+---------------+--------------------------------------+--------------------------------------+
-| COO          | 1.9186        | N + 2 * nnz + 1,                     | nnz + N + 1,                         |
+| COO          | 1.9186        | N + 2 * e + 1,                     | e + N + 1,                         |
 +--------------+---------------+--------------------------------------+--------------------------------------+
-|              |               | 2 * nnz                              | nnz                                  |
+|              |               | 2 * e                              | e                                  |
 +--------------+---------------+--------------------------------------+--------------------------------------+
 | HT           | 10.7566       | TABLE SIZE + 3,                      | TABLE SIZE + 3,                      |
 +--------------+---------------+--------------------------------------+--------------------------------------+
@@ -109,8 +112,11 @@ Table: Run times and space complexities of various algorithms generating a UTM f
 
 \autoref{fig:LF} shows performance improvements with reducing $\sigma$. The ideal value for $\sigma$ can be chosen based on use case.
 
+# Equations
+Partial differential equations (PDEs) can be solved in PIRO by constructing the corresponding matrix equations. The matrix can be represented in Dense, CSR, or HTLF formats. The choice of discretization depends on grid type. The current version implements finite difference methods for structured grids with First-Order Upwind, Downwind, Central-Difference spatial schemes and Forward Euler, Backward Euler temporal schemes. Support for finite volume methods on unstructured grids is currently under development.
+
 # Conclusion
-Hash table representaton of sparse matrices for executing operations using parallel processing gives flexibility to prioritize balance between time and space efficiency. This is benenifical as the method can be adapted easily based on use ase and hardware.
+Hash table representaton of sparse matrices for executing operations using parallel processing gives flexibility to prioritize balance between time and space efficiency. This is benenifical as the method can be adapted easily based on use case and hardware.
 
 # Scope for future work
 A simple hash function was used to calculate key values. Alternative hash methods and its effect on various differential operators needs to be explored. 
