@@ -7,33 +7,17 @@ IF "%1" NEQ "fromShell" (
     cmd /k "%~f0 fromShell"
     exit /b
 )
->nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
-IF NOT '%errorlevel%'=='0' (
-    echo This script requires administrator privileges.
-    echo Please right-click this file and select "Run as administrator".
-    goto END
-)
-
-echo Admin privileges confirmed.
 
 @echo off
-setlocal
 
 REM Check if 64-bit (only AMD64)
-if /I "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
+IF /I "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
     echo System is x86_64.
-) else (
-    echo System is NOT x86_84. Detected architecture: %PROCESSOR_ARCHITECTURE%
-    set /p choice=Do you want to proceed anyway? (y/N): 
-    if /I "%choice%"=="y" (
-        echo Proceeding...
-    ) else (
-        echo Aborting.
-        exit /b 1
-    )
+) ELSE (
+    echo System is NOT x86_64. Detected architecture: %PROCESSOR_ARCHITECTURE%
+    pause
+    exit /b 1
 )
-
-endlocal
 
 :: Path to your program (update this to match your actual file)
 SET "PROGRAM_PATH=%~dp0PIRO_devices_WIN.exe"
@@ -146,4 +130,11 @@ if %errorlevel%==0 (
     goto END
 )
 
+:RUN_PROGRAM
+cd /d "%~dp0"
+"%PROGRAM_PATH%"
+echo Please note down the Device and Platform number of the hardware where the simulation is intended to be run
 echo Dependencies installed. Please run ./makedevice.sh using Git Bash.
+:END
+pause
+exit /b

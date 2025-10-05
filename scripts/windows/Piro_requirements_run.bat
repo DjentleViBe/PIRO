@@ -7,14 +7,14 @@ IF "%1" NEQ "fromShell" (
     cmd /k "%~f0 fromShell"
     exit /b
 )
->nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
-IF NOT '%errorlevel%'=='0' (
-    echo This script requires administrator privileges.
-    echo Please right-click this file and select "Run as administrator".
-    goto END
-)
+::>nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
+::IF NOT '%errorlevel%'=='0' (
+::    echo This script requires administrator privileges.
+::    echo Please right-click this file and select "Run as administrator".
+::    goto END
+::)
 
-echo Admin privileges confirmed.
+::echo Admin privileges confirmed.
 
 @echo off
 REM Check if the processor architecture is AMD64 (64-bit)
