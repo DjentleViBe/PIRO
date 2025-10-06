@@ -111,12 +111,10 @@ install_arch_package() {
 
 install_opensuse_package() {
     local pkg="$1"
-    if [[ " ${seen[@]} " =~ " $pkg " ]]; then return; fi
-    seen+=("$pkg")
+    
+    echo "Resolving complete dependency tree for $pkg ..."
 
-    echo "Resolving dependencies for $pkg ..."
-
-    # Get list of dependencies including pkg itself
+    # Get COMPLETE list (zypper does the recursion for you)
     local all_deps
     all_deps=$(zypper --non-interactive install --download-only --dry-run "$pkg" \
         2>/dev/null \
@@ -129,7 +127,7 @@ install_opensuse_package() {
         return
     fi
 
-    echo "Downloading packages: $all_deps"
+    echo "Downloading all packages: $all_deps"
     zypper --non-interactive download $all_deps
 
     echo "Extracting RPMs into $LOCAL_PREFIX ..."
@@ -137,7 +135,17 @@ install_opensuse_package() {
         rpm2cpio "$rpmfile" | (cd "$LOCAL_PREFIX" && cpio -idmv)
     done
 
-    echo "Done installing $pkg locally."
+    # Patch ICD files in both possible locations:
+    for icd_dir in "$LOCAL_PREFIX/etc/OpenCL/vendors" "$LOCAL_PREFIX/usr/share/OpenCL/vendors"; do
+        if [[ -d "$icd_dir" ]]; then
+            echo "Patching OpenCL ICD files in $icd_dir..."
+            find "$icd_dir" -name "*.icd" | while read -r icd; do
+                sed -i "s|^/usr|$LOCAL_PREFIX/usr|g" "$icd"
+            done
+        fi
+    done
+
+    echo "Done!"
 }
 
 missing_tools=()
@@ -413,6 +421,10 @@ elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
 
     grep -qxF 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' ~/.bashrc || \
     echo 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' >> ~/.bashrc
+
+    grep -qxF "export OCL_ICD_VENDORS="$LOCAL_PREFIX/usr/share/OpenCL/vendors"" ~/.bashrc || \
+    echo "export OCL_ICD_VENDORS="$LOCAL_PREFIX/usr/share/OpenCL/vendors"" >> ~/.bashrc
+
     exec bash
     echo "Environment setup complete."
     if lspci | grep -i nvidia > /dev/null; then
