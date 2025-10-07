@@ -79,25 +79,26 @@ echo "Setup PLATFORMID: $PLATFORMID"
 echo "Setup DEVICEID: $DEVICEID"
 
 detect_os
-# compile the program
-./makeall.sh
-echo "Build : SUCCESSFUL"
-# generate the kernels
-cp -r ./dependencies/assets ./bin/.
-mkdir -p logs
 FILE="setup.ini"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
     sed -i '' -e "s/^id = .*/id = $DEVICEID/" \
               -e "s/^platformid = .*/platformid = $PLATFORMID/" \
-              ./bin/assets/setup.ini
+              ./dependencies/assets/setup.ini
 else
     # Linux or Git Bash / WSL
     sed -i -e "s/^id = .*/id = $DEVICEID/" \
            -e "s/^platformid = .*/platformid = $PLATFORMID/" \
-           ./bin/assets/setup.ini
+           ./dependencies/assets/setup.ini
 fi
+# compile the program
+./makeall.sh
+echo "Build : SUCCESSFUL"
+# generate the kernels
+# cp -r ./dependencies/assets ./bin/.
+mkdir -p logs
+
 NEWPATH="/c/cygwin64/bin"
 export PATH="$NEWPATH:$PATH"
 
