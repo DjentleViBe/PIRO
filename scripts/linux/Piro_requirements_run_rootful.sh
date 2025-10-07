@@ -83,11 +83,15 @@ if [ -f /etc/debian_version ]; then
         DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
         DRIVER_MAJOR=$(echo "$DRIVER_VERSION" | cut -d. -f1)
         apt install -y "libnvidia-compute-${DRIVER_MAJOR}"
+    elif lspci | grep -i amd > /dev/null; then
+        echo "AMD GPU detected, installing AMD OpenCL..."
+        apt install -y rocm-opencl-runtime
+    elif lspci | grep -i intel > /dev/null; then
+        echo "INTEL GPU detected, installing INTEL OpenCL..."
+        apt install -y intel-opencl-icd
     else
-        echo No NVIDIA GPU detected. Support for additional GPUs for Ubuntu will be added in future releases.
-        exit 1
+        echo "No supported GPU detected for OpenCL."
     fi
-    
 
 elif [ -f /etc/redhat-release ]; then
     echo "Red Hat/CentOS/Fedora detected."
