@@ -21,7 +21,7 @@ static void print_device_info(cl_device_id device){
 
 }
 
-int main(){
+int ocldevices(){
      // Initialize OpenCL
     cl_uint platformCount;
     cl_uint num_devices;
