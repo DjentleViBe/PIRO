@@ -23,6 +23,6 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          bash scripts/linux/Piro_requirements_run_rootful.sh
+          sudo scripts/linux/Piro_requirements_run_rootful.sh
           ./scripts/linux/PIRO_devices_LIN
           bash ./maketest.sh -d 0 -p 0
