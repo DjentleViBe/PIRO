@@ -23,6 +23,6 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ocl-icd-opencl-dev
-          bash scripts/linux/Piro_requirements_run_rootless.sh
+          bash scripts/linux/Piro_requirements_run_rootful.sh
+          ./scripts/linux/PIRO_devices_LIN
           bash ./maketest.sh -d 0 -p 0
