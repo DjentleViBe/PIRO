@@ -21,5 +21,6 @@ jobs:
       
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
-        run: bash scripts/linux/Piro_requirements_run_rootless.sh
-              bash ./maketest.sh
+        run: |
+          bash scripts/linux/Piro_requirements_run_rootless.sh
+          bash ./maketest.sh -d 0 -p 0
