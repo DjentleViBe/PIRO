@@ -73,7 +73,7 @@ int Piro::opencl_init(){
     std::vector<cl_platform_id> platforms(platformCount);
     clGetPlatformIDs(platformCount, platforms.data(), nullptr);
     
-    // Get number of devices
+        for (cl_uint i = 0; i < num_devices; ++i) {
     err = clGetDeviceIDs(platforms[DP.getvalue<int>(DeviceParams::PLATFORMID)], CL_DEVICE_TYPE_ALL, 3, NULL, &num_devices);
     if (err != CL_SUCCESS) {
         Piro::logger::info("Failed to get number of devices");
