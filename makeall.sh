@@ -12,6 +12,7 @@ export PATH="$NEWPATH:$PATH"
 make clean
 make
 make setup
+mkdir -p ./logs
 ./bin/PIRO$extension setup.ini 1 &> ./logs/test_buildkernel.txt
 echo "Run : KERNEL SUCCESSFUL"
 
