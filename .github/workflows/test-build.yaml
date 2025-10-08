@@ -20,6 +20,9 @@ jobs:
           # Use current working directory to avoid permission issues
           export LOCAL_PREFIX="$(pwd)/local"
           mkdir -p "$LOCAL_PREFIX"
+          mkdir -p "$LOCAL_PREFIX/lib/x86_64-linux-gnu"
+          mkdir -p "$LOCAL_PREFIX/lib64/"
+          mkdir -p $LOCAL_PREFIX/usr/lib/x86_64-linux-gnu
           echo "LOCAL_PREFIX=$LOCAL_PREFIX" >> $GITHUB_ENV
           echo "PATH=$LOCAL_PREFIX/usr/bin:$PATH" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=/usr/lib:$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH" >> $GITHUB_ENV
