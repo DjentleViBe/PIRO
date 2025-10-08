@@ -32,9 +32,10 @@ jobs:
           echo "Running rootless on architecture: ${{ matrix.arch }}"
           bash scripts/linux/Piro_requirements_run_rootless.sh
           cat ~/.bashrc
-          clinfo
+          
       - name: Setup devices
         run: ./scripts/linux/PIRO_devices_LIN
+            clinfo
 
       - name: Build and test
         run: bash ./maketest.sh -d 0 -p 0
