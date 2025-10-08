@@ -1,6 +1,7 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-tools_ubuntu_generic=("wget" "git" "clinfo" "rsync" "pciutils" "libpci3" "libkmod2" "pocl" "ocl-icd-opencl-dev" "pocl-opencl-icd" "ocl-icd-libopencl1")
+#tools_ubuntu_generic=("wget" "git" "clinfo" "rsync" "make" "g++" "build-essential" "libc6" "libc6-dev" "pciutils" "libpci3" "libkmod2" "ocl-icd-opencl-dev" "pocl-opencl-icd" "ocl-icd-libopencl1")
+tools_ubuntu_generic=("wget" "git" "clinfo" "rsync" "make" "g++" "build-essential" "libc6" "libc6-dev" "pciutils" "libpci3" "libkmod2" "ocl-icd-opencl-dev" "ocl-icd-libopencl1")
 tools_arch=("wget" "git" "clinfo" "rsync" "pciutils" "ocl-icd" "pocl")
 tools_suse_generic=("wget" "git" "which" "rsync" "pciutils" "clinfo" "ocl-icd-devel" "pocl" "pocl-devel" "libOpenCL1")
 tools_fedora_generic=("wget" "git" "which" "clinfo" "rsync" "pciutils" "opencl-headers" "pocl")
@@ -63,7 +64,7 @@ install_ubuntu_package() {
 
     # Fix OpenCL ICD files if relevant
     mkdir -p "$LOCAL_PREFIX/etc/OpenCL/vendors"
-    find "$LOCAL_PREFIX" -name "*.icd" -exec cp {} "$LOCAL_PREFIX/etc/OpenCL/vendors/" \;
+    # find "$LOCAL_PREFIX" -name "*.icd" -exec cp {} "$LOCAL_PREFIX/etc/OpenCL/vendors/" \;
 
     echo "Done installing $pkg locally."
 }
@@ -193,79 +194,52 @@ if [ -f /etc/debian_version ]; then
         # echo "Downloading and installing $t ..."
         install_ubuntu_package "$t"
     done
+    mkdir -p "$LOCAL_PREFIX/lib/x86_64-linux-gnu"
+    cp -r $LOCAL_PREFIX/usr/lib/ $LOCAL_PREFIX/
+    mkdir -p "$LOCAL_PREFIX/lib64/"
+    cp -r $LOCAL_PREFIX/usr/lib64/ $LOCAL_PREFIX/
+    mkdir -p $LOCAL_PREFIX/usr/lib/x86_64-linux-gnu
+    cp /usr/lib/x86_64-linux-gnu/libgcc_s.so.1 $LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/
+    #mkdir -p $LOCAL_PREFIX/share/pocl/include
+    #cp $LOCAL_PREFIX/usr/share/pocl/include/* $LOCAL_PREFIX/share/pocl/include/.
+    #cp $LOCAL_PREFIX/usr/share/pocl/* $LOCAL_PREFIX/share/pocl/.
+
     echo "Setting up environment variables in ~/.bashrc ..."
+    BASHRC="$HOME/.bashrc"
 
-    grep -qxF "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" ~/.bashrc || \
-    echo "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" >> ~/.bashrc
+    # Marker to avoid duplicates
+    MARKER="# --- Local build environment setup ---"
+    if ! grep -Fxq "$MARKER" "$BASHRC"; then
+        cat << 'EOF' >> "$BASHRC"
 
-    grep -qxF 'export PATH="$LOCAL_PREFIX/usr/bin:$PATH"' ~/.bashrc || \
-        echo 'export PATH="$LOCAL_PREFIX/usr/bin:$PATH"' >> ~/.bashrc
+# --- Local build environment setup ---
+export LOCAL_PREFIX="/mnt/docs/local"
 
-    grep -qxF 'export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"' ~/.bashrc || \
-    echo 'export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"' >> ~/.bashrc
+# Prepend local binaries
+export PATH="$LOCAL_PREFIX/usr/bin:$PATH"
 
-    grep -qxF 'export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"' ~/.bashrc || \
-    echo 'export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"' >> ~/.bashrc
+# Prepend local libraries
+export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LOCAL_PREFIX/lib/x86_64-linux-gnu:$LOCAL_PREFIX/usr/lib/gcc/x86_64-linux-gnu/13"
 
-    grep -qxF 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' ~/.bashrc || \
-    echo 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' >> ~/.bashrc
+export LIBRARY_PATH="$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LOCAL_PREFIX/lib/x86_64-linux-gnu:$LOCAL_PREFIX/usr/lib/gcc/x86_64-linux-gnu/13"
 
+# PKG_CONFIG for local prefix
+export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"
+
+# OpenCL vendors in local prefix
+export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"
+# --- End of local build environment setup ---
+EOF
+        echo "Local environment setup appended to $BASHRC"
+    else
+        echo "Local environment setup already exists in $BASHRC"
+    fi
+
+    if lspci | grep -i intel > /dev/null; then
+        install_ubuntu_package "intel-opencl-icd"
+    fi
     exec bash
     echo "Environment setup complete."
-    if [[ "$OS_VERSION" == 22.04* ]]; then
-        echo "Ubuntu 22.04 detected."
-        if lspci | grep -i nvidia > /dev/null; then
-            echo "NVIDIA GPU detected, installing NVIDIA OpenCL ICD..."
-            DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
-            DRIVER_MAJOR=$(echo "$DRIVER_VERSION" | cut -d. -f1)
-
-            PACKAGE_NAME="libnvidia-compute-${DRIVER_MAJOR}_${DRIVER_VERSION}-0ubuntu0.22.04.4_amd64.deb"
-            PACKAGE_URL="https://archive.ubuntu.com/ubuntu/pool/restricted/n/nvidia-graphics-drivers-${DRIVER_MAJOR}/libnvidia-compute-${DRIVER_MAJOR}_${DRIVER_VERSION}-0ubuntu0.22.04.4_amd64.deb"
-
-            # Download the package
-            echo "Downloading $PACKAGE_NAME..."
-            curl -L -o "$LOCAL_PREFIX/$PACKAGE_URL" || { echo "Download failed"; exit 1; }
-
-            # Install the package
-            echo "Installing $PACKAGE_NAME..."
-            echo "Extracting $PACKAGE_NAME..."
-            dpks -x "$LOCAL_PREFIX/$PACKAGE_NAME" "$LOCAL_PREFIX"
-            rm -f "$LOCAL_PREFIX/$PACKAGE_NAME"
-            # Delete the package file after install
-            echo "Deleting package file $PACKAGE_NAME..."
-            rm -f "$PACKAGE_NAME"
-            echo "Done."
-        else
-            echo No NVIDIA GPU detected. Support for additional GPUs for Ubuntu will be added in future releases.
-            exit 1
-        fi
-    else
-        if lspci | grep -i nvidia > /dev/null; then
-            echo "NVIDIA GPU detected, installing NVIDIA OpenCL ICD..."
-            DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
-            DRIVER_MAJOR=$(echo "$DRIVER_VERSION" | cut -d. -f1)
-
-            PACKAGE_NAME="libnvidia-compute-${DRIVER_MAJOR}_${DRIVER_VERSION}-0ubuntu0.25.04.4_amd64.deb"
-            PACKAGE_URL="https://archive.ubuntu.com/ubuntu/pool/restricted/n/nvidia-graphics-drivers-${DRIVER_MAJOR}/libnvidia-compute-${DRIVER_MAJOR}_${DRIVER_VERSION}-0ubuntu0.25.04.4_amd64.deb"
-
-            # Download the package
-            echo "Downloading $PACKAGE_NAME..."
-            curl -L -o "$LOCAL_PREFIX/$PACKAGE_URL" || { echo "Download failed"; exit 1; }
-
-            # Install the package
-            echo "Installing $PACKAGE_NAME..."
-            echo "Extracting $PACKAGE_NAME..."
-            dpkg -x "$LOCAL_PREFIX/$PACKAGE_NAME" "$LOCAL_PREFIX"
-            rm -f "$LOCAL_PREFIX/$PACKAGE_NAME"
-            # Delete the package file after install
-            echo "Deleting package file $PACKAGE_NAME..."
-            rm -f "$PACKAGE_NAME"
-            echo "Done."
-        else
-            echo No NVIDIA GPU detected. Support for additional GPUs for Ubuntu will be added in future releases.
-            exit 1
-        fi
-    fi
 ########################################### FEDORA ##############################################    
 elif [ -f /etc/redhat-release ]; then
     release=$(< /etc/redhat-release)
