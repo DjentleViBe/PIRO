@@ -211,8 +211,9 @@ if [ -f /etc/debian_version ]; then
         echo 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' >> ~/.bashrc
 
     exec bash
+    echo "Environment setup complete."
     if [[ "$OS_VERSION" == 22.04* ]]; then
-    echo "Ubuntu 22.04 detected."
+        echo "Ubuntu 22.04 detected."
         if lspci | grep -i nvidia > /dev/null; then
             echo "NVIDIA GPU detected, installing NVIDIA OpenCL ICD..."
             DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
@@ -265,8 +266,6 @@ if [ -f /etc/debian_version ]; then
             exit 1
         fi
     fi
-
-    echo "Environment setup complete."
 ########################################### FEDORA ##############################################    
 elif [ -f /etc/redhat-release ]; then
     release=$(< /etc/redhat-release)

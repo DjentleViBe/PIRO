@@ -9,7 +9,6 @@ on:
 jobs:
   rootless-setup:
     runs-on: ${{ matrix.os }}
-    needs: rootful-setup
     strategy:
       matrix:
         os: [ubuntu-latest]
