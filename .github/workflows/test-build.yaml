@@ -31,7 +31,8 @@ jobs:
         run: |
           echo "Running rootless on architecture: ${{ matrix.arch }}"
           bash scripts/linux/Piro_requirements_run_rootless.sh
-
+          cat ~/.bashrc
+          clinfo
       - name: Setup devices
         run: ./scripts/linux/PIRO_devices_LIN
 
