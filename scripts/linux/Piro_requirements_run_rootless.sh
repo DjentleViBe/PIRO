@@ -150,8 +150,13 @@ install_opensuse_package() {
 missing_tools=()
 echo "Checking commands..."
 
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
+command_exists_in_sysroot() {
+    local cmd="$1"
+    # Check in sysroot's bin directories
+    if [ -f "$LOCAL_PREFIX/usr/bin/$cmd" ] || [ -f "$LOCAL_PREFIX/bin/$cmd" ]; then
+        return 0
+    fi
+    return 1
 }
 
 check_tools() {
@@ -167,7 +172,7 @@ check_tools() {
         else
             cmd="$tool"             # No version specified
         fi
-        if command_exists "$cmd"; then
+        if command_exists_in_sysroot "$cmd"; then
             echo "$cmd is installed."
         else
             echo "$cmd is NOT installed."
