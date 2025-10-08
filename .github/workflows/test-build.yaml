@@ -18,6 +18,7 @@ jobs:
       - name: Configure LOCAL_PREFIX
         run: |
           # Use current working directory to avoid permission issues
+          sudo apt-get update
           export LOCAL_PREFIX="$(pwd)/local"
           mkdir -p "$LOCAL_PREFIX"
           mkdir -p "$LOCAL_PREFIX/lib/x86_64-linux-gnu"
