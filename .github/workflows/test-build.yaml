@@ -7,27 +7,6 @@ on:
     branches: [ TESTING ]
 
 jobs:
-  rootful-setup:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        arch: [x64]  # add architectures here
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies (rootful)
-        run: |
-          echo "Running on architecture: ${{ matrix.arch }}"
-          sudo apt-get update
-          sudo scripts/linux/Piro_requirements_run_rootful.sh
-
-      - name: Setup devices
-        run: ./scripts/linux/PIRO_devices_LIN
-
-      - name: Build and test
-        run: bash ./maketest.sh -d 0 -p 0
-
   rootless-setup:
     runs-on: ${{ matrix.os }}
     needs: rootful-setup
@@ -42,7 +21,29 @@ jobs:
         run: |
           echo "Running rootless on architecture: ${{ matrix.arch }}"
           bash scripts/linux/Piro_requirements_run_rootless.sh
-          bash ./scripts/linux/PIRO_devices_LIN
+          chmod +x scripts/linux/PIRO_devices_LIN
+          bash scripts/linux/PIRO_devices_LIN
+
+      - name: Setup devices
+        run: ./scripts/linux/PIRO_devices_LIN
+
+      - name: Build and test
+        run: bash ./maketest.sh -d 0 -p 0
+  
+  rootful-setup:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        arch: [x64]  # add architectures here
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (rootful)
+        run: |
+          echo "Running on architecture: ${{ matrix.arch }}"
+          sudo apt-get update
+          sudo scripts/linux/Piro_requirements_run_rootful.sh
 
       - name: Setup devices
         run: ./scripts/linux/PIRO_devices_LIN
