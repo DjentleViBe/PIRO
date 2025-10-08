@@ -28,11 +28,19 @@ CFLAGS = -std=c++23 -Wno-deprecated -static
 LIBS = -lOpenCL
 EXENAME = PIRO.exe
 else
-CC = g++
+ifeq ($(strip $(LOCAL_PREFIX)),)
+    SYSROOT_FLAGS =
+else
+    SYSROOT_FLAGS = --sysroot=$(LOCAL_PREFIX)
+endif
+CC = g++ ${SYSROOT_FLAGS}
 MAKEFILE_DIR=$(CURDIR)
 $(info Current Directory: $(MAKEFILE_DIR))
 INCDIR += -I/usr/include/CL
-LIBDIR =
+INCDIR += -I/usr/include/
+INCDIR += -I${LOCAL_PREFIX}/usr/include/
+INCDIR += -I${LOCAL_PREFIX}/usr/include/x86_64-linux-gnu
+LIBDIR = -L${LOCAL_PREFIX}/lib
 CFLAGS = -std=c++23 -Wno-deprecated -DCL_TARGET_OPENCL_VERSION=120
 LIBS = -lOpenCL
 EXENAME = PIRO

@@ -1,7 +1,6 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-#tools_ubuntu_generic=("wget" "git" "clinfo" "rsync" "make" "g++" "build-essential" "libc6" "libc6-dev" "pciutils" "libpci3" "libkmod2" "ocl-icd-opencl-dev" "pocl-opencl-icd" "ocl-icd-libopencl1")
-#tools_ubuntu_generic=("wget" "git" "clinfo" "rsync" "make" "g++" "build-essential" "libc6" "libc6-dev" "pciutils" "libpci3" "libkmod2" "ocl-icd-opencl-dev" "ocl-icd-libopencl1")
+tools_ubuntu_generic=("wget" "git" "rsync" "clinfo" "make" "build-essential" "g++" "libc6" "libc6-dev" "pciutils" "ocl-icd-opencl-dev")
 tools_arch=("wget" "git" "clinfo" "rsync" "pciutils" "ocl-icd" "pocl")
 tools_suse_generic=("wget" "git" "which" "rsync" "pciutils" "clinfo" "ocl-icd-devel" "pocl" "pocl-devel" "libOpenCL1")
 tools_fedora_generic=("wget" "git" "which" "clinfo" "rsync" "pciutils" "opencl-headers" "pocl")
@@ -216,28 +215,25 @@ if [ -f /etc/debian_version ]; then
 export LOCAL_PREFIX="$LOCAL_PREFIX"
 
 # Prepend local binaries
-export PATH="$LOCAL_PREFIX/usr/bin:$PATH"
+export PATH="$LOCAL_PREFIX/usr/bin:/usr/bin:$PATH"
 
 # Prepend local libraries
-export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LOCAL_PREFIX/lib/x86_64-linux-gnu:$LOCAL_PREFIX/usr/lib/gcc/x86_64-linux-gnu/13"
+export LD_LIBRARY_PATH="/usr/lib:$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LOCAL_PREFIX/lib/x86_64-linux-gnu:$LOCAL_PREFIX/usr/lib/gcc/x86_64-linux-gnu/13"
 
-export LIBRARY_PATH="$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LOCAL_PREFIX/lib/x86_64-linux-gnu:$LOCAL_PREFIX/usr/lib/gcc/x86_64-linux-gnu/13"
+export LIBRARY_PATH="/usr/lib:$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LOCAL_PREFIX/lib/x86_64-linux-gnu:$LOCAL_PREFIX/usr/lib/gcc/x86_64-linux-gnu/13"
 
 # PKG_CONFIG for local prefix
 export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"
 
 # OpenCL vendors in local prefix
-export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"
+# export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"
 # --- End of local build environment setup ---
 EOF
         echo "Local environment setup appended to $BASHRC"
     else
         echo "Local environment setup already exists in $BASHRC"
     fi
-
-    if lspci | grep -i intel > /dev/null; then
-        install_ubuntu_package "intel-opencl-icd"
-    fi
+    
     exec bash
     echo "Environment setup complete."
 ########################################### FEDORA ##############################################    
@@ -271,21 +267,7 @@ elif [ -f /etc/redhat-release ]; then
     exec bash
     #$SUDO ln -s $(which g++-14) /usr/bin/g++
     #$SUDO ln -sf /lib64/libOpenCL.so.1 /lib64/libOpenCL.so
-    if lspci | grep -i nvidia > /dev/null; then
-        if rpm -q xorg-x11-drv-nvidia &>/dev/null; then
-            echo "NVIDIA proprietary driver package is installed."
-        else
-            echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
-            wget https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-            wget https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-            mkdir -p ~/nvidia-offline
-            cd ~/nvidia-offline
-            dnf download --resolve xorg-x11-drv-nvidia-cuda
-        fi
-    elif lspci | grep -i amd > /dev/null; then
-        echo "AMD GPU detected, installing AMD OpenCL..."
-        yum install -y rocm-opencl
-    fi
+    
 ########################################### ARCH ############################################## 
 elif [ -f /etc/arch-release ]; then
     echo "Arch Linux detected."
@@ -298,63 +280,6 @@ elif [ -f /etc/arch-release ]; then
             install_arch_package "$t"
     done
 
-    if lspci | grep -i nvidia > /dev/null; then
-        echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
-        # Extract driver version, e.g. "570.153.02"
-        DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
-
-        if [ -z "$DRIVER_VERSION" ]; then
-            echo "Could not detect NVIDIA driver version."
-            exit 1
-        fi
-
-        echo "Detected NVIDIA driver version: $DRIVER_VERSION"
-
-        # Compose package filename and URL
-        PACKAGE_NAME="opencl-nvidia-${DRIVER_VERSION}-1-x86_64.pkg.tar.zst"
-        PACKAGE_URL="https://archive.archlinux.org/packages/o/opencl-nvidia/${PACKAGE_NAME}"
-
-        # Download the package
-        echo "Downloading $PACKAGE_NAME..."
-        curl -L -o "$LOCAL_PREFIX/$PACKAGE_NAME" "$PACKAGE_URL" || { echo "Download failed"; exit 1; }
-
-        # Install the package
-        echo "Installing $PACKAGE_NAME..."
-        echo "Extracting $PACKAGE_NAME..."
-        tar -I zstd -xf "$LOCAL_PREFIX/$PACKAGE_NAME" -C "$LOCAL_PREFIX"
-        rm -f "$LOCAL_PREFIX/$PACKAGE_NAME"
-        # Delete the package file after install
-        echo "Deleting package file $PACKAGE_NAME..."
-        rm -f "$PACKAGE_NAME"
-        echo "Done."
-    elif lspci | grep -i amd > /dev/null; then
-        echo "AMD GPU detected, installing AMD OpenCL..."
-        PACKAGE_NAME="rocm-opencl-runtime-6.4.4-1-x86_64.pkg.tar.zst"
-        PACKAGE_URL="https://archive.archlinux.org/packages/r/rocm-opencl-runtime/${PACKAGE_NAME}"
-        echo "Downloading $PACKAGE_NAME..."
-        curl -L -o "$LOCAL_PREFIX/$PACKAGE_NAME" "$PACKAGE_URL" || { echo "Download failed"; exit 1; }
-        echo "Installing $PACKAGE_NAME..."
-        echo "Extracting $PACKAGE_NAME..."
-        tar -I zstd -xf "$LOCAL_PREFIX/$PACKAGE_NAME" -C "$LOCAL_PREFIX"
-        rm -f "$LOCAL_PREFIX/$PACKAGE_NAME"
-        echo "Deleting package file $PACKAGE_NAME..."
-        rm -f "$PACKAGE_NAME"
-    elif lspci | grep -i intel > /dev/null; then
-        echo "INTEL GPU detected, installing INTEL OpenCL..."
-        PACKAGE_NAME="intel-compute-runtime-25.35.35096.9-1-x86_64.pkg.tar.zst"
-        PACKAGE_URL="https://archive.archlinux.org/packages/i/intel-compute-runtime/${PACKAGE}"
-        echo "Downloading $PACKAGE_NAME..."
-        curl -L -o "$LOCAL_PREFIX/$PACKAGE_NAME" "$PACKAGE_URL" || { echo "Download failed"; exit 1; }
-        echo "Installing $PACKAGE_NAME..."
-        echo "Extracting $PACKAGE_NAME..."
-        tar -I zstd -xf "$LOCAL_PREFIX/$PACKAGE_NAME" -C "$LOCAL_PREFIX"
-        rm -f "$LOCAL_PREFIX/$PACKAGE_NAME"
-        echo "Deleting package file $PACKAGE_NAME..."
-        rm -f "$PACKAGE_NAME"
-        echo "Intel OpenCL support can be a bit tricky — intel-compute-runtime is usually good but sometimes the newer 
-        opencl-intel + related packages are needed for newer hardware. Confirm hardware detection 
-        by running clinfo"
-    fi
     echo "Setting up environment variables in ~/.bashrc ..."
     grep -qxF "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" ~/.bashrc || \
     echo "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" >> ~/.bashrc
@@ -398,37 +323,6 @@ elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
     echo "export OCL_ICD_VENDORS="$LOCAL_PREFIX/usr/share/OpenCL/vendors"" >> ~/.bashrc
 
     exec bash
-    echo "Environment setup complete."
-    if lspci | grep -i nvidia > /dev/null; then
-    # Detect distro
-        if grep -q "openSUSE Tumbleweed" /etc/os-release; then
-            REPO_URL="https://download.nvidia.com/opensuse/tumbleweed"
-        else
-            VERSION_ID=$(grep VERSION_ID /etc/os-release | cut -d'"' -f2)
-            REPO_URL="https://download.nvidia.com/opensuse/leap/$VERSION_ID"
-        fi
-
-        # Add the repo if not already added
-        if ! zypper repos | grep -q "NVIDIA"; then
-            zypper addrepo --no-gpgcheck --refresh "$REPO_URL" NVIDIA
-        fi
-
-        # Refresh repo metadata
-        zypper refresh
-
-        if zypper search --installed-only x11-video-nvidiaG05 | grep -q x11-video-nvidiaG05; then
-            echo "NVIDIA proprietary driver package is installed."
-        else
-            echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
-            zypper download --repo NVIDIA nvidia-computeG05 --destdir "$LOCAL_PREFIX"
-            for rpm in "$LOCAL_PREFIX/"*.rpm; do
-                rpm2cpio "$rpm" | (cd "$LOCAL_PREFIX" && cpio -idmv)
-            done
-        fi
-    else 
-        echo No NVIDIA GPU detected. Support for additional GPUs for OpenSUSE will be added in future releases.
-        exit 1
-    fi
     
     echo "Environment setup complete."
 else
