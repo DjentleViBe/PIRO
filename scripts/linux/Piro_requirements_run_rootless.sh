@@ -196,19 +196,19 @@ if [ -f /etc/debian_version ]; then
     echo "Setting up environment variables in ~/.bashrc ..."
 
     grep -qxF "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" ~/.bashrc || \
-        echo "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" >> ~/.bashrc
+    echo "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" >> ~/.bashrc
 
     grep -qxF 'export PATH="$LOCAL_PREFIX/usr/bin:$PATH"' ~/.bashrc || \
         echo 'export PATH="$LOCAL_PREFIX/usr/bin:$PATH"' >> ~/.bashrc
 
     grep -qxF 'export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"' ~/.bashrc || \
-        echo 'export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"' >> ~/.bashrc
+    echo 'export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"' >> ~/.bashrc
 
     grep -qxF 'export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"' ~/.bashrc || \
-        echo 'export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"' >> ~/.bashrc
+    echo 'export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"' >> ~/.bashrc
 
     grep -qxF 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' ~/.bashrc || \
-        echo 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' >> ~/.bashrc
+    echo 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' >> ~/.bashrc
 
     exec bash
     echo "Environment setup complete."

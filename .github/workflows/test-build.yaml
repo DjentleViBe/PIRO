@@ -15,13 +15,22 @@ jobs:
         arch: [x64]  # match the matrix
     steps:
       - uses: actions/checkout@v4
+      - name: Configure LOCAL_PREFIX
+        run: |
+          # Use current working directory to avoid permission issues
+          export LOCAL_PREFIX="$(pwd)/local"
+          mkdir -p "$LOCAL_PREFIX"
+          echo "LOCAL_PREFIX=$LOCAL_PREFIX" >> $GITHUB_ENV
+          echo "PATH=$LOCAL_PREFIX/usr/bin:$PATH" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          echo "OPENCL_VENDOR_PATH=$LOCAL_PREFIX/etc/OpenCL/vendors" >> $GITHUB_ENV
+          echo "LOCAL_PREFIX set to $LOCAL_PREFIX"
 
       - name: Install dependencies (rootless)
         run: |
           echo "Running rootless on architecture: ${{ matrix.arch }}"
           bash scripts/linux/Piro_requirements_run_rootless.sh
-          chmod +x scripts/linux/PIRO_devices_LIN
-          bash scripts/linux/PIRO_devices_LIN
 
       - name: Setup devices
         run: ./scripts/linux/PIRO_devices_LIN
