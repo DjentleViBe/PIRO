@@ -1,7 +1,7 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 #tools_ubuntu_generic=("wget" "git" "clinfo" "rsync" "make" "g++" "build-essential" "libc6" "libc6-dev" "pciutils" "libpci3" "libkmod2" "ocl-icd-opencl-dev" "pocl-opencl-icd" "ocl-icd-libopencl1")
-tools_ubuntu_generic=("wget" "git" "clinfo" "rsync" "make" "g++" "build-essential" "libc6" "libc6-dev" "pciutils" "libpci3" "libkmod2" "ocl-icd-opencl-dev" "ocl-icd-libopencl1")
+#tools_ubuntu_generic=("wget" "git" "clinfo" "rsync" "make" "g++" "build-essential" "libc6" "libc6-dev" "pciutils" "libpci3" "libkmod2" "ocl-icd-opencl-dev" "ocl-icd-libopencl1")
 tools_arch=("wget" "git" "clinfo" "rsync" "pciutils" "ocl-icd" "pocl")
 tools_suse_generic=("wget" "git" "which" "rsync" "pciutils" "clinfo" "ocl-icd-devel" "pocl" "pocl-devel" "libOpenCL1")
 tools_fedora_generic=("wget" "git" "which" "clinfo" "rsync" "pciutils" "opencl-headers" "pocl")
@@ -210,10 +210,10 @@ if [ -f /etc/debian_version ]; then
     # Marker to avoid duplicates
     MARKER="# --- Local build environment setup ---"
     if ! grep -Fxq "$MARKER" "$BASHRC"; then
-        cat << 'EOF' >> "$BASHRC"
+        cat << EOF >> "$BASHRC"
 
 # --- Local build environment setup ---
-export LOCAL_PREFIX="$LOCAL_PREFIX/local"
+export LOCAL_PREFIX="$LOCAL_PREFIX"
 
 # Prepend local binaries
 export PATH="$LOCAL_PREFIX/usr/bin:$PATH"
