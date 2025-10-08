@@ -43,7 +43,7 @@ jobs:
       - name: Verify bits
         run: |
           find /home/runner/work/PIRO/PIRO/local/usr/include -name wordsize.h
-          find /usr/include -name "x86_64-linux-gnu"
+          find /usr/include -name "wordsize.h"
           find $LOCAL_PREFIX -type d
           find $LOCAL_PREFIX/usr/include/x86_64-linux-gnu -type d
           cat ~/.bashrc
