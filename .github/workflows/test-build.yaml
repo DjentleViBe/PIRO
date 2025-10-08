@@ -37,7 +37,11 @@ jobs:
           ./scripts/linux/PIRO_devices_LIN
           clinfo
           find /home/runner/work/PIRO/PIRO/local/usr/include -name wordsize.h
-
+      - name: Verify bits
+        run: |
+          find /home/runner/work/PIRO/PIRO/local/usr/include -name wordsize.h
+          find $LOCAL_PREFIX/local/usr/include/x86_64-linux-gnu -type d
+          cat ~/.bashrc
       - name: Build and test
         run: bash ./maketest.sh -d 0 -p 0
   
