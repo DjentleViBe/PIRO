@@ -213,7 +213,7 @@ if [ -f /etc/debian_version ]; then
         cat << 'EOF' >> "$BASHRC"
 
 # --- Local build environment setup ---
-export LOCAL_PREFIX="/mnt/docs/local"
+export LOCAL_PREFIX="$LOCAL_PREFIX/local"
 
 # Prepend local binaries
 export PATH="$LOCAL_PREFIX/usr/bin:$PATH"
