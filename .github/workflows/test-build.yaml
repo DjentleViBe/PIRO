@@ -76,6 +76,10 @@ jobs:
         run: |
           echo Running dependency setup for Windows...
           call scripts\windows\Piro_requirements_run.bat
+      - name: Run EXE in cmd
+        shell: cmd
+        run: |
+          scripts\windows\PIRO_devices_WIN.exe
       - name: Build and test (Windows)
         shell: bash
         run: |
