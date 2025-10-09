@@ -1,5 +1,4 @@
 name: Build and Test
-
 on:
   push:
     branches: [ TESTING ]
@@ -12,9 +11,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        arch: [x64]  # match the matrix
+        arch: [x64]
     steps:
       - uses: actions/checkout@v4
+      
       - name: Configure LOCAL_PREFIX
         run: |
           # Use current working directory to avoid permission issues
@@ -29,41 +29,42 @@ jobs:
           echo "LD_LIBRARY_PATH=/usr/lib:$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH" >> $GITHUB_ENV
           echo "PKG_CONFIG_PATH=/usr/lib:$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
           echo "LOCAL_PREFIX set to $LOCAL_PREFIX"
-          
+      
       - name: Install dependencies (rootless)
         run: |
           echo "Running rootless on architecture: ${{ matrix.arch }}"
           bash scripts/linux/Piro_requirements_run_rootless.sh
           sudo apt-get install pocl-opencl-icd -y
-          
+      
       - name: Setup devices
         run: |
           ./scripts/linux/PIRO_devices_LIN
           clinfo
+      
       - name: Build and test
         run: bash ./maketest.sh -d 0 -p 0
-  
+
   rootful-setup:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        arch: [x64]  # add architectures here
+        arch: [x64]
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Install dependencies (rootful)
         run: |
           echo "Running on architecture: ${{ matrix.arch }}"
           sudo apt-get update
           sudo scripts/linux/Piro_requirements_run_rootful.sh
-
+      
       - name: Setup devices
         run: ./scripts/linux/PIRO_devices_LIN
-
+      
       - name: Build and test
         run: bash ./maketest.sh -d 0 -p 0
-  
+
   windows-setup:
     runs-on: windows-latest
     strategy:
@@ -71,20 +72,24 @@ jobs:
         arch: [x64]
     steps:
       - uses: actions/checkout@v4
+      
       - name: Install Intel OpenCL CPU runtime
         shell: pwsh
         run: |
           echo "windows test"
+      
       - name: Install dependencies (Windows)
         shell: cmd
         run: |
           echo Running dependency setup for Windows...
           call scripts\windows\Piro_requirements_run.bat
+      
       - name: Run EXE in cmd
         shell: cmd
         run: |
           echo Launching PIRO_devices_WIN.exe...
           scripts\windows\PIRO_devices_WIN.exe
+      
       - name: Build and test (Windows)
         shell: bash
         run: |
