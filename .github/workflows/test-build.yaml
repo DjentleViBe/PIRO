@@ -74,37 +74,16 @@ jobs:
       - name: Install Intel OpenCL CPU runtime
         shell: pwsh
         run: |
-          $ErrorActionPreference = "Stop"
-          New-Item -ItemType Directory -Force -Path "C:\temp" | Out-Null
-
-          Write-Host "Downloading Intel OpenCL runtime..."
+          echo Downloading 7-zip
+          Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2501-x64.msi -Outfile "C:\Users\vibe\Downloads\7zip.msi"
+          echo Extracing 7-zip
+          Start-Process "msiexec.exe" -ArgumentList "/i 7zip.msi /qn /norestart" -Wait -NoNewWindow ALLUSERS=1
+          echo Downloading Intel OpenCL runtime
           Invoke-WebRequest -Uri "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/a8589e7b-70f8-4ef2-bdc3-7306dfb93e92/w_opencl_runtime_p_2025.2.0.768.exe" -OutFile "C:\temp\intel_opencl.exe"
-
-          Write-Host "Extracting installer (this can take 2–5 minutes)..."
-          Start-Process -FilePath "C:\temp\intel_opencl.exe" -ArgumentList "-extract", "C:\temp\intel_opencl" -Wait -NoNewWindow
-
-          if (-not (Test-Path "C:\temp\intel_opencl")) {
-            Write-Error "Extraction failed: directory not found"
-            exit 1
-          }
-
-          $msi = Get-ChildItem "C:\temp\intel_opencl" -Filter "*.msi" | Select-Object -First 1
-          if (-not $msi) {
-            Write-Error "No MSI found after extraction."
-            Get-ChildItem -Recurse "C:\temp\intel_opencl"
-            exit 1
-          }
-
-          Write-Host "Installing $($msi.FullName)..."
-          $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i", "`"$($msi.FullName)`"", "/qn", "/norestart" -PassThru
-          if (-not $process.WaitForExit(300000)) { # 5 minutes
-            Write-Error "Installation timeout."
-            $process.Kill()
-            exit 1
-          }
-
-          Write-Host "Intel OpenCL CPU runtime installed successfully."
-      
+          echo Extracting...
+          & "C:\Program Files\7-Zip\7z.exe" x "C:\temp\intel_opencl.exe" -o"C:\temp\"
+          echo Installing...
+          Start-Process "msiexec.exe" -ArgumentList "/i C:\Temp\w_opencl_runtime_p_2025.2.0.768.msi /qn /norestart" -Wait ALLUSERS=1
       - name: Install dependencies (Windows)
         shell: cmd
         run: |
