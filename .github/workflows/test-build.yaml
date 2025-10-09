@@ -69,9 +69,9 @@ jobs:
         shell: pwsh
         run: |
           echo "Downloading 7-Zip"
-          Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2501-x64.msi -Outfile "C:\Users\vibe\Downloads\7zip.msi"
+          Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2501-x64.msi -Outfile "C:\temp\7zip.msi"
           echo Extracing 7-zip
-          Start-Process "msiexec.exe" -ArgumentList "/i 7zip.msi /qn /norestart" -Wait -NoNewWindow ALLUSERS=1
+          Start-Process "msiexec.exe" -ArgumentList "/i C:\temp\7zip.msi /qn /norestart" -Wait -NoNewWindow ALLUSERS=1
           echo Downloading Intel OpenCL runtime
           Invoke-WebRequest -Uri "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/a8589e7b-70f8-4ef2-bdc3-7306dfb93e92/w_opencl_runtime_p_2025.2.0.768.exe" -OutFile "C:\temp\intel_opencl.exe"
           echo Extracting...
