@@ -79,7 +79,7 @@ jobs:
       - name: Run EXE in cmd
         shell: bash
         run: |
-          scripts\windows\PIRO_devices_WIN.exe
+          ./scripts/windows/PIRO_devices_WIN.exe
       - name: Build and test (Windows)
         shell: bash
         run: |
