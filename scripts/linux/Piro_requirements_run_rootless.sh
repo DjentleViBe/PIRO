@@ -38,8 +38,8 @@ install_ubuntu_package() {
         | awk '/Inst /{print $2}' | sort -u)
 
     if [[ -z "$all_deps" ]]; then
-        echo "No packages found for $pkg (maybe already downloaded or installed)."
-        return
+        echo "Package $pkg already installed on host; forcing local extraction."
+        all_deps="$pkg"
     fi
 
     echo "Downloading packages: $all_deps"
