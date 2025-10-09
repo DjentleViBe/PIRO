@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-tools_ubuntu_generic=("wget" "git" "rsync" "clinfo" "make" "build-essential" "g++" "libc6" "libc6-dev" "pciutils" "ocl-icd-opencl-dev")
+tools_ubuntu_generic=("wget" "git" "rsync" "clinfo" "make" "build-essential" "g++" "libc6" "libc6-dev" "linux-libc-dev" "pciutils" "ocl-icd-opencl-dev")
 tools_arch=("wget" "git" "clinfo" "rsync" "pciutils" "ocl-icd" "pocl")
 tools_suse_generic=("wget" "git" "which" "rsync" "pciutils" "clinfo" "ocl-icd-devel" "pocl" "pocl-devel" "libOpenCL1")
 tools_fedora_generic=("wget" "git" "which" "clinfo" "rsync" "pciutils" "opencl-headers" "pocl")
