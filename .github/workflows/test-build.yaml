@@ -40,13 +40,6 @@ jobs:
         run: |
           ./scripts/linux/PIRO_devices_LIN
           clinfo
-      - name: Verify bits
-        run: |
-          find /home/runner/work/PIRO/PIRO/local/usr/include -name wordsize.h
-          find /usr/include -name "wordsize.h"
-          find $LOCAL_PREFIX -type d
-          find $LOCAL_PREFIX/usr/include/x86_64-linux-gnu -type d
-          cat ~/.bashrc
       - name: Build and test
         run: bash ./maketest.sh -d 0 -p 0
   
@@ -70,3 +63,21 @@ jobs:
 
       - name: Build and test
         run: bash ./maketest.sh -d 0 -p 0
+  
+  windows-setup:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies (Windows)
+        shell: cmd
+        run: |
+          echo Running dependency setup for Windows...
+          call scripts\windows\Piro_requirements_run.bat
+      - name: Build and test (Windows)
+        shell: bash
+        run: |
+          echo Running maketest.sh on Windows...
+          bash ./maketest.sh -d 0 -p 0
