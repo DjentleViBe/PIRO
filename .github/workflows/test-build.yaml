@@ -1,9 +1,9 @@
 name: Build and Test
 on:
   push:
-    branches: [ TESTING ]
+    branches: [ main ]
   pull_request:
-    branches: [ TESTING ]
+    branches: [ main ]
 
 jobs:
   rootless-setup:
