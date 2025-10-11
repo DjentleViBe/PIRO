@@ -208,38 +208,7 @@ if [ -f /etc/debian_version ]; then
     #cp $LOCAL_PREFIX/usr/share/pocl/include/* $LOCAL_PREFIX/share/pocl/include/.
     #cp $LOCAL_PREFIX/usr/share/pocl/* $LOCAL_PREFIX/share/pocl/.
 
-    echo "Setting up environment variables in ~/.bashrc ..."
-    BASHRC="$HOME/.bashrc"
-
-    # Marker to avoid duplicates
-    MARKER="# --- Local build environment setup ---"
-    if ! grep -Fxq "$MARKER" "$BASHRC"; then
-        cat << EOF >> "$BASHRC"
-
-# --- Local build environment setup ---
-export LOCAL_PREFIX="$LOCAL_PREFIX"
-
-# Prepend local binaries
-export PATH="$LOCAL_PREFIX/usr/bin:/usr/bin:$PATH"
-
-# Prepend local libraries
-export LD_LIBRARY_PATH="/usr/lib:$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LOCAL_PREFIX/lib/x86_64-linux-gnu:$LOCAL_PREFIX/usr/lib/gcc/x86_64-linux-gnu/13"
-
-export LIBRARY_PATH="/usr/lib:$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LOCAL_PREFIX/lib/x86_64-linux-gnu:$LOCAL_PREFIX/usr/lib/gcc/x86_64-linux-gnu/13"
-
-# PKG_CONFIG for local prefix
-export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"
-
-# OpenCL vendors in local prefix
-# export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"
-# --- End of local build environment setup ---
-EOF
-        echo "Local environment setup appended to $BASHRC"
-    else
-        echo "Local environment setup already exists in $BASHRC"
-    fi
-    
-    exec bash
+    source ./scripts/linux/env_setup.sh
     echo "Environment setup complete."
 ########################################### FEDORA ##############################################    
 elif [ -f /etc/redhat-release ]; then
@@ -255,21 +224,7 @@ elif [ -f /etc/redhat-release ]; then
         echo "RHEL/CentOS not supported at the moment."
         break
     fi
-    grep -qxF "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" ~/.bashrc || \
-    echo "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" >> ~/.bashrc
-
-    grep -qxF 'export PATH="$LOCAL_PREFIX/usr/bin:$PATH"' ~/.bashrc || \
-    echo 'export PATH="$LOCAL_PREFIX/usr/bin:$PATH"' >> ~/.bashrc
-
-    grep -qxF 'export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib64:$LOCAL_PREFIX/lib:$LD_LIBRARY_PATH"' ~/.bashrc || \
-    echo 'export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib64:$LOCAL_PREFIX/lib:$LD_LIBRARY_PATH"' >> ~/.bashrc
-
-    grep -qxF 'export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"' ~/.bashrc || \
-    echo 'export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"' >> ~/.bashrc
-
-    grep -qxF 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' ~/.bashrc || \
-    echo 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' >> ~/.bashrc
-    exec bash
+    source ./scripts/linux/env_setup.sh
     #$SUDO ln -s $(which g++-14) /usr/bin/g++
     #$SUDO ln -sf /lib64/libOpenCL.so.1 /lib64/libOpenCL.so
     
@@ -285,19 +240,7 @@ elif [ -f /etc/arch-release ]; then
             install_arch_package "$t"
     done
 
-    echo "Setting up environment variables in ~/.bashrc ..."
-    grep -qxF "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" ~/.bashrc || \
-    echo "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" >> ~/.bashrc
-    grep -qxF "export PATH=\"$LOCAL_PREFIX/usr/bin:\$PATH\"" ~/.bashrc || \
-    echo "export PATH=\"$LOCAL_PREFIX/usr/bin:\$PATH\"" >> ~/.bashrc
-    grep -qxF "export LD_LIBRARY_PATH=\"$LOCAL_PREFIX/usr/lib:\$LD_LIBRARY_PATH\"" ~/.bashrc || \
-    echo "export LD_LIBRARY_PATH=\"$LOCAL_PREFIX/usr/lib:\$LD_LIBRARY_PATH\"" >> ~/.bashrc
-    grep -qxF "export PKG_CONFIG_PATH=\"$LOCAL_PREFIX/usr/lib/pkgconfig:\$PKG_CONFIG_PATH\"" ~/.bashrc || \
-    echo "export PKG_CONFIG_PATH=\"$LOCAL_PREFIX/usr/lib/pkgconfig:\$PKG_CONFIG_PATH\"" >> ~/.bashrc
-    grep -qxF "export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"" ~/.bashrc || \
-    echo "export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"" >> ~/.bashrc
-
-    exec bash
+    source ./scripts/linux/env_setup.sh
     echo "Environment setup complete."
 ########################################### SUSE ############################################## 
 elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
@@ -309,25 +252,7 @@ elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
     done
 
     echo "Setting up environment variables in ~/.bashrc ..."
-    grep -qxF "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" ~/.bashrc || \
-    echo "export LOCAL_PREFIX=\"$LOCAL_PREFIX\"" >> ~/.bashrc
-
-    grep -qxF 'export PATH="$LOCAL_PREFIX/usr/bin:$PATH"' ~/.bashrc || \
-    echo 'export PATH="$LOCAL_PREFIX/usr/bin:$PATH"' >> ~/.bashrc
-
-    grep -qxF 'export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib64:$LOCAL_PREFIX/lib:$LD_LIBRARY_PATH"' ~/.bashrc || \
-    echo 'export LD_LIBRARY_PATH="$LOCAL_PREFIX/usr/lib64:$LOCAL_PREFIX/lib:$LD_LIBRARY_PATH"' >> ~/.bashrc
-
-    grep -qxF 'export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"' ~/.bashrc || \
-    echo 'export PKG_CONFIG_PATH="$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"' >> ~/.bashrc
-
-    grep -qxF 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' ~/.bashrc || \
-    echo 'export OPENCL_VENDOR_PATH="$LOCAL_PREFIX/etc/OpenCL/vendors"' >> ~/.bashrc
-
-    grep -qxF "export OCL_ICD_VENDORS="$LOCAL_PREFIX/usr/share/OpenCL/vendors"" ~/.bashrc || \
-    echo "export OCL_ICD_VENDORS="$LOCAL_PREFIX/usr/share/OpenCL/vendors"" >> ~/.bashrc
-
-    exec bash
+    source ./scripts/linux/env_setup.sh
     
     echo "Environment setup complete."
 else

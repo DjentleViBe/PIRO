@@ -93,6 +93,7 @@ else
            ./dependencies/assets/setup.ini
 fi
 # compile the program
+source ./scripts/linux/env_setup.sh
 ./makeall.sh
 echo "Build : SUCCESSFUL"
 # generate the kernels
