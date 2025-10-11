@@ -31,7 +31,7 @@ detect_os() {
 }
 # Initialize variables
 FILE=""
-
+LOCAL_PREFIX="$(pwd)/local"
 # Parse command line arguments
 while getopts ":hf:" opt; do
     case ${opt} in
@@ -82,8 +82,9 @@ if [[ "$MSYSTEM" == "MINGW64" ]] && [[ -d "/c/cygwin64/bin" ]]; then
         source ~/.bashrc
     fi
 fi
-
-source ./scripts/linux/env_setup.sh
+if [[ -d "$LOCAL_PREFIX" ]]; then
+    source ./scripts/linux/env_setup.sh
+fi
 # Which OpenCL library is being used
 cp -r ./dependencies/assets ./bin/.
 mkdir -p logs

@@ -9,7 +9,11 @@ if [[ "$MSYSTEM" == "MINGW64" ]] && [[ -d "/c/cygwin64/bin" ]]; then
         source ~/.bashrc
     fi
 fi
-source ./scripts/linux/env_setup.sh
+
+LOCAL_PREFIX="$(pwd)/local"
+if [[ -d "$LOCAL_PREFIX" ]]; then
+    source ./scripts/linux/env_setup.sh
+fi
 make clean
 make
 make setup
