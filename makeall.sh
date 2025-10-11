@@ -4,14 +4,20 @@ if [[ "$MSYSTEM" == "MINGW64" ]] && [[ -d "/c/cygwin64/bin" ]]; then
     if ! grep -q "cygwin64" ~/.bashrc 2>/dev/null; then
         echo 'export PATH="/c/cygwin64/bin:$PATH"' >> ~/.bashrc
         echo "Added Cygwin to ~/.bashrc"
+        NEWPATH="/c/cygwin64/bin"
+        echo 'export PATH="$NEWPATH:$PATH"' >> ~/.bashrc
         source ~/.bashrc
     fi
 fi
-NEWPATH="/c/cygwin64/bin"
-export PATH="$NEWPATH:$PATH"
+
+LOCAL_PREFIX="$(pwd)/local"
+if [[ -d "$LOCAL_PREFIX" ]]; then
+    source ./scripts/linux/env_setup.sh
+fi
 make clean
 make
 make setup
+mkdir -p ./logs
 ./bin/PIRO$extension setup.ini 1 &> ./logs/test_buildkernel.txt
 echo "Run : KERNEL SUCCESSFUL"
 

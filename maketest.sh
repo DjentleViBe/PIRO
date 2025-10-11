@@ -35,6 +35,7 @@ detect_os() {
 PLATFORMID=""
 DEVICEID=""
 FILE=""
+LOCAL_PREFIX="$(pwd)/local"
 # Parse command line arguments
 while getopts ":hp:d:" opt; do
     case ${opt} in
@@ -93,6 +94,10 @@ else
            ./dependencies/assets/setup.ini
 fi
 # compile the program
+if [[ -d "$LOCAL_PREFIX" ]]; then
+    echo "Rootless setup"
+    source ./scripts/linux/env_setup.sh
+fi
 ./makeall.sh
 echo "Build : SUCCESSFUL"
 # generate the kernels

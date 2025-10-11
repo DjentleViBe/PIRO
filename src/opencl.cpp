@@ -73,7 +73,28 @@ int Piro::opencl_init(){
     std::vector<cl_platform_id> platforms(platformCount);
     clGetPlatformIDs(platformCount, platforms.data(), nullptr);
     
-    // Get number of devices
+    int j = 0;
+    for (cl_platform_id platform : platforms) {
+        size_t size;
+        clGetPlatformInfo(platform, CL_PLATFORM_NAME, 0, nullptr, &size);
+        std::string name(size - 1, '\0');
+        clGetPlatformInfo(platform, CL_PLATFORM_NAME, size, &name[0], nullptr);
+        
+        clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 3, NULL, &num_devices);
+        devices = (cl_device_id *)malloc(num_devices * sizeof(cl_device_id));
+        clGetDeviceIDs(platforms[j], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
+    
+        for (cl_uint i = 0; i < num_devices; ++i) {
+            device = devices[i];
+            if(i == DP.getvalue<int>(DeviceParams::ID) && (j == DP.getvalue<int>(DeviceParams::PLATFORMID))){
+                Piro::logger::info("Selected Device ID: ", i, " on Platform ID: ", j);
+                Piro::print_device_info(device);
+            }
+            // print_device_info(device);
+        }
+        j++;
+    }
+    /*Get number of devices
     err = clGetDeviceIDs(platforms[DP.getvalue<int>(DeviceParams::PLATFORMID)], CL_DEVICE_TYPE_ALL, 3, NULL, &num_devices);
     if (err != CL_SUCCESS) {
         Piro::logger::info("Failed to get number of devices");
@@ -89,12 +110,12 @@ int Piro::opencl_init(){
         Piro::logger::info("Failed to get device IDs");
         free(devices);
         return 1;
-    }
+    }*/
 
     // Set default device
-    Piro::logger::info("Active device");
-    device = devices[DP.getvalue<int>(DeviceParams::ID)];
-    Piro::print_device_info(device);
+    //Piro::logger::info("Active device");
+    //device = devices[DP.getvalue<int>(DeviceParams::ID)];
+    //Piro::print_device_info(device);
 
     // Initialize OpenCL
     Piro::logger::info("Calling OpenCL");

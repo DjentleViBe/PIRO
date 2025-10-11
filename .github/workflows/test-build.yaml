@@ -1,0 +1,91 @@
+name: Build and Test
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  rootless-setup:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        arch: [x64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure LOCAL_PREFIX
+        run: |
+          # Use current working directory to avoid permission issues
+          sudo apt-get update
+          export LOCAL_PREFIX="$(pwd)/local"
+          mkdir -p "$LOCAL_PREFIX"
+          mkdir -p "$LOCAL_PREFIX/lib/x86_64-linux-gnu"
+          mkdir -p "$LOCAL_PREFIX/lib64/"
+          mkdir -p $LOCAL_PREFIX/usr/lib/x86_64-linux-gnu
+          echo "LOCAL_PREFIX=$LOCAL_PREFIX" >> $GITHUB_ENV
+          echo "PATH=$LOCAL_PREFIX/usr/bin:$PATH" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=/usr/lib:$LOCAL_PREFIX/usr/lib:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/usr/lib:$LOCAL_PREFIX/usr/lib/pkgconfig:$LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          echo "LOCAL_PREFIX set to $LOCAL_PREFIX"
+      - name: Install dependencies (rootless)
+        run: |
+          echo "Running rootless on architecture: ${{ matrix.arch }}"
+          bash scripts/linux/Piro_requirements_run_rootless.sh
+          sudo apt-get install pocl-opencl-icd -y
+      - name: Setup devices
+        run: |
+          ./scripts/linux/PIRO_devices_LIN
+          clinfo
+      - name: Build and test
+        run: bash ./maketest.sh -d 0 -p 0
+
+  rootful-setup:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        arch: [x64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies (rootful)
+        run: |
+          echo "Running on architecture: ${{ matrix.arch }}"
+          sudo apt-get update
+          sudo scripts/linux/Piro_requirements_run_rootful.sh
+      - name: Setup devices
+        run: ./scripts/linux/PIRO_devices_LIN
+      - name: Build and test
+        run: bash ./maketest.sh -d 0 -p 0
+
+  windows-setup:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Intel OpenCL CPU runtime
+        shell: pwsh
+        run: |
+          echo "Downloading 7-Zip"
+          Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2501-x64.msi -Outfile "C:\temp\7zip.msi"
+          echo Extracing 7-zip
+          Start-Process "msiexec.exe" -ArgumentList "/i C:\temp\7zip.msi /qn /norestart ALLUSERS=1" -Wait -NoNewWindow
+          echo Downloading Intel OpenCL runtime
+          Invoke-WebRequest -Uri "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/a8589e7b-70f8-4ef2-bdc3-7306dfb93e92/w_opencl_runtime_p_2025.2.0.768.exe" -OutFile "C:\temp\intel_opencl.exe"
+          echo Extracting...
+          & "C:\Program Files\7-Zip\7z.exe" x "C:\temp\intel_opencl.exe" -o"C:\temp\"
+          echo Installing...
+          Start-Process "msiexec.exe" -ArgumentList "/i C:\Temp\w_opencl_runtime_p_2025.2.0.768.msi /qn /norestart ALLUSERS=1" -Wait
+          echo Intel OpenCL runtime installed
+      - name: Install dependencies (Windows)
+        shell: cmd
+        run: |
+          echo Running dependency setup for Windows...
+          call scripts\windows\Piro_requirements_run.bat
+      - name: Build and test (Windows)
+        shell: bash
+        run: |
+          echo Running maketest.sh on Windows...
+          bash ./maketest.sh -d 0 -p 0
