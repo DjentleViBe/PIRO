@@ -46,7 +46,7 @@ $$ \bar{n} = {\kappa} / N^2$$
 $${\lambda} = e_{\kappa_0} / e_{\kappa_{N-1}}$$
 
 where, $N = n_x * n_y * n_z$ if $n_x, n_y, n_z$ are the number of grid cells in X, Y and Z direction respectively, the load factor $\lambda$ is the ratio of nonzero elements in the first row ($\kappa= 0$) to those in the consecitive rows ($\kappa = N-1$).
-$e$ for an $UTM$ obtained after gaussian elimination of a Laplacian operator for various cell grid sizes $(N)$ is shown in the figure below.
+$e$ for an $UTM$ obtained after gaussian elimination of a Laplacian operator for various cell grid sizes $(N)$ is shown in \autoref{fig:UTM}.
 
 ![**(a)** Row filling for different N during gaussian elimination. 'x' marker denoting maximum e. **(b)** Curve fitting for e. **(c)** Curve fitting for the load factor.\label{fig:UTM}](svg/trends.pdf)
 
@@ -110,7 +110,7 @@ Table: Run times and space complexities of various algorithms generating a UTM f
 
 ![Run times for different $\sigma$.\label{fig:LF}](svg/lf.pdf){ width=50% }
 
-\autoref{fig:LF} shows performance improvements with reducing $\sigma$. The ideal value for $\sigma$ can be chosen based on use case.
+It is important to note that the total execution time for ROWSEP is largely dominated by the communication overhead between the host and the device. \autoref{fig:LF} shows performance improvements with reducing $\sigma$. The ideal value for $\sigma$ can be chosen based on use case.
 
 # Equations
 Partial differential equations (PDEs) can be solved in PIRO by constructing the corresponding matrix equations. The matrix can be represented in Dense, CSR, or HTLF formats. The choice of discretization depends on grid type. The current version implements finite difference methods for structured grids with First-Order Upwind, Downwind, Central-Difference spatial schemes and Forward Euler, Backward Euler temporal schemes. Support for finite volume methods on unstructured grids is currently under development.
