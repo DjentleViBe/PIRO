@@ -5,9 +5,9 @@
 #ifdef __APPLE__
     #include <OpenCL/opencl.h>
 #elif _WIN32
-    #include "../dependencies/include/CL/opencl.h"
+    #include <CL/opencl.h>
 #else
-    #include "../dependencies/include/CL/opencl.h"
+    #include <CL/opencl.h>
 #endif
 
 static void print_device_info(cl_device_id device){
@@ -21,7 +21,7 @@ static void print_device_info(cl_device_id device){
 
 }
 
-int ocldevices(){
+int main(){
      // Initialize OpenCL
     cl_uint platformCount;
     cl_uint num_devices;

@@ -46,10 +46,12 @@ LIBS = -lOpenCL
 EXENAME = PIRO
 endif
 
+EXCLUDE_FILE := $(MAKEFILE_DIR)/src/opencldevices.cpp
 SHAREDLIB = $(MAKEFILE_DIR)/sharedlib
 # Source files
 SOURCES_C := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.c))
 SOURCES_CPP := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
+SOURCES_CPP := $(filter-out $(EXCLUDE_FILE),$(SOURCES_CPP))
 # Object files
 OBJS_C := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SOURCES_C))
 OBJS_CPP := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SOURCES_CPP))
