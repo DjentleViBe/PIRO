@@ -203,6 +203,23 @@ else
     exit 1
 fi
 
+if command -v nvidia-smi &>/dev/null; then
+    gpu_driver=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
+    gpu_type="NVIDIA"
+    required_version="575.64.05"
+    driver_version=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
+    if [[ "$(printf '%s\n%s\n' "$required_version" "$driver_version" | sort -V | head -n1)" == "$required_version" ]]; then
+        echo "Driver version is >= $required_version"
+    else
+        echo "Recommended driver version is < $required_version". The kernel binaries might have to rebuilt to support this version.
+    fi
+elif lsmod | grep -q '^amdgpu'; then
+    gpu_driver=$(modinfo amdgpu | grep ^version | awk '{print $2}')
+    gpu_type="AMD"
+else
+    echo "No supported GPU driver found (NVIDIA or AMD). Please install the required drivers if the software is preferred to be run on GPU."
+fi
+
 # Run the program
 git config --global core.autocrlf false
 chmod +x $SCRIPT_DIR/PIRO_devices_LIN

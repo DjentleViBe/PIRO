@@ -1,48 +1,162 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-tools_ubuntu_2204=("wget" "git=1:2.34.1-1ubuntu1.15" "make=4.3-4.1build1" "gcc=4:11.2.0-1ubuntu1" "g++=4:11.2.0-1ubuntu1" "clinfo=3.0.21.02.21-1" "rsync" "pciutils" "ocl-icd-opencl-dev=2.2.14-3" "pocl-opencl-icd=1.8-3")
-tools_ubuntu=("wget" "git" "make" "gcc" "g++" "clinfo" "rsync" "pciutils" "ocl-icd-opencl-dev" "pocl-opencl-icd")
-tools_suse=("wget" "git-2.50.1-2.1" "make-4.4.1-3.3" "which" "gcc14" "gcc14-c++" "clinfo-3.0.25.02.14-1.1" "rsync" "pciutils" "ocl-icd-devel-2.3.3-1.1" "pocl-7.0-1.1" "pocl-devel-7.0-1.1")
-tools_suse_generic=("wget" "git" "make" "which" "gcc14" "gcc14-c++" "clinfo" "rsync" "pciutils" "ocl-icd-devel" "pocl" "pocl-devel")
-tools_fedora_42=("wget" "git-2.50.1-1.fc42" "which" "make-1:4.4.1-10.fc42" "gcc14" "gcc14-c++" "clinfo-3.0.23.01.25-7.fc42" "rsync" "pciutils" "opencl-headers-3.0-32.20241023git4ea6df1.fc42" "pocl-6.0-6.fc42")
-tools_fedora_generic=("wget" "git" "which" "make" "gcc14" "gcc14-c++" "clinfo" "rsync" "pciutils" "opencl-headers" "pocl")
-tools_arch=("wget" "git" "make" "gcc" "g++" "clinfo" "rsync" "pciutils" "ocl-icd")
-
-if command -v sudo &>/dev/null; then
-    SUDO="sudo"
-else
-    SUDO=""
-fi
+tools_ubuntu_generic=("wget" "git" "rsync" "clinfo" "make" "build-essential" "g++" "libc6" "libc6-dev" "linux-libc-dev" "pciutils" "ocl-icd-opencl-dev")
+tools_arch=("wget" "git" "clinfo" "rsync" "pciutils" "ocl-icd" "pocl")
+tools_suse_generic=("wget" "git" "which" "rsync" "pciutils" "clinfo" "ocl-icd-devel" "pocl" "pocl-devel" "libOpenCL1")
+tools_fedora_generic=("wget" "git" "which" "clinfo" "rsync" "pciutils" "opencl-headers" "pocl")
 
 architecture=$(uname -m)
 bits=$(getconf LONG_BIT)
+LOCAL_PREFIX="$(pwd)/local"
+mkdir -p "$LOCAL_PREFIX"
+
 if [[ "$architecture" == "x86_64" && "$bits" == "64" ]]; then
     echo "System is 64-bit."
 else
     echo "System is NOT x86_64. (detected architecture: $architecture, bits: $bits)"
-    read -p "Do you want to proceed anyway? (y/N): " choice
-    case "$choice" in
-        [yY]|[yY][eE][sS])
-            echo "Proceeding..."
-            ;;
-        *)
-            echo "Aborting."
-            exit 1
-            ;;
-    esac
-fi
-
-# Run as root check
-if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root: sudo $0"
     exit 1
 fi
+
+seen=()
+
+install_ubuntu_package() {
+    local pkg="$1"
+
+    if [[ " ${seen[@]} " =~ " $pkg " ]]; then
+        return
+    fi
+    seen+=("$pkg")
+
+    echo "Resolving dependencies for $pkg ..."
+
+    # Create local directories
+    mkdir -p "$LOCAL_PREFIX"
+
+    # Get all dependencies (including recommended)
+    local all_deps
+    all_deps=$(apt-get --just-print install "$pkg" 2>/dev/null \
+        | awk '/Inst /{print $2}' | sort -u)
+
+    if [[ -z "$all_deps" ]]; then
+        echo "Package $pkg already installed on host; forcing local extraction."
+        all_deps="$pkg"
+    fi
+
+    echo "Downloading packages: $all_deps"
+
+    # Download all .deb files without installing (non-root)
+    apt download $all_deps >/dev/null 2>&1 || {
+        echo "Failed to download $pkg or some dependencies"
+        return
+    }
+
+    # Move downloaded .deb files to LOCAL_PREFIX
+    mv -f ./*.deb "$LOCAL_PREFIX"/ 2>/dev/null || true
+
+    echo "Extracting into $LOCAL_PREFIX ..."
+    find "$LOCAL_PREFIX" -type f -name "*.deb" | while read -r debfile; do
+        dpkg-deb -x "$debfile" "$LOCAL_PREFIX"
+    done
+
+    # Optional cleanup
+    rm -f "$LOCAL_PREFIX"/*.deb
+
+    # Fix OpenCL ICD files if relevant
+    mkdir -p "$LOCAL_PREFIX/etc/OpenCL/vendors"
+    # find "$LOCAL_PREFIX" -name "*.icd" -exec cp {} "$LOCAL_PREFIX/etc/OpenCL/vendors/" \;
+
+    echo "Done installing $pkg locally."
+}
+
+install_arch_package() {
+    local root_pkg="$1"
+    local -A seen=()
+    local -a queue=("$root_pkg")
+
+    echo "Building dependency graph..."
+
+    while ((${#queue[@]})); do
+        local pkg="${queue[0]}"
+        queue=("${queue[@]:1}")
+
+        [[ -n "${seen[$pkg]}" ]] && continue
+        seen["$pkg"]=1
+
+        # Get dependencies for this package
+        local deps
+        deps=$(pacman -Si "$pkg" 2>/dev/null | awk -F: '/Depends On/ {for (i=3; i<=NF; i++) print $i}' | tr -d ' ' | tr '\n' ' ')
+
+        for d in $deps; do
+            [[ -n "$d" && -z "${seen[$d]}" ]] && queue+=("$d")
+        done
+    done
+
+    local all_pkgs=("${!seen[@]}")
+    echo "Total packages to process: ${#all_pkgs[@]}"
+
+    # Download all at once
+    pacman -Sw --cachedir "$LOCAL_PREFIX" "${all_pkgs[@]}" --noconfirm
+
+    # Extract all
+    for pkg in "${all_pkgs[@]}"; do
+        local pkgfile
+        pkgfile=$(ls "$LOCAL_PREFIX/$pkg"-*.pkg.tar.zst 2>/dev/null | head -n1)
+        if [[ -f "$pkgfile" ]]; then
+            echo "Extracting $pkgfile ..."
+            bsdtar -xf "$pkgfile" -C "$LOCAL_PREFIX"
+        fi
+    done
+}
+
+install_opensuse_package() {
+    local pkg="$1"
+    
+    echo "Resolving complete dependency tree for $pkg ..."
+
+    # Get COMPLETE list (zypper does the recursion for you)
+    local all_deps
+    all_deps=$(zypper --non-interactive install --download-only --dry-run "$pkg" \
+        2>/dev/null \
+        | awk '/The following [0-9]+ NEW packages/ {flag=1; next} /^$/ {flag=0} flag' \
+        | tr -d ',' \
+        | awk '{$1=$1; print}')
+
+    if [[ -z "$all_deps" ]]; then
+        echo "No new packages to download for $pkg."
+        return
+    fi
+
+    echo "Downloading all packages: $all_deps"
+    zypper --non-interactive download $all_deps
+
+    echo "Extracting RPMs into $LOCAL_PREFIX ..."
+    find "/var/cache/zypp" -type f -name "*.rpm" | while read -r rpmfile; do
+        rpm2cpio "$rpmfile" | (cd "$LOCAL_PREFIX" && cpio -idmv)
+    done
+
+    # Patch ICD files in both possible locations:
+    for icd_dir in "$LOCAL_PREFIX/etc/OpenCL/vendors" "$LOCAL_PREFIX/usr/share/OpenCL/vendors"; do
+        if [[ -d "$icd_dir" ]]; then
+            echo "Patching OpenCL ICD files in $icd_dir..."
+            find "$icd_dir" -name "*.icd" | while read -r icd; do
+                sed -i "s|^/usr|$LOCAL_PREFIX/usr|g" "$icd"
+            done
+        fi
+    done
+
+    echo "Done!"
+}
 
 missing_tools=()
 echo "Checking commands..."
 
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
+command_exists_in_sysroot() {
+    local cmd="$1"
+    # Check in sysroot's bin directories
+    if [ -f "$LOCAL_PREFIX/usr/bin/$cmd" ] || [ -f "$LOCAL_PREFIX/bin/$cmd" ]; then
+        return 0
+    fi
+    return 1
 }
 
 check_tools() {
@@ -58,7 +172,7 @@ check_tools() {
         else
             cmd="$tool"             # No version specified
         fi
-        if command_exists "$cmd"; then
+        if command_exists_in_sysroot "$cmd"; then
             echo "$cmd is installed."
         else
             echo "$cmd is NOT installed."
@@ -72,141 +186,101 @@ check_tools() {
         echo "All tools are installed."
     fi
 }
-
+########################################### UBUNTU ############################################## 
 if [ -f /etc/debian_version ]; then
     echo "Debian/Ubuntu detected."
-    apt update
+    echo "Downloading and installing missing tools locally..."
+    # apt update
+
     OS_VERSION=$(grep '^VERSION=' /etc/os-release | cut -d'"' -f2)
-    if [[ "$OS_VERSION" == 22.04* ]]; then
-        check_tools tools_ubuntu_2204 missing_tools
-    else
-        check_tools tools_ubuntu_generic missing_tools
-    fi
+    check_tools tools_ubuntu_generic missing_tools
     for t in "${missing_tools[@]}"; do
-        apt install -y "$t"
+        # echo "Downloading and installing $t ..."
+        install_ubuntu_package "$t"
     done
+    mkdir -p "$LOCAL_PREFIX/lib/x86_64-linux-gnu"
+    cp -r $LOCAL_PREFIX/usr/lib/ $LOCAL_PREFIX/
+    mkdir -p "$LOCAL_PREFIX/lib64/"
+    cp -r $LOCAL_PREFIX/usr/lib64/ $LOCAL_PREFIX/
+    mkdir -p $LOCAL_PREFIX/usr/lib/x86_64-linux-gnu
+    cp /usr/lib/x86_64-linux-gnu/libgcc_s.so.1 $LOCAL_PREFIX/usr/lib/x86_64-linux-gnu/
+    #mkdir -p $LOCAL_PREFIX/share/pocl/include
+    #cp $LOCAL_PREFIX/usr/share/pocl/include/* $LOCAL_PREFIX/share/pocl/include/.
+    #cp $LOCAL_PREFIX/usr/share/pocl/* $LOCAL_PREFIX/share/pocl/.
 
-    if lspci | grep -i nvidia > /dev/null; then
-        echo "NVIDIA GPU detected, installing NVIDIA OpenCL ICD..."
-        DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
-        DRIVER_MAJOR=$(echo "$DRIVER_VERSION" | cut -d. -f1)
-        apt install -y "libnvidia-compute-${DRIVER_MAJOR}"
-    else
-        echo No NVIDIA GPU detected. Support for additional GPUs for Ubuntu will be added in future releases.
-        exit 1
-    fi
-    
-
+    source ./scripts/linux/env_setup.sh
+    echo "Environment setup complete."
+########################################### FEDORA ##############################################    
 elif [ -f /etc/redhat-release ]; then
-    echo "Red Hat/CentOS/Fedora detected."
-    yum update -y
-    OS_VERSION=$(grep '^VERSION_ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"')
-    if [[ "$OS_VERSION" == "42" ]]; then
-        check_tools tools_fedora_42 missing_tools
+    release=$(< /etc/redhat-release)
+    if [[ "$release" =~ "Fedora" ]]; then
+        echo "Fedora detected."
+        #for t in "${missing_tools[@]}"; do
+        #    recurse_fedora "$t"
+        #done
+        echo "Fedora support coming sooon..."
+        break
     else
-        check_tools tools_fedora_generic missing_tools
+        echo "RHEL/CentOS not supported at the moment."
+        break
     fi
-    for t in "${missing_tools[@]}"; do
-        yum install -y "$t"
-    done
-    $SUDO ln -s $(which g++-14) /usr/bin/g++
-    $SUDO ln -sf /lib64/libOpenCL.so.1 /lib64/libOpenCL.so
-    if lspci | grep -i nvidia > /dev/null; then
-        if rpm -q xorg-x11-drv-nvidia &>/dev/null; then
-            echo "NVIDIA proprietary driver package is installed."
-        else
-            echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
-            $SUDO dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-            $SUDO dnf install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-            dnf install -y --allowerasing xorg-x11-drv-nvidia-cuda
-        fi
-    elif lspci | grep -i amd > /dev/null; then
-        echo "AMD GPU detected, installing AMD OpenCL..."
-        yum install -y rocm-opencl
-    fi
-
+    source ./scripts/linux/env_setup.sh
+    #$SUDO ln -s $(which g++-14) /usr/bin/g++
+    #$SUDO ln -sf /lib64/libOpenCL.so.1 /lib64/libOpenCL.so
+    
+########################################### ARCH ############################################## 
 elif [ -f /etc/arch-release ]; then
     echo "Arch Linux detected."
     check_tools tools_arch missing_tools
+
+    echo "Downloading and installing missing tools locally..."
+
     for t in "${missing_tools[@]}"; do
-        pacman -Sy --noconfirm "$t"
+        echo "Downloading and installing $t ..."
+        install_arch_package "$t"
     done
 
-    if lspci | grep -i nvidia > /dev/null; then
-        echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
-        # Extract driver version, e.g. "570.153.02"
-        DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
-
-        if [ -z "$DRIVER_VERSION" ]; then
-            echo "Could not detect NVIDIA driver version."
-            exit 1
-        fi
-
-        echo "Detected NVIDIA driver version: $DRIVER_VERSION"
-
-        # Compose package filename and URL
-        PACKAGE_NAME="opencl-nvidia-${DRIVER_VERSION}-1-x86_64.pkg.tar.zst"
-        PACKAGE_URL="https://archive.archlinux.org/packages/o/opencl-nvidia/${PACKAGE_NAME}"
-
-        # Download the package
-        echo "Downloading $PACKAGE_NAME..."
-        wget -q "$PACKAGE_URL" || { echo "Download failed"; exit 1; }
-
-        # Install the package
-        echo "Installing $PACKAGE_NAME..."
-        $SUDO pacman -U --noconfirm "$PACKAGE_NAME" --overwrite usr/lib/libnvidia-opencl.so\* || { echo "Installation failed"; rm -f "$PACKAGE_NAME"; exit 1; }
-
-        # Delete the package file after install
-        echo "Deleting package file $PACKAGE_NAME..."
-        rm -f "$PACKAGE_NAME"
-
-        echo "Done."
-    elif lspci | grep -i amd > /dev/null; then
-        echo "AMD GPU detected, installing AMD OpenCL..."
-        pacman -S --noconfirm opencl-amd
-    elif lspci | grep -i intel > /dev/null; then
-        echo "INTEL GPU detected, installing INTEL OpenCL..."
-        pacman -S --noconfirm opencl-intel
-        echo "Intel OpenCL support can be a bit tricky — opencl-intel is usually good but sometimes the newer 
-        intel-compute-runtime + related packages are needed for newer hardware. Confirm hardware detection 
-        by running clinfo"
-    fi
-
+    source ./scripts/linux/env_setup.sh
+    echo "Environment setup complete."
+########################################### SUSE ############################################## 
 elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
     echo "openSUSE detected."
-    zypper refresh
-    if grep -q "openSUSE Tumbleweed" /etc/os-release; then
-        check_tools tools_suse missing_tools
-    else
-        check_tools tools_suse_generic missing_tools
-    fi
+    check_tools tools_suse_generic missing_tools
     for t in "${missing_tools[@]}"; do
-        zypper install -y "$t"
+        # echo "Downloading and installing $t ..."
+        install_opensuse_package "$t"
     done
-    $SUDO ln -s $(which g++-14) /usr/bin/g++
-    if lspci | grep -i nvidia > /dev/null; then
-        if zypper search --installed-only x11-video-nvidiaG05 | grep -q x11-video-nvidiaG05; then
-            echo "NVIDIA proprietary driver package is installed."
-        else
-            echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
-            if grep -q "openSUSE Tumbleweed" /etc/os-release; then
-                zypper addrepo --no-gpgcheck --refresh https://download.nvidia.com/opensuse/tumbleweed NVIDIA
-            else
-                VERSION_ID=$(grep VERSION_ID /etc/os-release | cut -d'"' -f2)
-                zypper addrepo --no-gpgcheck --refresh https://download.nvidia.com/opensuse/leap/$VERSION_ID NVIDIA
-            fi
-            zypper refresh
-            zypper install nvidia-computeG05
-        fi
-    else 
-        echo No NVIDIA GPU detected. Support for additional GPUs for OpenSUSE will be added in future releases.
-        exit 1
-    fi
+
+    echo "Setting up environment variables in ~/.bashrc ..."
+    source ./scripts/linux/env_setup.sh
+    
+    echo "Environment setup complete."
 else
     echo "Unsupported Linux distribution. Please run this script on Debian/Ubuntu, Fedora, Arch Linux, or openSUSE."
     exit 1
 fi
 
 # Run the program
+gpu_driver=""
+gpu_type=""
+
+# Check for NVIDIA
+if command -v nvidia-smi &>/dev/null; then
+    gpu_driver=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
+    gpu_type="NVIDIA"
+    required_version="575.64.05"
+    driver_version=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
+    if [[ "$(printf '%s\n%s\n' "$required_version" "$driver_version" | sort -V | head -n1)" == "$required_version" ]]; then
+        echo "Driver version is >= $required_version"
+    else
+        echo "Recommended driver version is < $required_version".
+    fi
+elif lsmod | grep -q '^amdgpu'; then
+    gpu_driver=$(modinfo amdgpu | grep ^version | awk '{print $2}')
+    gpu_type="AMD"
+else
+    echo "No supported GPU driver found (NVIDIA or AMD). Please install the required drivers if the software is preferred to be run on GPU."
+fi
+
 git config --global core.autocrlf false
-chmod +x ./makedevice.sh
+chmod +x $SCRIPT_DIR/PIRO_devices_LIN
