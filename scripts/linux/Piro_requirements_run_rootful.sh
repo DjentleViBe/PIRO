@@ -82,13 +82,16 @@ if [ -f /etc/debian_version ]; then
         echo "NVIDIA GPU detected, installing NVIDIA OpenCL ICD..."
         DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
         DRIVER_MAJOR=$(echo "$DRIVER_VERSION" | cut -d. -f1)
-        apt install -y "libnvidia-compute-${DRIVER_MAJOR}"
+        echo "Please install the latest NVIDIA drivers by running:"
+        echo "apt install -y "libnvidia-compute-575""
     elif lspci | grep -i amd > /dev/null; then
         echo "AMD GPU detected, installing AMD OpenCL..."
-        apt install -y rocm-opencl-runtime
+        echo "Please install the latest AMD drivers by running:"
+        echo "apt install -y rocm-opencl-runtime"
     elif lspci | grep -i intel > /dev/null; then
         echo "INTEL GPU detected, installing INTEL OpenCL..."
-        apt install -y intel-opencl-icd
+        echo "Please install the latest Intel drivers by running:"
+        echo "apt install -y intel-opencl-icd"
     else
         echo "No supported GPU detected for OpenCL."
     fi
@@ -111,14 +114,14 @@ elif [ -f /etc/redhat-release ]; then
         if rpm -q xorg-x11-drv-nvidia &>/dev/null; then
             echo "NVIDIA proprietary driver package is installed."
         else
-            echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
-            $SUDO dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-            $SUDO dnf install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-            dnf install -y --allowerasing xorg-x11-drv-nvidia-cuda
+            echo "NVIDIA GPU detected, please install the latest NVIDIA drivers"
+            #$SUDO dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+            #$SUDO dnf install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+            #dnf install -y --allowerasing xorg-x11-drv-nvidia-cuda
         fi
     elif lspci | grep -i amd > /dev/null; then
-        echo "AMD GPU detected, installing AMD OpenCL..."
-        yum install -y rocm-opencl
+        echo "AMD GPU detected, please insstall AMD OpenCL drivers."
+        # yum install -y rocm-opencl
     fi
 
 elif [ -f /etc/arch-release ]; then
@@ -149,20 +152,21 @@ elif [ -f /etc/arch-release ]; then
         wget -q "$PACKAGE_URL" || { echo "Download failed"; exit 1; }
 
         # Install the package
-        echo "Installing $PACKAGE_NAME..."
-        $SUDO pacman -U --noconfirm "$PACKAGE_NAME" --overwrite usr/lib/libnvidia-opencl.so\* || { echo "Installation failed"; rm -f "$PACKAGE_NAME"; exit 1; }
+        echo "Package is downloaded: Please install by running:"
+        
+        echo "$SUDO pacman -U --noconfirm "$PACKAGE_NAME" --overwrite usr/lib/libnvidia-opencl.so\*"
 
         # Delete the package file after install
-        echo "Deleting package file $PACKAGE_NAME..."
-        rm -f "$PACKAGE_NAME"
+        #echo "Deleting package file $PACKAGE_NAME..."
+        #rm -f "$PACKAGE_NAME"
 
-        echo "Done."
+        #echo "Done."
     elif lspci | grep -i amd > /dev/null; then
-        echo "AMD GPU detected, installing AMD OpenCL..."
-        pacman -S --noconfirm opencl-amd
+        echo "AMD GPU detected, please install AMD OpenCL by running:"
+        echo "pacman -S --noconfirm opencl-amd"
     elif lspci | grep -i intel > /dev/null; then
-        echo "INTEL GPU detected, installing INTEL OpenCL..."
-        pacman -S --noconfirm opencl-intel
+        echo "INTEL GPU detected, please install INTEL OpenCL by running:"
+        echo "pacman -S --noconfirm opencl-intel"
         echo "Intel OpenCL support can be a bit tricky — opencl-intel is usually good but sometimes the newer 
         intel-compute-runtime + related packages are needed for newer hardware. Confirm hardware detection 
         by running clinfo"
@@ -184,15 +188,15 @@ elif [ -f /etc/SuSE-release ] || grep -qi "opensuse" /etc/os-release; then
         if zypper search --installed-only x11-video-nvidiaG05 | grep -q x11-video-nvidiaG05; then
             echo "NVIDIA proprietary driver package is installed."
         else
-            echo "NVIDIA GPU detected, installing NVIDIA OpenCL..."
+            echo "NVIDIA GPU detected, install NVIDIA OpenCL by runing:"
             if grep -q "openSUSE Tumbleweed" /etc/os-release; then
-                zypper addrepo --no-gpgcheck --refresh https://download.nvidia.com/opensuse/tumbleweed NVIDIA
+                echo "zypper addrepo --no-gpgcheck --refresh https://download.nvidia.com/opensuse/tumbleweed NVIDIA"
             else
                 VERSION_ID=$(grep VERSION_ID /etc/os-release | cut -d'"' -f2)
-                zypper addrepo --no-gpgcheck --refresh https://download.nvidia.com/opensuse/leap/$VERSION_ID NVIDIA
+                echo "zypper addrepo --no-gpgcheck --refresh https://download.nvidia.com/opensuse/leap/$VERSION_ID NVIDIA"
             fi
             zypper refresh
-            zypper install nvidia-computeG05
+            echo "zypper install nvidia-computeG05"
         fi
     else 
         echo No NVIDIA GPU detected. Support for additional GPUs for OpenSUSE will be added in future releases.
