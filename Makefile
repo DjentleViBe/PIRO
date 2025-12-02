@@ -33,7 +33,7 @@ ifeq ($(strip $(LOCAL_PREFIX)),)
 else
     SYSROOT_FLAGS = --sysroot=$(LOCAL_PREFIX)
 endif
-CC = g++ ${SYSROOT_FLAGS}
+CC = g++
 MAKEFILE_DIR=$(CURDIR)
 $(info Current Directory: $(MAKEFILE_DIR))
 INCDIR += -I/usr/include/CL
