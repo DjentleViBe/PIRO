@@ -58,7 +58,7 @@ $(OBJDIR):
 	mkdir -p $@
 
 setup:
-	@echo "Running setup commands..."
+	@echo "Build devices completed."
 
 .PHONY: clean
 clean:
